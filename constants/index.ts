@@ -1,61 +1,63 @@
 export const headerData = [
-  // { title: "Home", href: "/" },
-  { title: "Men", href: "/men-s-fashion" },
-  { title: "Woman", href: "/woman" },
-  { title: "Kids", href: "/kids" },
-  { title: "New", href: "/new" },
-  { title: "Featured", href: "/featured" },
-  { title: "Gift", href: "/gift" },
+  // { title: "Inicio", href: "/" },
+  { title: "Hombre", href: "/men-s-fashion" },
+  { title: "Mujer", href: "/woman" },
+  { title: "Niños", href: "/kids" },
+  { title: "Nuevo", href: "/new" },
+  { title: "Destacados", href: "/featured" },
+  { title: "Regalos", href: "/gift" },
 ];
 
 export const productType = [
-  { title: "Tshirt", value: "tshirt" },
-  { title: "Jacket", value: "jacket" },
-  { title: "Pants", value: "pants" },
-  { title: "Hoodie", value: "hoodie" },
-  { title: "Short", value: "tshirt" },
+  { title: "Remeras", value: "tshirt" },
+  { title: "Camperas", value: "jacket" },
+  { title: "Pantalones", value: "pants" },
+  { title: "Buzos", value: "hoodie" },
+  { title: "Shorts", value: "short" },
 ];
 
 export const quickLinksData = [
-  { title: "About us", href: "/about" },
-  { title: "Contact us", href: "/contact" },
-  { title: "Terms & Conditions", href: "/terms" },
-  { title: "Privacy Policy", href: "/privacy" },
-  { title: "FAQs", href: "/faqs" },
+  { title: "Sobre nosotros", href: "/about" },
+  { title: "Contáctanos", href: "/contact" },
+  { title: "Términos y condiciones", href: "/terms" },
+  { title: "Política de privacidad", href: "/privacy" },
+  { title: "Preguntas frecuentes", href: "/faqs" },
 ];
+
 export const categoriesData = [
-  { title: "Men's Fashion", href: "/men-s-fashion" },
-  { title: "Women's Fashion", href: "/women" },
-  { title: "Kids corner", href: "/kids" },
-  { title: "Tshirt", href: "/t-shirt" },
-  { title: "Accessories", href: "/accessories" },
-  { title: "Household", href: "/household" },
-  { title: "Others", href: "/others" },
+  { title: "Moda masculina", href: "/men-s-fashion" },
+  { title: "Moda femenina", href: "/women" },
+  { title: "Niños", href: "/kids" },
+  { title: "Remeras", href: "/t-shirt" },
+  { title: "Accesorios", href: "/accessories" },
+  { title: "Hogar", href: "/household" },
+  { title: "Otros", href: "/others" },
 ];
+
 export const faqsData = [
   {
-    question: "What services does Tulos offer?",
+    question: "¿Qué servicios ofrece Smartcloth?",
     answer:
-      "Tulos offers a wide range of technology solutions including custom software development, cloud services, and digital transformation consulting.",
+      "Smartcloth ofrece una amplia gama de soluciones tecnológicas, incluyendo desarrollo de software a medida, servicios en la nube y consultoría en transformación digital.",
   },
   {
-    question: "How can I get support for Tulos products?",
+    question: "¿Cómo puedo obtener soporte para los productos de Smartcloth?",
     answer:
-      "You can reach our support team through our contact page or by emailing support@tulos.com.",
+      "Podés comunicarte con nuestro equipo de soporte a través de la página de contacto o enviando un correo electrónico a support@smartcloth.com.",
   },
   {
-    question: "Does Tulos offer training for its products?",
+    question: "Smartcloth ofrece capacitación para sus productos?",
     answer:
-      "Yes, we offer comprehensive training programs for all our products and services. Please contact our sales team for more information.",
+      "Sí, ofrecemos programas de capacitación completos para todos nuestros productos y servicios. Contactá a nuestro equipo de ventas para más información.",
   },
   {
-    question: "What industries does Tulos serve?",
+    question: "¿En qué industrias trabaja Smartcloth?",
     answer:
-      "Tulos serves a wide range of industries including finance, healthcare, retail, and manufacturing.",
+      "Smartcloth brinda servicios a una amplia variedad de industrias, incluyendo finanzas, salud, comercio minorista y manufactura.",
   },
   {
-    question: "How does Tulos ensure data security?",
+    question: "¿Cómo garantiza Smartcloth la seguridad de los datos?",
     answer:
-      "We employ industry-standard security measures and comply with all relevant data protection regulations to ensure the security of our clients' data.",
+      "Implementamos medidas de seguridad estándares de la industria y cumplimos con todas las normativas de protección de datos para asegurar la confidencialidad de la información de nuestros clientes.",
   },
 ];

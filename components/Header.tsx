@@ -26,7 +26,7 @@ const Header = async () => {
         <HeaderMenu categories={categories} />
         <div className="w-auto md:w-1/3 flex items-center justify-center gap-2.5">
           <MobileMenu categories={categories} />
-          <Logo>Tulos</Logo>
+          <Logo>SMARTCLOTH</Logo>
         </div>
         <div className="w-auto md:w-1/3 flex items-center justify-end gap-5">
           <SearchBar />
@@ -48,7 +48,7 @@ const Header = async () => {
                 href="/signin"
                 className="text-sm font-semibold hover:text-darkColor hoverEffect"
               >
-                Login
+                inicio sesión
               </Link>
             )}
           </ClerkLoaded>

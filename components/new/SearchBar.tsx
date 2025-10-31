@@ -61,7 +61,7 @@ const SearchBar = () => {
       </DialogTrigger>
       <DialogContent className="max-w-5xl min-h-[90vh] max-h-[90vh] flex flex-col overflow-hidden bg-white">
         <DialogHeader>
-          <DialogTitle className="mb-3">Product Searchbar</DialogTitle>
+          <DialogTitle className="mb-3">Búsqueda de pruductos</DialogTitle>
           <form className="relative" onSubmit={(e) => e.preventDefault()}>
             <Input
               placeholder="Search your product here..."
@@ -88,7 +88,7 @@ const SearchBar = () => {
             {loading ? (
               <p className="flex items-center px-6 gap-1 py-10 text-center text-green-600 font-semibold">
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Searching on progress...
+                  Busqueda en proceso...
               </p>
             ) : products?.length ? (
               products.map((product: Product) => (
@@ -143,14 +143,14 @@ const SearchBar = () => {
               <div className="text-center py-10 font-semibold tracking-wide">
                 {search && products?.length ? (
                   <p>
-                    Nothing match with the keyword{" "}
+                    Nada coincide con la búsqueda{" "}
                     <span className="underline text-red-600">{search}</span>.
-                    Please try something else.
+                    Por favor intenta de nuevo.
                   </p>
                 ) : (
                   <p className="text-green-600 flex items-center justify-center gap-1">
                     <Search className="w-5 h-5" />
-                    Search and explore your products from Tulos.
+                    Buscá los productos de Smartcloth.
                   </p>
                 )}
               </div>
