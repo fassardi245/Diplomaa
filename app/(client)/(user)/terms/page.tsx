@@ -1,48 +1,49 @@
 const TermsPage = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold mb-6">Terms and Conditions</h1>
+      <h1 className="text-3xl font-bold mb-6">Términos y Condiciones</h1>
       <div className="space-y-4">
         <section>
-          <h2 className="text-xl font-semibold mb-2">1. Acceptance of Terms</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            1. Aceptación de los términos
+          </h2>
           <p>
-            By accessing and using Tulos&apos;s services, you agree to be bound
-            by these Terms and Conditions.
+            Al acceder y utilizar los servicios de Smartcloth, aceptás estar
+            sujeto a estos Términos y Condiciones.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">2. Use of Services</h2>
+          <h2 className="text-xl font-semibold mb-2">2. Uso de los servicios</h2>
           <p>
-            You agree to use Tulos&apos;s services only for lawful purposes and
-            in accordance with these Terms and Conditions.
+            Te comprometés a utilizar los servicios de Smartcloth únicamente con
+            fines lícitos y de acuerdo con estos Términos y Condiciones.
           </p>
         </section>
         <section>
           <h2 className="text-xl font-semibold mb-2">
-            3. Intellectual Property
+            3. Propiedad intelectual
           </h2>
           <p>
-            All content and materials available on Tulos&apos;s services are the
-            property of Tulos and are protected by applicable intellectual
-            property laws.
+            Todo el contenido y los materiales disponibles en los servicios de
+            Smartcloth son propiedad de Smartcloth y están protegidos por las
+            leyes de propiedad intelectual aplicables.
           </p>
         </section>
         <section>
           <h2 className="text-xl font-semibold mb-2">
-            4. Limitation of Liability
+            4. Limitación de responsabilidad
           </h2>
           <p>
-            Tulos shall not be liable for any indirect, incidental, special,
-            consequential or punitive damages resulting from your use of our
-            services.
+            Smartcloth no será responsable de ningún daño indirecto, incidental,
+            especial, consecuente o punitivo que resulte del uso de nuestros
+            servicios.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">5. Governing Law</h2>
+          <h2 className="text-xl font-semibold mb-2">5. Legislación aplicable</h2>
           <p>
-            These Terms and Conditions shall be governed by and construed in
-            accordance with the laws of the jurisdiction in which Tulos
-            operates.
+            Estos Términos y Condiciones se regirán e interpretarán de acuerdo
+            con las leyes de la jurisdicción en la que opera Smartcloth.
           </p>
         </section>
       </div>

@@ -8,29 +8,29 @@ interface ContactItemData {
 
 const data: ContactItemData[] = [
   {
-    title: "Visit Us",
-    subtitle: "New Orlean, USA",
+    title: "Visitanos",
+    subtitle: "Rosario, ARG",
     icon: (
       <MapPin className="h-6 w-6 text-gray-600 group-hover:text-darkColor transition-colors" />
     ),
   },
   {
-    title: "Call Us",
-    subtitle: "+12 958 648 597",
+    title: "Llamanos",
+    subtitle: "+54 9 341 197-5264",
     icon: (
       <Phone className="h-6 w-6 text-gray-600 group-hover:text-darkColor transition-colors" />
     ),
   },
   {
-    title: "Working Hours",
-    subtitle: "Mon - Sat: 10:00 AM - 7:00 PM",
+    title: "Horas de trabajo",
+    subtitle: "Lun - Sab: 10:00 AM - 7:00 PM",
     icon: (
       <Clock className="h-6 w-6 text-gray-600 group-hover:text-darkColor transition-colors" />
     ),
   },
   {
-    title: "Email Us",
-    subtitle: "tulos@gmail.com",
+    title: "Envianos un mail",
+    subtitle: "smartcloth@gmail.com",
     icon: (
       <Mail className="h-6 w-6 text-gray-600 group-hover:text-darkColor transition-colors" />
     ),

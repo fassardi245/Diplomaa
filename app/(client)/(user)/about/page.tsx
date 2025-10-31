@@ -4,23 +4,24 @@ const AboutPage = () => {
   return (
     <div className="">
       <Container className="max-w-6xl lg:px-8 py-12">
-        <h1 className="text-3xl font-bold mb-6">About Tulos</h1>
+        <h1 className="text-3xl font-bold mb-6">Acerca de Smartcloth</h1>
         <p className="mb-4">
-          Tulos is a cutting-edge technology company dedicated to providing
-          innovative solutions for modern businesses. Founded in 2020,
-          we&apos;ve quickly established ourselves as a leader in digital
-          transformation and software development.
+          Smartcloth es una empresa tecnológica innovadora dedicada a ofrecer
+          soluciones modernas para los negocios de hoy. Fundada en 2020,
+          nos hemos posicionado rápidamente como líderes en transformación
+          digital y desarrollo de software.
         </p>
         <p className="mb-4">
-          Our team of expert developers, designers, and strategists work
-          tirelessly to create custom solutions that help our clients streamline
-          their operations, increase efficiency, and drive growth.
+          Nuestro equipo de desarrolladores, diseñadores y estrategas trabaja
+          incansablemente para crear soluciones personalizadas que ayudan a
+          nuestros clientes a optimizar sus operaciones, aumentar la eficiencia
+          y potenciar su crecimiento.
         </p>
         <p>
-          At Tulos, we believe in the power of technology to transform
-          businesses and improve lives. We&apos;re committed to staying at the
-          forefront of technological advancements and delivering exceptional
-          value to our clients.
+          En Smartcloth, creemos en el poder de la tecnología para transformar
+          los negocios y mejorar la vida de las personas. Nos comprometemos a
+          mantenernos a la vanguardia de los avances tecnológicos y a ofrecer
+          un valor excepcional a nuestros clientes.
         </p>
       </Container>
     </div>
