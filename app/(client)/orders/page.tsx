@@ -33,21 +33,21 @@ const OrdersPage = async () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[100px] md:w-auto">
-                        Order Number
+                        Numero de orden
                       </TableHead>
                       <TableHead className="hidden md:table-cell">
-                        Date
+                        Fecha
                       </TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Cliente</TableHead>
                       <TableHead className="hidden sm:table-cell">
                         Email
                       </TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Estado</TableHead>
                       <TableHead className="hidden sm:table-cell">
-                        Invoice Number
+                        Numero de Factura
                       </TableHead>
-                      <TableHead>Action</TableHead>
+                      <TableHead>Acción</TableHead>
                     </TableRow>
                   </TableHeader>
                   <OrdersComponent orders={orders} />
@@ -60,7 +60,7 @@ const OrdersPage = async () => {
           <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <FileX className="h-24 w-24 text-gray-400 mb-4" />
             <h2 className="text-2xl font-semibold text-gray-900">
-              No hay ordenes encontradas
+              No hay pedidos encontrados
             </h2>
             <p className="mt-2 text-sm text-gray-600 text-center max-w-md">
               Parece que aún no has realizado ningún pedido. ¡Empieza a comprar para ver tus pedidos aquí!

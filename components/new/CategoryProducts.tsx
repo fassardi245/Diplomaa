@@ -57,7 +57,7 @@ const CategoryProducts = ({ categories, slug }: Props) => {
           <div className="flex flex-col items-center justify-center py-10 min-h-80 space-y-4 text-center bg-gray-100 rounded-lg w-full">
             <motion.div className="flex items-center space-x-2 text-blue-600">
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Product is loading...</span>
+              <span>El producto esta cargando</span>
             </motion.div>
           </div>
         ) : products?.length ? (

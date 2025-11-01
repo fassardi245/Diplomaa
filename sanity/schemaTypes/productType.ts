@@ -81,12 +81,12 @@ export const productType = defineType({
       type: "string",
       options: {
         list: [
-          { title: "Remera", value: "tshirt" },
-          { title: "Campera", value: "jacket" },
-          { title: "Pantalón", value: "pants" },
-          { title: "Buzo", value: "hoodie" },
+          { title: "Remera", value: "remera" },
+          { title: "Campera", value: "campera" },
+          { title: "Pantalón", value: "pantalon" },
+          { title: "Buzo", value: "buzo" },
           { title: "Short", value: "short" },
-          { title: "Otros", value: "others" },
+          { title: "Otros", value: "otros" },
         ],
       },
     }),

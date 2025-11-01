@@ -9,10 +9,10 @@ export const headerData = [
 ];
 
 export const productType = [
-  { title: "Remeras", value: "tshirt" },
-  { title: "Camperas", value: "jacket" },
-  { title: "Pantalones", value: "pants" },
-  { title: "Buzos", value: "hoodie" },
+  { title: "Remeras", value: "remera" },
+  { title: "Camperas", value: "campera" },
+  { title: "Pantalones", value: "pantalon" },
+  { title: "Buzos", value: "buzo" },
   { title: "Shorts", value: "short" },
 ];
 
@@ -31,7 +31,7 @@ export const categoriesData = [
   { title: "Remeras", href: "/t-shirt" },
   { title: "Accesorios", href: "/accessories" },
   { title: "Hogar", href: "/household" },
-  { title: "Otros", href: "/others" },
+  { title: "Otros", href: "/otros" },
 ];
 
 export const faqsData = [

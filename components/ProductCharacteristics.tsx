@@ -12,18 +12,18 @@ const ProductCharacteristics = ({ product }: { product: Product }) => {
     <Accordion type="single" collapsible>
       <AccordionItem value="item-1">
         <AccordionTrigger className="font-bold">
-          {product?.name}: Characteristics
+          {product?.name}: Caracteristicas
         </AccordionTrigger>
         <AccordionContent className="flex flex-col gap-1">
           <p className="flex items-center justify-between">
-            Brand: <span className="font-semibold tracking-wide">Unknown</span>
+            Marca: <span className="font-semibold tracking-wide">Desconocida</span>
           </p>
           <p className="flex items-center justify-between">
-            Collection:{" "}
+            Colección:{" "}
             <span className="font-semibold tracking-wide">2024</span>
           </p>
           <p className="flex items-center justify-between">
-            Type:{" "}
+            Tipo:{" "}
             <span className="font-semibold tracking-wide">
               {product?.variant}
             </span>
@@ -31,11 +31,11 @@ const ProductCharacteristics = ({ product }: { product: Product }) => {
           <p className="flex items-center justify-between">
             Stock:{" "}
             <span className="font-semibold tracking-wide">
-              {product?.stock ? "Available" : "Out of Stock"}
+              {product?.stock ? "Disponible" : "Sin stock"}
             </span>
           </p>
           <p className="flex items-center justify-between">
-            Variant:{" "}
+            Variante:{" "}
             <span className="font-semibold tracking-wide">
               {product?.intro}
             </span>

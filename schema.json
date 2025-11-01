@@ -682,23 +682,23 @@
           "of": [
             {
               "type": "string",
-              "value": "pending"
+              "value": "pendiente"
             },
             {
               "type": "string",
-              "value": "paid"
+              "value": "pagado"
             },
             {
               "type": "string",
-              "value": "shipped"
+              "value": "en camino"
             },
             {
               "type": "string",
-              "value": "delivered"
+              "value": "entregado"
             },
             {
               "type": "string",
-              "value": "cancelled"
+              "value": "cancelado"
             }
           ]
         },
@@ -946,19 +946,19 @@
           "of": [
             {
               "type": "string",
-              "value": "tshirt"
+              "value": "remera"
             },
             {
               "type": "string",
-              "value": "jacket"
+              "value": "campera"
             },
             {
               "type": "string",
-              "value": "pants"
+              "value": "pantalon"
             },
             {
               "type": "string",
-              "value": "hoodie"
+              "value": "buzo"
             },
             {
               "type": "string",
@@ -966,7 +966,7 @@
             },
             {
               "type": "string",
-              "value": "others"
+              "value": "otros"
             }
           ]
         },
