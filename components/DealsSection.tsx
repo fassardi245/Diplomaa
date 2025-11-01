@@ -31,7 +31,7 @@ const DealsSection = () => {
   return (
     <Container className="">
       <h2 className="my-5 font-semibold text-xl underline underline-offset-4 decoration-[1px]">
-        Get your best shopping deals with us
+        Obtené los mejores precios con nosotros
       </h2>
       {loading ? (
         <Loading />

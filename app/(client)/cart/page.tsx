@@ -49,10 +49,10 @@ const CartPage = () => {
   }
 
   const handleResetCart = () => {
-    const confirmed = window.confirm("Are you sure to reset your Cart?");
+    const confirmed = window.confirm("¿Estás seguro de vaciar tu carrito?");
     if (confirmed) {
       resetCart();
-      toast.success("Your cart reset successfully!");
+      toast.success("¡Tu carrito se vació correctamente!");
     }
   };
 
@@ -61,8 +61,8 @@ const CartPage = () => {
     try {
       const metadata: Metadata = {
         orderNumber: crypto.randomUUID(),
-        customerName: user?.fullName ?? "Unknown",
-        customerEmail: user?.emailAddresses[0]?.emailAddress ?? "Unknown",
+        customerName: user?.fullName ?? "Desconocido",
+        customerEmail: user?.emailAddresses[0]?.emailAddress ?? "Desconocido",
         clerkUserId: user!.id,
       };
       const checkoutUrl = await createCheckoutSession(groupedItems, metadata);
@@ -70,7 +70,7 @@ const CartPage = () => {
         window.location.href = checkoutUrl;
       }
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      console.error("Error al crear la sesión de pago:", error);
     } finally {
       setLoading(false);
     }
@@ -78,8 +78,9 @@ const CartPage = () => {
 
   const handleDeleteProduct = (id: string) => {
     deleteCartProduct(id);
-    toast.success("Product deleted successfully!");
+    toast.success("¡Producto eliminado correctamente!");
   };
+
   return (
     <div className="bg-gray-50 pb-52 md:pb-10">
       {isSignedIn ? (
@@ -88,10 +89,10 @@ const CartPage = () => {
             <>
               <div className="flex items-center gap-2 py-5">
                 <ShoppingBag className="h-6 w-6 text-darkColor" />
-                <h1 className="text-2xl font-semibold">Shopping Cart</h1>
+                <h1 className="text-2xl font-semibold">Carrito de compras</h1>
               </div>
               <div className="grid lg:grid-cols-3 md:gap-8">
-                {/* Product View start */}
+                {/* Vista de productos */}
                 <div className="lg:col-span-2 rounded-lg">
                   <div className="border bg-white rounded-md">
                     {groupedItems?.map(({ product }) => {
@@ -106,7 +107,7 @@ const CartPage = () => {
                               <div className="border p-0.5 md:p-1 mr-2 rounded-md overflow-hidden group">
                                 <Image
                                   src={urlFor(product.images[0]).url()}
-                                  alt="productImage"
+                                  alt="imagenProducto"
                                   width={500}
                                   height={500}
                                   loading="lazy"
@@ -123,13 +124,13 @@ const CartPage = () => {
                                   {product?.intro}
                                 </p>
                                 <p className="text-sm capitalize">
-                                  Variant:{" "}
+                                  Variante:{" "}
                                   <span className="font-semibold">
                                     {product?.variant}
                                   </span>
                                 </p>
                                 <p className="text-sm capitalize">
-                                  Status:{" "}
+                                  Estado:{" "}
                                   <span className="font-semibold">
                                     {product?.status}
                                   </span>
@@ -142,7 +143,7 @@ const CartPage = () => {
                                       <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 text-gray-500 hover:text-red-600 hoverEffect" />
                                     </TooltipTrigger>
                                     <TooltipContent className="font-bold">
-                                      Add to Favorite
+                                      Agregar a favoritos
                                     </TooltipContent>
                                   </Tooltip>
                                   <Tooltip>
@@ -155,7 +156,7 @@ const CartPage = () => {
                                       />
                                     </TooltipTrigger>
                                     <TooltipContent className="font-bold bg-red-600">
-                                      Delete product
+                                      Eliminar producto
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -177,25 +178,24 @@ const CartPage = () => {
                       className="m-5 font-semibold"
                       variant="destructive"
                     >
-                      Reset Cart
+                      Vaciar carrito
                     </Button>
                   </div>
                 </div>
 
-                {/* Product View end */}
-
+                {/* Resumen del pedido */}
                 <div className="lg:col-span-1">
                   <div className="hidden md:inline-block w-full bg-white p-6 rounded-lg border">
                     <h2 className="text-xl font-semibold mb-4">
-                      Order Summary
+                      Resumen del pedido
                     </h2>
                     <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span>SubTotal</span>
+                        <span>Subtotal</span>
                         <PriceFormatter amount={getSubTotalPrice()} />
                       </div>
                       <div className="flex justify-between">
-                        <span>Discount</span>
+                        <span>Descuento</span>
                         <PriceFormatter
                           amount={getSubTotalPrice() - getTotalPrice()}
                         />
@@ -204,7 +204,6 @@ const CartPage = () => {
                       <Separator />
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-
                         <PriceFormatter
                           amount={useCartStore?.getState().getTotalPrice()}
                           className="text-lg font-bold text-black"
@@ -216,7 +215,7 @@ const CartPage = () => {
                         className="w-full cursor-pointer rounded-full font-semibold tracking-wide"
                         size="lg"
                       >
-                        {loading ? "Processing" : "Proceed to Checkout"}
+                        {loading ? "Procesando..." : "Continuar con el pago"}
                       </Button>
                       <Link
                         href="/"
@@ -225,25 +224,26 @@ const CartPage = () => {
                         <Image
                           src={paypalLogo}
                           className="w-20"
-                          alt="paypalLogo"
+                          alt="Logo de PayPal"
                         />
                       </Link>
                     </div>
                   </div>
                 </div>
-                {/* Order summary mobile view */}
+
+                {/* Vista móvil del resumen */}
                 <div className="md:hidden fixed bottom-0 left-0 w-full bg-white pt-2">
                   <div className="bg-white p-4 rounded-lg border mx-4">
                     <h2 className="text-lg font-semibold mb-2">
-                      Order Summary
+                      Resumen del pedido
                     </h2>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>SubTotal</span>
+                        <span>Subtotal</span>
                         <PriceFormatter amount={getSubTotalPrice()} />
                       </div>
                       <div className="flex justify-between">
-                        <span>Discount</span>
+                        <span>Descuento</span>
                         <PriceFormatter
                           amount={getSubTotalPrice() - getTotalPrice()}
                         />
@@ -252,7 +252,6 @@ const CartPage = () => {
                       <Separator />
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-
                         <PriceFormatter
                           amount={useCartStore?.getState().getTotalPrice()}
                           className="text-lg font-bold text-black"
@@ -264,7 +263,7 @@ const CartPage = () => {
                         className="w-full rounded-full font-semibold tracking-wide"
                         size="lg"
                       >
-                        {loading ? "Processing" : "Proceed to Checkout"}
+                        {loading ? "Procesando..." : "Continuar con el pago"}
                       </Button>
                       <Link
                         href="/"
@@ -273,7 +272,7 @@ const CartPage = () => {
                         <Image
                           src={paypalLogo}
                           className="w-20"
-                          alt="paypalLogo"
+                          alt="Logo de PayPal"
                         />
                       </Link>
                     </div>
