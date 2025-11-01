@@ -20,11 +20,12 @@ const QuantityButtons = ({ product, className, borderStyle }: Props) => {
   const handleRemoveProduct = () => {
     removeItem(product?._id);
     if (itemCount > 1) {
-      toast.success("Quantity Decreased successfully!");
+      toast.success("¡Cantidad reducida correctamente!");
     } else {
-      toast.success(`${product?.name?.substring(0, 12)} removed successfully!`);
+      toast.success(`${product?.name?.substring(0, 12)} eliminado con éxito!`);
     }
   };
+
   return (
     <div
       className={twMerge(
@@ -51,7 +52,7 @@ const QuantityButtons = ({ product, className, borderStyle }: Props) => {
         className="w-6 h-6 cursor-pointer"
         onClick={() => {
           addItem(product);
-          toast.success("Quantity increased successfully!");
+          toast.success("¡Cantidad aumentada correctamente!");
         }}
         disabled={isOutOfStock}
       >

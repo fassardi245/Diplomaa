@@ -3,13 +3,13 @@ import { defineField, defineType } from "sanity";
 
 export const productType = defineType({
   name: "product",
-  title: "Products",
+  title: "Productos",
   type: "document",
   icon: TrolleyIcon,
   fields: [
     defineField({
       name: "name",
-      title: "Product Name",
+      title: "Nombre del producto",
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
@@ -25,69 +25,68 @@ export const productType = defineType({
     }),
     defineField({
       name: "images",
-      title: "Product Images",
+      title: "Imágenes del producto",
       type: "array",
       of: [{ type: "image", options: { hotspot: true } }],
     }),
     defineField({
       name: "intro",
-      title: "Product Intro",
+      title: "Introducción del producto",
       type: "string",
     }),
     defineField({
       name: "description",
-      title: "Description",
+      title: "Descripción",
       type: "string",
     }),
     defineField({
       name: "price",
-      title: "Price",
+      title: "Precio",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
       name: "discount",
-      title: "Discount",
+      title: "Descuento",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
       name: "categories",
-      title: "Categories",
+      title: "Categorías",
       type: "array",
       of: [{ type: "reference", to: { type: "category" } }],
     }),
     defineField({
       name: "stock",
-      title: "Stock",
+      title: "Stock disponible",
       type: "number",
       validation: (Rule) => Rule.min(0),
     }),
-
     defineField({
       name: "status",
-      title: "Product Status",
+      title: "Estado del producto",
       type: "string",
       options: {
         list: [
-          { title: "New", value: "new" },
-          { title: "Hot", value: "hot" },
-          { title: "Sale", value: "sale" },
+          { title: "Nuevo", value: "new" },
+          { title: "Destacado", value: "hot" },
+          { title: "En oferta", value: "sale" },
         ],
       },
     }),
     defineField({
       name: "variant",
-      title: "Product Type",
+      title: "Tipo de producto",
       type: "string",
       options: {
         list: [
-          { title: "Tshirt", value: "tshirt" },
-          { title: "Jacket", value: "jacket" },
-          { title: "Pants", value: "pants" },
-          { title: "Hoodie", value: "hoodie" },
+          { title: "Remera", value: "tshirt" },
+          { title: "Campera", value: "jacket" },
+          { title: "Pantalón", value: "pants" },
+          { title: "Buzo", value: "hoodie" },
           { title: "Short", value: "short" },
-          { title: "Others", value: "others" },
+          { title: "Otros", value: "others" },
         ],
       },
     }),

@@ -3,25 +3,25 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse the request body
+    // Analiza el cuerpo de la solicitud
     const { orderId } = await req.json();
 
-    // Validate orderId
+    // Validar el ID de la orden
     if (!orderId) {
       return NextResponse.json(
-        { error: "Order ID is required" },
+        { error: "Se requiere el ID de la orden" },
         { status: 400 }
       );
     }
 
-    // Delete the order from Sanity
+    // Eliminar la orden de Sanity
     await backendClient.delete(orderId);
 
-    return NextResponse.json({ message: "Order deleted successfully" });
+    return NextResponse.json({ message: "Orden eliminada correctamente" });
   } catch (error) {
-    console.error("Error deleting order:", error);
+    console.error("Error al eliminar la orden:", error);
     return NextResponse.json(
-      { error: "Failed to delete order" },
+      { error: "No se pudo eliminar la orden" },
       { status: 500 }
     );
   }

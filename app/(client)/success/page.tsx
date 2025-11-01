@@ -69,33 +69,31 @@ const SuccessPage = () => {
         </motion.div>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Order Confirmed!
+          Pedido confirmado!
         </h1>
         <div className="space-y-4 mb-8 text-left">
           <p className="text-gray-700">
-            Thank you for your purchase. We&apos;re processing your order and
-            will ship it soon. A confirmation email with your order details will
-            be sent to your inbox shortly.
+            Gracias por su compra. Estamos procesando su pedido y lo enviaremos pronto. En breve recibirá una notificación de confirmación con los detalles de su pedido.
           </p>
           <p className="text-gray-700">
-            Order Number:{" "}
+            Numero de pedido:{" "}
             <span className="text-black font-semibold">{orderNumber}</span>
           </p>
         </div>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8">
           <h2 className="font-semibold text-gray-900 mb-2">
-            What&apos;s Next?
+            Que sigue?
           </h2>
           <ul className="text-gray-700 text-sm space-y-1">
-            <li>Check your email for order confirmation</li>
-            <li>We&apos;ll notify you when your order ships</li>
-            <li>Track your order status anytime</li>
+            <li>Chequea las notificaciones para la confirmacion del pedido</li>
+            <li>Te vamos a avisar cuando llegue el pedido</li>
+            <li>Mira el estado de tu pedido en cualquier momento</li>
           </ul>
         </div>
 
         <div className="mb-8">
-          <h3 className="font-semibold text-gray-900 mb-2">Recent Orders</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">Pedidos recientes</h3>
           <div className="space-y-2">
             {orders.map((order) => (
               <div
@@ -126,7 +124,7 @@ const SuccessPage = () => {
             className="flex items-center justify-center px-4 py-3 font-semibold bg-white text-black border border-black rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md"
           >
             <Package className="w-5 h-5 mr-2" />
-            Orders
+            Pedidos
           </Link>
           <Link
             href="/"

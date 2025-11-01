@@ -24,21 +24,23 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
   const handleOrderClick = (order: MY_ORDERS_QUERYResult[number]) => {
     setSelectedOrder(order);
   };
+
   const router = useRouter();
 
   const refreshOrders = useCallback(() => {
-    // This will trigger a refresh of the page data
+    // Esto actualiza los datos de la página
     router.refresh();
   }, [router]);
+
   const handleDeleteOrder = async (
     orderId: string,
     event: React.MouseEvent
   ) => {
-    event.stopPropagation(); // Prevent expanding the order when clicking delete
+    event.stopPropagation(); // Evita abrir el detalle al hacer clic en eliminar
 
     if (
       !confirm(
-        "Are you sure you want to delete this order? This action cannot be undone."
+        "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
       )
     ) {
       return;
@@ -57,21 +59,21 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete order");
+        throw new Error(
+          errorData.error || "No se pudo eliminar la orden."
+        );
       }
 
-      // Update the local state to remove the deleted order
+      toast.success("¡Orden eliminada correctamente!");
 
-      toast.success("Order deleted successfully");
-
-      // Refresh the page data to get the updated orders list
+      // Refresca la lista de órdenes
       refreshOrders();
     } catch (error) {
-      console.error("Error deleting order:", error);
+      console.error("Error al eliminar la orden:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to delete order. Please try again."
+          : "No se pudo eliminar la orden. Intenta nuevamente."
       );
     } finally {
       setIsDeleting(null);
@@ -90,7 +92,7 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                   onClick={() => handleOrderClick(order)}
                 >
                   <TableCell className="font-medium">
-                    {order.orderNumber?.slice(-10) ?? "N/A"}...
+                    {order.orderNumber?.slice(-10) ?? "N/D"}...
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {order?.orderDate &&
@@ -115,8 +117,9 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {order?.status.charAt(0).toUpperCase() +
-                          order?.status.slice(1)}
+                        {order?.status === "paid"
+                          ? "Pagado"
+                          : "Pendiente"}
                       </span>
                     )}
                   </TableCell>
@@ -129,12 +132,12 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {/* Delete button */}
+                    {/* Botón de eliminar */}
                     <button
                       onClick={(e) => handleDeleteOrder(order._id, e)}
                       className="ml-2 text-red-500 hover:text-red-700 cursor-pointer transition-colors"
                       disabled={isDeleting === order._id}
-                      aria-label="Delete order"
+                      aria-label="Eliminar orden"
                     >
                       {isDeleting === order._id ? (
                         <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -146,7 +149,7 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                 </TableRow>
               </TooltipTrigger>
               <TooltipContent className="text-white font-medium">
-                <p>Click to see order details</p>
+                <p>Haz clic para ver los detalles de la orden</p>
               </TooltipContent>
             </Tooltip>
           ))}

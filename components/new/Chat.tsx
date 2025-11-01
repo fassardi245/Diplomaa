@@ -35,7 +35,7 @@ export default function Chat({ pageId, appId }: FacebookMessengerProps) {
         xfbml: true,
         version: "v17.0",
       });
-      console.log("Facebook SDK initialized successfully");
+      console.log("SDK de Facebook inicializado correctamente");
       setIsSDKLoaded(true);
     };
 
@@ -43,13 +43,13 @@ export default function Chat({ pageId, appId }: FacebookMessengerProps) {
       if (document.getElementById("facebook-jssdk")) return;
       const js = document.createElement("script");
       js.id = "facebook-jssdk";
-      js.src = `https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0&appId=${appId}`;
+      js.src = `https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v17.0&appId=${appId}`;
       js.async = true;
-      js.onload = () => console.log("Facebook SDK loaded successfully");
+      js.onload = () => console.log("SDK de Facebook cargado correctamente");
       js.onerror = (error) => {
-        console.error("Failed to load Facebook SDK:", error);
+        console.error("Error al cargar el SDK de Facebook:", error);
         setError(
-          "Failed to load Facebook Messenger. Please try refreshing the page."
+          "No se pudo cargar el chat de Facebook Messenger. Intenta actualizar la página."
         );
       };
       document.body.appendChild(js);

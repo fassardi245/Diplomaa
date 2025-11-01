@@ -64,7 +64,7 @@ const SearchBar = () => {
           <DialogTitle className="mb-3">Búsqueda de pruductos</DialogTitle>
           <form className="relative" onSubmit={(e) => e.preventDefault()}>
             <Input
-              placeholder="Search your product here..."
+              placeholder="Busca tus productos aqui..."
               className="flex-1 rounded-md py-5 font-semibold"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

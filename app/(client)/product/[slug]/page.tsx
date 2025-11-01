@@ -39,7 +39,7 @@ const ProductPage = async ({
           </div>
           {product?.stock && (
             <p className="bg-green-100 w-24 text-center text-green-600 text-sm py-2.5 font-semibold rounded-lg">
-              In Stock
+              En Stock
             </p>
           )}
 
@@ -59,36 +59,36 @@ const ProductPage = async ({
           <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-b-gray-200 py-5 -mt-2">
             <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
               <RxBorderSplit className="text-lg" />
-              <p>Compare color</p>
+              <p>Comparar color</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
               <FaRegQuestionCircle className="text-lg" />
-              <p>Ask a question</p>
+              <p>Hacer una consulta</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
               <TbTruckDelivery className="text-lg" />
-              <p>Delivery & Return</p>
+              <p>Delivery y devolucion</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
               <FiShare2 className="text-lg" />
-              <p>Share</p>
+              <p>Compartir</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-5">
             <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
               <p className="text-base font-semibold text-black">
-                Free Shipping
+                Envio gratis
               </p>
               <p className="text-sm text-gray-500">
-                Free shipping over order $120
+                Envio gratis a partir de los $120
               </p>
             </div>
             <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
               <p className="text-base font-semibold text-black">
-                Flexible Payment
+                Pago sencillo
               </p>
               <p className="text-sm text-gray-500">
-                Pay with Multiple Credit Cards
+                Pagar con varias tarjetas de credito
               </p>
             </div>
           </div>

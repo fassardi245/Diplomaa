@@ -35,7 +35,7 @@ const AddToCartButton = ({ product, className }: Props) => {
       {itemCount ? (
         <div className="text-sm w-full">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Quantity</span>
+            <span className="text-xs text-muted-foreground">Cantidad</span>
             <QuantityButtons product={product} />
           </div>
           <div className="flex items-center justify-between border-t pt-1">
@@ -50,7 +50,7 @@ const AddToCartButton = ({ product, className }: Props) => {
           onClick={() => {
             addItem(product);
             toast.success(
-              `${product?.name?.substring(0, 12)}... added successfully!`
+              `${product?.name?.substring(0, 12)}... añadido con éxito!`
             );
           }}
           disabled={isOutOfStock}
@@ -59,7 +59,7 @@ const AddToCartButton = ({ product, className }: Props) => {
             className
           )}
         >
-          Add to cart
+          Agregar al carrito
         </Button>
       )}
     </div>
