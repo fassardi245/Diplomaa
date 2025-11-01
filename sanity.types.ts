@@ -126,7 +126,7 @@ export type Order = {
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+  status?: "pendiente" | "pagado" | "en camino" | "entregado" | "cancelado";
   orderDate?: string;
 };
 
@@ -163,7 +163,7 @@ export type Product = {
   }>;
   stock?: number;
   status?: "new" | "hot" | "sale";
-  variant?: "tshirt" | "jacket" | "pants" | "hoodie" | "short" | "others";
+  variant?: "remera" | "campera" | "pantalon" | "buzo" | "short" | "otros";
 };
 
 export type Category = {
@@ -320,7 +320,7 @@ export type PRODUCTS_QUERYResult = Array<{
   }>;
   stock?: number;
   status?: "hot" | "new" | "sale";
-  variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+  variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: CATEGORIES_QUERY
 // Query: *[_type=="category"] | order(name asc)
@@ -380,7 +380,7 @@ export type PRODUCT_SEARCH_QUERYResult = Array<{
   }>;
   stock?: number;
   status?: "hot" | "new" | "sale";
-  variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+  variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: PRODUCT_BY_ID_QUERY
 // Query: *[_type == "product" && slug.current == $slug] | order(name asc) [0]
@@ -417,7 +417,7 @@ export type PRODUCT_BY_ID_QUERYResult = {
   }>;
   stock?: number;
   status?: "hot" | "new" | "sale";
-  variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+  variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 } | null;
 // Variable: PRODUCT_BY_CATEGORY_QUERY
 // Query: *[_type == 'product' && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc)
@@ -454,7 +454,7 @@ export type PRODUCT_BY_CATEGORY_QUERYResult = Array<{
   }>;
   stock?: number;
   status?: "hot" | "new" | "sale";
-  variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+  variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: SALE_QUERY
 // Query: *[_type == 'sale'] | order(name asc)
@@ -538,7 +538,7 @@ export type MY_ORDERS_QUERYResult = Array<{
       }>;
       stock?: number;
       status?: "hot" | "new" | "sale";
-      variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+      variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
     } | null;
     quantity?: number;
     _key: string;
@@ -546,7 +546,7 @@ export type MY_ORDERS_QUERYResult = Array<{
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "cancelled" | "delivered" | "paid" | "pending" | "shipped";
+  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino";
   orderDate?: string;
 }>;
 
@@ -605,7 +605,7 @@ export type QueryResult = Array<{
       }>;
       stock?: number;
       status?: "hot" | "new" | "sale";
-      variant?: "hoodie" | "jacket" | "others" | "pants" | "short" | "tshirt";
+      variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
     } | null;
     quantity?: number;
     _key: string;
@@ -613,7 +613,7 @@ export type QueryResult = Array<{
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "cancelled" | "delivered" | "paid" | "pending" | "shipped";
+  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino";
   orderDate?: string;
 }>;
 

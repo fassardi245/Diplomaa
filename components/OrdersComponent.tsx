@@ -112,12 +112,12 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                     {order?.status && (
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          order.status === "paid"
+                          order.status === "pagado"
                             ? "bg-green-100 text-green-800"
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {order?.status === "paid"
+                        {order?.status === "pagado"
                           ? "Pagado"
                           : "Pendiente"}
                       </span>

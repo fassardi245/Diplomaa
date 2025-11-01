@@ -32,33 +32,33 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-scroll bg-white">
         <DialogHeader>
-          <DialogTitle>Order Details - {order.orderNumber}</DialogTitle>
+          <DialogTitle>Detalles del pedido - {order.orderNumber}</DialogTitle>
         </DialogHeader>
         <div className="mt-4">
           <p>
-            <strong>Customer:</strong> {order.customerName}
+            <strong>Cliente:</strong> {order.customerName}
           </p>
           <p>
             <strong>Email:</strong> {order.email}
           </p>
           <p>
-            <strong>Date:</strong>{" "}
+            <strong>Fecha:</strong>{" "}
             {order.orderDate && new Date(order.orderDate).toLocaleDateString()}
           </p>
           <p>
-            <strong>Status:</strong>{" "}
+            <strong>Estado:</strong>{" "}
             <span className="capitalize text-green-600 font-medium">
               {order.status}
             </span>
           </p>
           <p>
-            <strong>Invoice Number:</strong> {order?.invoice?.number}
+            <strong>Numero de factura:</strong> {order?.invoice?.number}
           </p>
           {order?.invoice && (
             <Button className="bg-transparent border text-darkColor/80 mt-2 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect ">
               {order?.invoice?.hosted_invoice_url && (
                 <Link href={order?.invoice?.hosted_invoice_url} target="_blank">
-                  Download Invoice
+                  Descargar factura
                 </Link>
               )}
             </Button>
@@ -67,9 +67,9 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Producto</TableHead>
+              <TableHead>Calidad</TableHead>
+              <TableHead>Precio</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
