@@ -25,7 +25,7 @@ const OrdersPage = async () => {
         {orders?.length ? (
           <Card className="w-full">
             <CardHeader>
-              <CardTitle className="text-2xl md:text-3xl">Order List</CardTitle>
+              <CardTitle className="text-2xl md:text-3xl"> Lista de pedidos</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="w-full">

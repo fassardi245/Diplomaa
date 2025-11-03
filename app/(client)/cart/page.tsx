@@ -9,7 +9,6 @@ import useCartStore from "@/store";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Heart, ShoppingBag, Trash } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import EmptyCart from "@/components/EmptyCart";
@@ -18,7 +17,6 @@ import {
   createCheckoutSession,
   Metadata,
 } from "@/actions/createCheckoutSession";
-import paypalLogo from "@/images/paypalLogo.png";
 import {
   Tooltip,
   TooltipContent,
@@ -142,7 +140,7 @@ const CartPage = () => {
                                     <TooltipTrigger>
                                       <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 text-gray-500 hover:text-red-600 hoverEffect" />
                                     </TooltipTrigger>
-                                    <TooltipContent className="font-bold">
+                                    <TooltipContent className="font-bold bg-white text-black border border-gray-300 shadow-md">
                                       Agregar a favoritos
                                     </TooltipContent>
                                   </Tooltip>
@@ -217,16 +215,6 @@ const CartPage = () => {
                       >
                         {loading ? "Procesando..." : "Continuar con el pago"}
                       </Button>
-                      <Link
-                        href="/"
-                        className="text-center text-sm text-darkColor hover:underline border border-darkColor/50 rounded-full flex items-center justify-center py-2 hover:bg-darkColor/5 hover:border-darkColor hoverEffect"
-                      >
-                        <Image
-                          src={paypalLogo}
-                          className="w-20"
-                          alt="Logo de PayPal"
-                        />
-                      </Link>
                     </div>
                   </div>
                 </div>
@@ -265,16 +253,6 @@ const CartPage = () => {
                       >
                         {loading ? "Procesando..." : "Continuar con el pago"}
                       </Button>
-                      <Link
-                        href="/"
-                        className="text-center text-sm text-darkColor hover:underline border border-darkColor/50 rounded-full flex items-center justify-center py-2 hover:bg-darkColor/5 hover:border-darkColor hoverEffect"
-                      >
-                        <Image
-                          src={paypalLogo}
-                          className="w-20"
-                          alt="Logo de PayPal"
-                        />
-                      </Link>
                     </div>
                   </div>
                 </div>
