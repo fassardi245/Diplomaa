@@ -7,9 +7,7 @@ const AboutPage = () => {
         <h1 className="text-3xl font-bold mb-6">Acerca de Smartcloth</h1>
         <p className="mb-4">
           Smartcloth es una empresa tecnológica innovadora dedicada a ofrecer
-          soluciones modernas para los negocios de hoy. Fundada en 2020,
-          nos hemos posicionado rápidamente como líderes en transformación
-          digital y desarrollo de software.
+          soluciones modernas para los negocios de hoy. Fundada en 2025.
         </p>
         <p className="mb-4">
           Nuestro equipo de desarrolladores, diseñadores y estrategas trabaja
@@ -20,7 +18,7 @@ const AboutPage = () => {
         <p>
           En Smartcloth, creemos en el poder de la tecnología para transformar
           los negocios y mejorar la vida de las personas. Nos comprometemos a
-          mantenernos a la vanguardia de los avances tecnológicos y a ofrecer
+          mantenernos atentos a los avances tecnológicos y a ofrecer
           un valor excepcional a nuestros clientes.
         </p>
       </Container>
