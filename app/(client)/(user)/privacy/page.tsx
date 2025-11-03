@@ -1,43 +1,38 @@
 const PrivacyPage = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+      <h1 className="text-3xl font-bold mb-6">Políticas de privacidad</h1>
       <div className="space-y-4">
         <section>
           <h2 className="text-xl font-semibold mb-2">
-            1. Information Collection
+            1. Recopilación de información
           </h2>
           <p>
-            We collect information you provide directly to us when using our
-            services, as well as information about your use of our services.
+            Recopilamos la información que nos proporciona directamente al usar nuestros servicios, así como información sobre su uso de los mismos.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">2. Use of Information</h2>
+          <h2 className="text-xl font-semibold mb-2">2. Uso de la información</h2>
           <p>
-            We use the information we collect to provide, maintain, and improve
-            our services, as well as to communicate with you.
+            Utilizamos la información que recopilamos para proporcionar, mantener y mejorar nuestros servicios, así como para comunicarnos con usted.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">3. Information Sharing</h2>
+          <h2 className="text-xl font-semibold mb-2">3. Compartir información</h2>
           <p>
-            We do not share your personal information with third parties except
-            as described in this Privacy Policy or with your consent.
+            No compartimos su información personal con terceros, salvo en los casos descritos en esta Política de Privacidad o con su consentimiento.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">4. Data Security</h2>
+          <h2 className="text-xl font-semibold mb-2">4. Seguridad de los datos</h2>
           <p>
-            We take reasonable measures to help protect your personal
-            information from loss, theft, misuse, and unauthorized access.
+            Tomamos medidas razonables para proteger su información personal contra pérdida, robo, uso indebido y acceso no autorizado.
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold mb-2">5. Your Rights</h2>
+          <h2 className="text-xl font-semibold mb-2">5. Sus derechos</h2>
           <p>
-            You have the right to access, correct, or delete your personal
-            information. Please contact us for assistance with these requests.
+            Tiene derecho a acceder, corregir o eliminar su información personal. Póngase en contacto con nosotros para obtener ayuda con estas solicitudes.
           </p>
         </section>
       </div>

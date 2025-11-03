@@ -1,8 +1,8 @@
 export const headerData = [
   // { title: "Inicio", href: "/" },
-  { title: "Hombre", href: "/men-s-fashion" },
-  { title: "Mujer", href: "/woman" },
-  { title: "Niños", href: "/kids" },
+  { title: "Hombre", href: "/hombre" },
+  { title: "Mujer", href: "/mujer" },
+  { title: "Chicos", href: "/chicos" },
   { title: "Nuevo", href: "/new" },
   { title: "Destacados", href: "/featured" },
   { title: "Regalos", href: "/gift" },
@@ -25,12 +25,12 @@ export const quickLinksData = [
 ];
 
 export const categoriesData = [
-  { title: "Moda masculina", href: "/men-s-fashion" },
-  { title: "Moda femenina", href: "/women" },
-  { title: "Niños", href: "/kids" },
-  { title: "Remeras", href: "/t-shirt" },
-  { title: "Accesorios", href: "/accessories" },
-  { title: "Hogar", href: "/household" },
+  { title: "Moda masculina", href: "/hombre" },
+  { title: "Moda femenina", href: "/mujer" },
+  { title: "Chicos", href: "/chicos" },
+  { title: "Remeras", href: "/remeras" },
+  { title: "Accesorios", href: "/accesorios" },
+  { title: "Hogar", href: "/hogar" },
   { title: "Otros", href: "/otros" },
 ];
 
