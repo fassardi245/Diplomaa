@@ -79,9 +79,6 @@ const ProductPage = async ({
               <p className="text-base font-semibold text-black">
                 Envio gratis
               </p>
-              <p className="text-sm text-gray-500">
-                Envio gratis a partir de los $120
-              </p>
             </div>
             <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
               <p className="text-base font-semibold text-black">

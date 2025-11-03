@@ -121,23 +121,23 @@ export const orderType = defineType({
       options: {
         list: [
           {
-            title: "Pending",
+            title: "Pendiente",
             value: "pendiente",
           },
           {
-            title: "pagado",
+            title: "Pagado",
             value: "pagado",
           },
           {
-            title: "Shipped",
+            title: "En camino",
             value: "en camino",
           },
           {
-            title: "Delivered",
+            title: "Entregado",
             value: "entregado",
           },
           {
-            title: "Cancelled",
+            title: "Cancelado",
             value: "cancelado",
           },
         ],
