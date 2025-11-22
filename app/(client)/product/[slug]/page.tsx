@@ -24,6 +24,9 @@ const ProductPage = async ({
     return notFound();
   }
 
+  // Lógica para saber si está agotado (stock 0 o negativo)
+  const isOutOfStock = product?.stock === undefined || product?.stock <= 0;
+
   return (
     <div>
       <Container className="flex flex-col md:flex-row gap-10 py-10">
@@ -37,7 +40,13 @@ const ProductPage = async ({
               className="text-lg font-bold"
             />
           </div>
-          {product?.stock && (
+
+          {/* ETIQUETA DE STOCK DINÁMICA */}
+          {isOutOfStock ? (
+            <p className="bg-red-100 w-28 text-center text-red-600 text-sm py-2.5 font-semibold rounded-lg">
+              Agotado
+            </p>
+          ) : (
             <p className="bg-green-100 w-24 text-center text-green-600 text-sm py-2.5 font-semibold rounded-lg">
               En Stock
             </p>
@@ -46,15 +55,28 @@ const ProductPage = async ({
           <p className="text-sm text-gray-600 tracking-wide">
             {product?.description}
           </p>
+
           <div className="flex items-center gap-2.5 lg:gap-5">
-            <AddToCartButton
-              product={product}
-              className="bg-darkColor/80 text-white hover:bg-darkColor hoverEffect"
-            />
+            {/* BOTÓN DINÁMICO: Si no hay stock, muestra botón gris deshabilitado */}
+            {isOutOfStock ? (
+              <button
+                disabled
+                className="bg-gray-300 text-gray-500 px-6 py-3 rounded-md cursor-not-allowed opacity-80"
+              >
+                Sin Stock
+              </button>
+            ) : (
+              <AddToCartButton
+                product={product}
+                className="bg-darkColor/80 text-white hover:bg-darkColor hoverEffect"
+              />
+            )}
+
             <button className="border-2 border-darkColor/30 text-darkColor/60 px-2.5 py-1.5 rounded-md hover:text-darkColor hover:border-darkColor hoverEffect">
               <Heart className="w-5 h-5" />
             </button>
           </div>
+
           <ProductCharacteristics product={product} />
           <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-b-gray-200 py-5 -mt-2">
             <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
@@ -76,9 +98,7 @@ const ProductPage = async ({
           </div>
           <div className="flex flex-wrap items-center gap-5">
             <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
-              <p className="text-base font-semibold text-black">
-                Envio gratis
-              </p>
+              <p className="text-base font-semibold text-black">Envio gratis</p>
             </div>
             <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
               <p className="text-base font-semibold text-black">

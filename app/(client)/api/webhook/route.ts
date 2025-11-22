@@ -72,27 +72,25 @@ async function createOrderInSanity(
   session: Stripe.Checkout.Session,
   invoice: Stripe.Invoice | null
 ) {
-  // console.log("createOrderInSanity", invoice);
-
   const {
     id,
     amount_total,
     currency,
     metadata,
     payment_intent,
-    // customer,
     total_details,
   } = session;
 
   const { orderNumber, customerName, customerEmail, clerkUserId } =
     metadata as unknown as Metadata;
 
+  // 1. Traemos los items expandidos para leer la metadata del producto
   const lineItemsWithProduct = await stripe.checkout.sessions.listLineItems(
     id,
     { expand: ["data.price.product"] }
   );
 
-  // Creating sanity product reference
+  // 2. Preparamos los productos para guardarlos en la Orden de Sanity
   const sanityProducts = lineItemsWithProduct.data.map((item) => ({
     _key: crypto.randomUUID(),
     product: {
@@ -101,6 +99,8 @@ async function createOrderInSanity(
     },
     quantity: item?.quantity || 0,
   }));
+
+  // 3. CREAMOS LA ORDEN (Esto ya lo tenías)
   const order = await backendClient.create({
     _type: "order",
     orderNumber,
@@ -114,7 +114,6 @@ async function createOrderInSanity(
     amountDiscount: total_details?.amount_discount
       ? total_details.amount_discount / 100
       : 0,
-
     products: sanityProducts,
     totalPrice: amount_total ? amount_total / 100 : 0,
     status: "pagado",
@@ -127,5 +126,32 @@ async function createOrderInSanity(
         }
       : null,
   });
+  
+  // 4. DESCONTAMOS STOCK de cada producto comprado
+  console.log("Iniciando descuento de stock...");
+
+  for (const item of lineItemsWithProduct.data) {
+    const stripeProduct = item.price?.product as Stripe.Product;
+    // Usamos el ID que guardaste en la metadata de Stripe
+    const sanityId = stripeProduct?.metadata?.id; 
+    const quantityBought = item.quantity || 1;
+
+    if (sanityId) {
+      try {
+        await backendClient
+          .patch(sanityId) // Buscamos el producto por su ID de Sanity
+          .dec({ stock: quantityBought }) // Restamos la cantidad (.dec = decrement)
+          .commit(); // Guardamos los cambios
+          
+        console.log(`Stock descontado (-${quantityBought}) para el producto: ${sanityId}`);
+      } catch (err) {
+        console.error(`Error restando stock al producto ${sanityId}:`, err);
+        // No detenemos el proceso si falla uno, seguimos con el siguiente
+      }
+    } else {
+        console.warn("No se encontró ID de Sanity en la metadata del producto de Stripe");
+    }
+  }
+
   return order;
 }

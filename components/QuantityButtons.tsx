@@ -15,7 +15,11 @@ interface Props {
 const QuantityButtons = ({ product, className, borderStyle }: Props) => {
   const { addItem, removeItem, getItemCount } = useCartStore();
   const itemCount = getItemCount(product?._id);
-  const isOutOfStock = product?.stock === 0;
+  
+  // 1. DEFINIMOS EL STOCK SEGURO Y EL LIMITE
+  const stock = product?.stock || 0; 
+  const isOutOfStock = stock === 0; 
+  const reachedMaxStock = itemCount >= stock; // <--- Nueva variable clave
 
   const handleRemoveProduct = () => {
     removeItem(product?._id);
@@ -24,6 +28,16 @@ const QuantityButtons = ({ product, className, borderStyle }: Props) => {
     } else {
       toast.success(`${product?.name?.substring(0, 12)} eliminado con éxito!`);
     }
+  };
+
+  const handleAddProduct = () => {
+    // 2. PROTECCIÓN EXTRA EN LA FUNCIÓN
+    if (reachedMaxStock) {
+        toast.error(`Solo quedan ${stock} unidades disponibles.`);
+        return;
+    }
+    addItem(product);
+    toast.success("¡Cantidad aumentada correctamente!");
   };
 
   return (
@@ -43,18 +57,21 @@ const QuantityButtons = ({ product, className, borderStyle }: Props) => {
       >
         <HiMinus />
       </Button>
+      
       <span className="font-semibold w-8 text-center text-darkColor">
         {itemCount}
       </span>
+
       <Button
         variant="outline"
         size="icon"
-        className="w-6 h-6 cursor-pointer"
-        onClick={() => {
-          addItem(product);
-          toast.success("¡Cantidad aumentada correctamente!");
-        }}
-        disabled={isOutOfStock}
+        // 3. CAMBIAMOS EL ESTILO SI ESTÁ AL MÁXIMO
+        className={twMerge(
+            "w-6 h-6 cursor-pointer",
+            reachedMaxStock && "opacity-50 cursor-not-allowed" 
+        )}
+        onClick={handleAddProduct} // Usamos la nueva función creada arriba
+        disabled={isOutOfStock || reachedMaxStock} // <--- BLOQUEO DEL BOTÓN
       >
         <HiPlus />
       </Button>
