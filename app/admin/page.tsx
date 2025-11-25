@@ -3,6 +3,8 @@ import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+
+
 // Definimos las "Apps" o módulos disponibles en el sistema
 // Aquí vinculamos: Nombre visual <-> Permiso necesario <-> Ruta
 const SYSTEM_MODULES = [
@@ -44,6 +46,7 @@ export default async function AdminDashboard() {
   // 1. Auth Check
   const user = await currentUser();
   if (!user) return redirect("/sign-in");
+console.log("MI CLERK ID REAL ES:", user?.id); // <--- Agrega esto
 
   // 2. Security Check (Composite Pattern)
   const usuarioSeguridad = await obtenerUsuarioSeguridad(
@@ -51,6 +54,7 @@ export default async function AdminDashboard() {
     user.emailAddresses[0]?.emailAddress
   );
 
+  
   // Filtramos los módulos: Solo mostramos aquellos donde .puedo() sea true
   const modulosDisponibles = SYSTEM_MODULES.filter((modulo) =>
     usuarioSeguridad.puedo(modulo.permission)

@@ -48,6 +48,8 @@ export async function obtenerUsuarioSeguridad(clerkId: string, email: string) {
 
   const userSanity = await backendClient.fetch(query, { clerkId });
 
+
+
   // Si no existe en Sanity, devolvemos un usuario sin permisos
   if (!userSanity || !userSanity.rolesAsignados) {
     return new Usuario(clerkId, email, []);

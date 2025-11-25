@@ -7,10 +7,9 @@ export const userType = defineType({
   type: "document",
   icon: UserIcon,
   fields: [
-    defineField({ name: "clerkId", type: "string", readOnly: true }),
+    defineField({ name: "clerkId", type: "string"}),
     defineField({ name: "email", type: "string" }),
     
-    // CAMBIO AQUÍ: Ahora es un ARRAY de referencias (Muchos a Muchos)
     defineField({
       name: "rolesAsignados", // Le cambié el nombre para que tenga sentido en plural
       title: "Grupos o Permisos Asignados",
@@ -28,7 +27,6 @@ export const userType = defineType({
   preview: {
     select: {
       title: "email",
-      // Un truco para mostrar cuántos roles tiene en la vista previa
       role0: "rolesAsignados.0.nombre",
       role1: "rolesAsignados.1.nombre",
     },
