@@ -3,146 +3,151 @@ import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
+import { 
+  Plus, MapPin, AlertCircle, CheckCircle2, Wrench, Truck
+} from "lucide-react";
 
-// 1. Definimos la interfaz EXACTA según tu schema vehicleType.ts
+// Interfaz para TypeScript
 interface Vehicle {
   _id: string;
-  model: string;      // Antes era 'modelo'
-  plate: string;      // Antes era 'patente'
-  status: string;     // "available" | "in_transit" | "maintenance"
-  fuelLevel: number;  // Tu schema tiene nivel de combustible, no capacidad
-  imageUrl?: string;  // Para la foto
+  model: string;
+  plate: string;
+  status: string;
+  fuelLevel: number;
+  mileage?: number;         // Puede venir o no
+  lastMaintenance?: string; // Puede venir o no
+  currentRoute?: string;
+  imageUrl?: string;
 }
 
-// 2. Función para traer los datos con los nombres correctos
 async function getVehiculos() {
-  // OJO AQUÍ: _type debe ser "vehicle" (como dice en name: 'vehicle')
-  const query = `*[_type == "vehicle"] {
-    _id,
-    model,
-    plate,
-    status,
-    fuelLevel,
+  // OJO: Aquí pedimos explícitamente 'mileage', 'lastMaintenance', 'currentRoute'
+  const query = `*[_type == "vehicle"] | order(_createdAt desc) {
+    _id, model, plate, status, fuelLevel, 
+    mileage, lastMaintenance, currentRoute,
     "imageUrl": image.asset->url 
   }`;
   
-  // "imageUrl": image.asset->url  <-- Esto es magia de GROQ para sacar el link de la foto
-  
-  return await client.fetch(query);
+  // Usamos fetch con 'no-store' para que NO use caché y veas los cambios al instante
+  return await client.fetch(query, {}, { cache: 'no-store' });
 }
 
 export default async function FleetPage() {
-  // --- SEGURIDAD ---
   const user = await currentUser();
-  if (!user) return <div>Inicia sesión por favor.</div>;
+  if (!user) return <div>Inicia sesión.</div>;
 
-  const usuarioSeguridad = await obtenerUsuarioSeguridad(
-    user.id, 
-    user.emailAddresses[0].emailAddress
-  );
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  if (!usuarioSeguridad.puedo("ver_flota")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
-  if (!usuarioSeguridad.puedo("ver_flota")) {
-    return <div className="p-10 text-red-600 font-bold">⛔ Acceso Denegado</div>;
-  }
-
-  // --- DATOS ---
-  // Le decimos a Next.js que no cachee esto para ver cambios al instante
   const vehiculos: Vehicle[] = await getVehiculos();
 
-  // Helper para traducir los estados de inglés (Schema) a español (Vista)
-  const traducirEstado = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'available': return { texto: '🟢 Disponible', clase: 'bg-green-100 text-green-800' };
-      case 'in_transit': return { texto: '🚚 En Ruta', clase: 'bg-blue-100 text-blue-800' };
-      case 'maintenance': return { texto: '🔧 Mantenimiento', clase: 'bg-yellow-100 text-yellow-800' };
-      default: return { texto: status, clase: 'bg-gray-100' };
+      case 'available': return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200"><CheckCircle2 className="w-3 h-3 mr-1"/>Disponible</span>;
+      case 'in_transit': return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"><Truck className="w-3 h-3 mr-1"/>En Ruta</span>;
+      case 'maintenance': return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200"><Wrench className="w-3 h-3 mr-1"/>Mantenimiento</span>;
+      default: return <span className="text-gray-500 text-xs">{status}</span>;
     }
   };
 
   return (
-    <div className="p-10">
+    <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">🚛 Gestión de Flota</h1>
-        
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Gestión de Flota</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Vista general de {vehiculos.length} unidades.</p>
+        </div>
         {usuarioSeguridad.puedo("editar_vehiculo") && (
-          <Link 
-            href="/admin/flota/nuevo" 
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow-md"
-          >
-            + Agregar Nuevo Vehículo
+          <Link href="/admin/flota/nuevo" className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition">
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Vehículo</span>
           </Link>
         )}
       </div>
 
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
-        <table className="min-w-full leading-normal">
-          <thead>
-            <tr className="bg-gray-50 text-left border-b border-gray-200">
-              <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Vehículo</th>
-              <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Patente</th>
-              <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
-              <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Combustible</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehiculos.map((v) => {
-              const estadoInfo = traducirEstado(v.status);
-              
-              return (
-                <tr key={v._id} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                  <td className="px-5 py-4 bg-white">
-                    <div className="flex items-center">
-                      {/* Si tiene imagen, la mostramos */}
-                      <div className="flex-shrink-0 w-10 h-10 relative mr-3">
-                        {v.imageUrl ? (
-                          <Image 
-                            src={v.imageUrl} 
-                            alt={v.model} 
-                            fill 
-                            className="rounded-full object-cover border"
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold">
+              <tr>
+                <th className="px-4 py-3">Unidad</th>
+                <th className="px-4 py-3">Estado / Ruta</th>
+                <th className="px-4 py-3">Kilometraje</th>
+                <th className="px-4 py-3">Último Service</th>
+                <th className="px-4 py-3">Combustible</th>
+                <th className="px-4 py-3 text-right"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {vehiculos.map((v) => (
+                <tr key={v._id} className="hover:bg-gray-50/50 transition">
+                  {/* UNIDAD */}
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
+                        {v.imageUrl ? <Image src={v.imageUrl} alt={v.model} fill className="object-cover" /> : <span className="text-xs">🚛</span>}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 leading-none">{v.model}</div>
+                        <div className="font-mono text-[10px] text-gray-500 mt-1 bg-gray-100 px-1 rounded w-fit border border-gray-200 uppercase">{v.plate}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* ESTADO */}
+                  <td className="px-4 py-2.5">
+                    <div className="flex flex-col gap-1 items-start">
+                      {getStatusBadge(v.status)}
+                      {v.status === 'in_transit' && v.currentRoute && (
+                        <div className="flex items-center gap-1 text-[10px] text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                          <MapPin className="w-3 h-3 text-red-500" />
+                          {v.currentRoute}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* KILOMETRAJE */}
+                  <td className="px-4 py-2.5 font-mono text-xs text-gray-600">
+                    {/* Verificamos si existe el dato, sino mostramos '-' */}
+                    {(v.mileage !== undefined && v.mileage !== null) ? v.mileage.toLocaleString() + " km" : "-"}
+                  </td>
+
+                  {/* FECHA */}
+                  <td className="px-4 py-2.5 text-xs text-gray-600">
+                    {v.lastMaintenance ? v.lastMaintenance : <span className="text-gray-300 italic">--/--/--</span>}
+                  </td>
+
+                  {/* COMBUSTIBLE */}
+                  <td className="px-4 py-2.5 w-32">
+                    <div className="flex items-center gap-2">
+                       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${v.fuelLevel < 20 ? 'bg-red-500' : 'bg-green-500'}`} 
+                            style={{ width: `${v.fuelLevel}%` }}
                           />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">🚛</div>
-                        )}
-                      </div>
-                      <p className="text-gray-900 font-bold">{v.model || "Sin Modelo"}</p>
+                       </div>
+                       <span className="text-[10px] font-bold w-6 text-right">{v.fuelLevel}%</span>
                     </div>
                   </td>
-                  
-                  <td className="px-5 py-4 bg-white text-sm">
-                    <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-700 border">
-                      {v.plate}
-                    </span>
-                  </td>
-                  
-                  <td className="px-5 py-4 bg-white text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${estadoInfo.clase}`}>
-                      {estadoInfo.texto}
-                    </span>
-                  </td>
-                  
-                  <td className="px-5 py-4 bg-white text-sm">
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2.5 mr-2">
-                        <div 
-                          className={`h-2.5 rounded-full ${v.fuelLevel < 20 ? 'bg-red-500' : 'bg-green-500'}`} 
-                          style={{ width: `${v.fuelLevel}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-500">{v.fuelLevel}%</span>
-                    </div>
+                  {/* COLUMNA ACCIONES */}
+                  <td className="px-4 py-2.5 text-right">
+                    {usuarioSeguridad.puedo("editar_vehiculo") && (
+                      <Link 
+                        href={`/admin/flota/${v._id}`} 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-black hover:bg-gray-50 transition shadow-sm"
+                      >
+                        {/* Puedes importar Pencil de lucide-react */}
+                         Editar
+                      </Link>
+                    )}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {vehiculos.length === 0 && (
-          <div className="p-12 text-center text-gray-500">
-            <p className="text-lg">No se encontraron vehículos.</p>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+          {vehiculos.length === 0 && <div className="p-6 text-center text-gray-400 text-sm">No hay vehículos registrados.</div>}
+        </div>
       </div>
     </div>
   );

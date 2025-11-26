@@ -17,15 +17,12 @@ export const vehicleType = defineType({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: {
-        source: "plate",
-        maxLength: 96,
-      },
+      options: { source: "plate", maxLength: 96 },
     }),
     defineField({
       name: "model",
       title: "Modelo y Marca",
-      type: "string", // Ej: "Ford Transit 2023"
+      type: "string",
     }),
     defineField({
       name: "status",
@@ -33,11 +30,11 @@ export const vehicleType = defineType({
       type: "string",
       options: {
         list: [
-          { title: "🟢 Disponible", value: "available" },
-          { title: "🚚 En Ruta", value: "in_transit" },
-          { title: "🔧 En Mantenimiento", value: "maintenance" },
+          { title: "Disponible", value: "available" },
+          { title: "En Ruta", value: "in_transit" },
+          { title: "Mantenimiento", value: "maintenance" },
         ],
-        layout: "radio", // Se verán como botoncitos
+        layout: "radio",
       },
       initialValue: "available",
     }),
@@ -47,13 +44,29 @@ export const vehicleType = defineType({
       type: "number",
       validation: (Rule) => Rule.min(0).max(100),
     }),
+    // --- CAMPOS NUEVOS ---
+    defineField({
+      name: "mileage",
+      title: "Kilometraje",
+      type: "number",
+      validation: (Rule) => Rule.min(0),
+    }),
+    defineField({
+      name: "lastMaintenance",
+      title: "Última Revisión",
+      type: "date",
+      options: { dateFormat: 'YYYY-MM-DD' } // Corregido: Sin calendarTodayLabel
+    }),
+    defineField({
+      name: "currentRoute",
+      title: "Ruta Actual",
+      type: "string",
+    }),
     defineField({
       name: "image",
-      title: "Foto del Vehículo",
+      title: "Foto",
       type: "image",
-      options: {
-        hotspot: true,
-      },
+      options: { hotspot: true },
     }),
   ],
   preview: {

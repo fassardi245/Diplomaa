@@ -2,8 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { client } from "@/sanity/lib/client";
 import { syncUsers } from "@/actions/syncUsers";
-import Image from "next/image";
-import Link from "next/link"; // <--- IMPORTANTE: Importar Link
+import Link from "next/link"; 
+import { RefreshCw } from "lucide-react"; // <--- Agregamos el icono bonito
 
 // 1. Definimos la interfaz
 interface UsuarioSanity {
@@ -61,13 +61,15 @@ export default async function UsuariosPage() {
           <p className="text-gray-500 text-sm mt-1">Administra roles y permisos del sistema</p>
         </div>
         
-        {/* Botón de Sincronización */}
+        {/* Botón de Sincronización MEJORADO */}
         <form action={handleSync}>
           <button 
             type="submit" 
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition shadow flex items-center gap-2"
+            className="group flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-2.5 rounded-full font-bold shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 active:scale-95"
           >
-            <span>🔄</span> Sincronizar con Clerk
+            {/* El icono gira suavemente al pasar el mouse */}
+            <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
+            <span>Sincronizar con Clerk</span>
           </button>
         </form>
 

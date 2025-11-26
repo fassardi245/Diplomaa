@@ -25,17 +25,19 @@ const Header = async () => {
 
   // 2. Lógica de Seguridad (Admin Visual)
   let esAdmin = false;
+  
   if (user) {
     const seguridad = await obtenerUsuarioSeguridad(
       user.id,
       user.emailAddresses[0]?.emailAddress
     );
     
-    // ⚠️ CORRECCIÓN APLICADA: 
-    // Ahora verificamos estrictamente el NOMBRE del rol.
-    // Si es "Empleado Logística" -> False (No ve el escudo).
-    // Si es "Admin" -> True (Ve el escudo).
-    esAdmin = seguridad.nombreRol.includes("Admin");
+    // ⚠️ CORRECCIÓN DEFINITIVA:
+    // 1. Convertimos la lista de nombres (string) en un Array real separando por comas.
+    // 2. Buscamos si alguno es EXACTAMENTE "Admin".
+    // "Acceso Panel Admin" NO es igual a "Admin", así que dará false para empleados.
+    const roles = seguridad.nombreRol.split(",").map(r => r.trim());
+    esAdmin = roles.includes("Admin");
   }
 
   return (
@@ -51,8 +53,8 @@ const Header = async () => {
         <div className="w-auto md:w-1/3 flex items-center justify-end gap-5">
           <SearchBar />
           
-          {/* --- ETIQUETA ADMIN (VISUAL, NO CLICABLE) --- */}
-          {/* Solo se muestra si el rol es estrictamente 'Admin' */}
+          {/* --- ETIQUETA ADMIN (VISUAL) --- */}
+          {/* Solo aparece si el rol es estrictamente 'Admin' */}
           {esAdmin && (
             <div 
               title="Modo Administrador Activo"
@@ -62,7 +64,7 @@ const Header = async () => {
               <span>Admin</span>
             </div>
           )}
-          {/* --------------------------------------------- */}
+          {/* ------------------------------- */}
 
           <CartIcon />
           
