@@ -67,6 +67,15 @@ export class Usuario {
     private rolesAsignados: Component[] 
   ) {}
 
+  get nombreRol(): string {
+      if (!this.rolesAsignados || this.rolesAsignados.length === 0) {
+        return "Sin Grupo Asignado";
+      }
+      // Une los nombres de todos los grupos con una coma
+      return this.rolesAsignados.map((rol) => rol.nombre).join(", ");
+    }
+
+
   /**
    * Método público para verificar seguridad en el Frontend.
    * Recorre todos los grupos asignados al usuario.

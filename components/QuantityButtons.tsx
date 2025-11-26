@@ -19,7 +19,7 @@ const QuantityButtons = ({ product, className, borderStyle }: Props) => {
   // 1. DEFINIMOS EL STOCK SEGURO Y EL LIMITE
   const stock = product?.stock || 0; 
   const isOutOfStock = stock === 0; 
-  const reachedMaxStock = itemCount >= stock; // <--- Nueva variable clave
+  const reachedMaxStock = itemCount >= stock; 
 
   const handleRemoveProduct = () => {
     removeItem(product?._id);

@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "../../../sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { redirect } from "next/navigation";
 
 export default async function FleetPage() {
