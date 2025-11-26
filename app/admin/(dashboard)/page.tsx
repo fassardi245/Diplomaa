@@ -33,7 +33,7 @@ export default async function AdminDashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Panel de Control</h1>
           <p className="text-gray-500">Bienvenido, {user.firstName}. Aquí tienes el resumen de tu tienda.</p>
         </div>
-        <div className="text-sm text-gray-400 bg-white px-3 py-1 rounded-full border border-gray-200">
+        <div className="text-sm text-black bg-white px-3 py-1 rounded-full border border-gray-200">
            Rol actual: <span className="font-semibold text-black">{usuarioSeguridad.nombreRol || "Usuario"}</span>
         </div>
       </div>
