@@ -4,16 +4,16 @@ import { backendClient } from "@/sanity/lib/backendClient";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function createVehicle(formData: FormData) {
+export async function updateVehicle(formData: FormData) {
+  const id = formData.get("id") as string;
   const model = formData.get("model") as string;
   const plate = formData.get("plate") as string;
   const fuelLevel = Number(formData.get("fuelLevel")) || 0;
   const mileage = Number(formData.get("mileage")) || 0;
   const imageFile = formData.get("image") as File;
 
-  if (!model || !plate) throw new Error("Faltan datos");
+  if (!id) throw new Error("Falta ID");
 
-  // Lógica de imagen (Igual que antes)
   let imageAsset = undefined;
   if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
     try {
@@ -27,20 +27,16 @@ export async function createVehicle(formData: FormData) {
     } catch (err) { console.error(err); }
   }
 
-  const slugValue = plate.toLowerCase().replace(/\s+/g, '-').trim();
-
-  await backendClient.create({
-    _type: "vehicle",
+  // PATCH: NO tocamos 'status' ni 'currentRoute'
+  const patch = backendClient.patch(id).set({
     model,
     plate,
-    status: "available", // <--- SIEMPRE DISPONIBLE AL CREAR
     fuelLevel,
     mileage,
-    currentRoute: "", // Sin ruta inicial
-    image: imageAsset,
-    slug: { _type: "slug", current: slugValue }
+    ...(imageAsset && { image: imageAsset }),
   });
 
+  await patch.commit();
   revalidatePath("/admin/flota");
   redirect("/admin/flota");
 }

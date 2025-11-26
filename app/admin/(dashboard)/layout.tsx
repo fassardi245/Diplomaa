@@ -1,13 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
-import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; // Importamos el nuevo cliente
+import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; 
 import { 
   LayoutDashboard, 
   Truck, 
   Users, 
   Database, 
-  Package 
+  Package,
+  Wrench // <--- NUEVO ICONO IMPORTADO
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -29,18 +30,49 @@ export default async function AdminLayout({
   }
 
   const menuItems = [
-    { name: "Dashboard", href: "/admin", icon: <LayoutDashboard className="w-5 h-5" />, permission: "acceso_panel_admin" },
-    { name: "Flota de Vehículos", href: "/admin/flota", icon: <Truck className="w-5 h-5" />, permission: "ver_flota" },
-    { name: "Gestión Usuarios", href: "/admin/users", icon: <Users className="w-5 h-5" />, permission: "gestionar_seguridad" },
-    { name: "Pedidos", href: "/admin/orders", icon: <Package className="w-5 h-5" />, permission: "ver_pedidos" },
-    { name: "Base de Datos", href: "/admin/studio", icon: <Database className="w-5 h-5" />, permission: "acceso_studio", external: true },
+    { 
+      name: "Dashboard", 
+      href: "/admin", 
+      icon: <LayoutDashboard className="w-5 h-5" />, 
+      permission: "acceso_panel_admin" 
+    },
+    { 
+      name: "Flota de Vehículos", 
+      href: "/admin/flota", 
+      icon: <Truck className="w-5 h-5" />, 
+      permission: "ver_flota" 
+    },
+    { 
+      name: "Mantenimiento", // <--- NUEVA SECCIÓN
+      href: "/admin/mantenimiento", 
+      icon: <Wrench className="w-5 h-5" />, 
+      permission: "ver_flota" // Usamos el mismo permiso que flota (o crea uno nuevo si prefieres)
+    },
+    { 
+      name: "Gestión Usuarios", 
+      href: "/admin/users", 
+      icon: <Users className="w-5 h-5" />, 
+      permission: "gestionar_seguridad" 
+    },
+    { 
+      name: "Pedidos", 
+      href: "/admin/orders", 
+      icon: <Package className="w-5 h-5" />, 
+      permission: "ver_pedidos" 
+    },
+    { 
+      name: "Base de Datos", 
+      href: "/admin/studio", 
+      icon: <Database className="w-5 h-5" />, 
+      permission: "acceso_studio", 
+      external: true 
+    },
   ];
 
   const authorizedMenuItems = menuItems.filter(item => 
     usuarioSeguridad.puedo(item.permission)
   );
 
-  // En lugar de renderizar el HTML aquí, se lo pasamos al componente Cliente
   return (
     <AdminLayoutClient 
         menuItems={authorizedMenuItems}
