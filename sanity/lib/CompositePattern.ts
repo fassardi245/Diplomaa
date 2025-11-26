@@ -63,30 +63,26 @@ export class Usuario {
   constructor(
     public clerkId: string,
     public email: string | null,
-    // Un usuario puede tener múltiples roles (Array de Components)
     private rolesAsignados: Component[] 
   ) {}
 
+  // --- ESTO ES LO QUE TE FALTA O TIENE ERROR ---
+  // Este "get" permite que puedas llamar a .nombreRol como si fuera una variable
   get nombreRol(): string {
-      if (!this.rolesAsignados || this.rolesAsignados.length === 0) {
-        return "Sin Grupo Asignado";
-      }
-      // Une los nombres de todos los grupos con una coma
-      return this.rolesAsignados.map((rol) => rol.nombre).join(", ");
-    }
-
-
-  /**
-   * Método público para verificar seguridad en el Frontend.
-   * Recorre todos los grupos asignados al usuario.
-   */
-  puedo(accion: string): boolean {
-    // Si el usuario no tiene roles, no puede hacer nada.
     if (!this.rolesAsignados || this.rolesAsignados.length === 0) {
-      return false;
+      return "Sin Grupo";
     }
+    return this.rolesAsignados.map((rol) => rol.nombre).join(", ");
+  }
+  // ---------------------------------------------
 
-    // Preguntamos a cada Rol/Grupo si tiene el permiso.
+  private esSuperAdmin(): boolean {
+    return this.rolesAsignados.some(rol => rol.nombre === "Admin");
+  }
+
+  puedo(accion: string): boolean {
+    if (!this.rolesAsignados || this.rolesAsignados.length === 0) return false;
+    if (this.esSuperAdmin()) return true;
     return this.rolesAsignados.some((rol) => rol.tienePermiso(accion));
   }
 }
