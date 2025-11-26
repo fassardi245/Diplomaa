@@ -9,9 +9,10 @@ async function getStats() {
   const productsCount = await backendClient.fetch(`count(*[_type == "product"])`);
   const ordersCount = await backendClient.fetch(`count(*[_type == "order"])`);
   const usersCount = await backendClient.fetch(`count(*[_type == "usuario"])`);
-  const lowStock = await backendClient.fetch(`count(*[_type == "product" && stock < 5])`);
+  // Agregamos un conteo de vehículos en mantenimiento para mostrar alerta si hay alguno
+  const maintenanceCount = await backendClient.fetch(`count(*[_type == "vehicle" && status == "maintenance"])`);
   
-  return { productsCount, ordersCount, usersCount, lowStock };
+  return { productsCount, ordersCount, usersCount, maintenanceCount };
 }
 
 export default async function AdminDashboard() {
@@ -43,11 +44,13 @@ export default async function AdminDashboard() {
         <StatCard title="Ventas Totales" value={stats.ordersCount} icon="💰" color="bg-green-100 text-green-700" />
         <StatCard title="Usuarios" value={stats.usersCount} icon="👥" color="bg-blue-100 text-blue-700" />
         <StatCard title="Productos" value={stats.productsCount} icon="📦" color="bg-purple-100 text-purple-700" />
+        
+        {/* Si hay vehículos en taller, mostramos eso en vez de stock crítico, o ambos si prefieres */}
         <StatCard 
-          title="Stock Crítico" 
-          value={stats.lowStock} 
-          icon="⚠️" 
-          color={stats.lowStock > 0 ? "bg-red-100 text-red-700 animate-pulse" : "bg-gray-100 text-gray-700"} 
+          title="En Taller" 
+          value={stats.maintenanceCount} 
+          icon="🔧" 
+          color={stats.maintenanceCount > 0 ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-700"} 
         />
       </div>
 
@@ -75,7 +78,17 @@ export default async function AdminDashboard() {
           />
         )}
 
-        {/* Productos (Directo al Studio) */}
+        {/* --- NUEVO: MANTENIMIENTO --- */}
+        {usuarioSeguridad.puedo("ver_flota") && (
+          <DashboardLink 
+            href="/admin/mantenimiento" 
+            title="Taller y Servicios" 
+            desc="Historial de reparaciones y service."
+            icon="🔧"
+          />
+        )}
+
+        {/* Productos */}
         {usuarioSeguridad.puedo("gestionar_productos") && (
         <DashboardLink 
           href="/admin/studio/structure/product" 
@@ -86,7 +99,7 @@ export default async function AdminDashboard() {
         />
         )}
         
-        {/* Categorías (Directo al Studio) */}
+        {/* Categorías */}
          {usuarioSeguridad.puedo("gestionar_categorias") && (
           <DashboardLink 
           href="/admin/studio/structure/category" 
@@ -101,7 +114,7 @@ export default async function AdminDashboard() {
   );
 }
 
-// Componentes pequeños para limpiar el código
+// Componentes pequeños
 function StatCard({ title, value, icon, color }: any) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
@@ -124,7 +137,7 @@ function DashboardLink({ href, title, desc, icon, external }: any) {
       className="group bg-white p-6 rounded-xl border border-gray-200 hover:border-black transition-colors duration-300 relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-6xl">
-        {icon}
+        {typeof icon === 'string' ? icon : ''} 
       </div>
       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform">
         {icon}

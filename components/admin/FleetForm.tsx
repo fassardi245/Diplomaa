@@ -2,11 +2,10 @@
 
 import { useState, useRef } from "react";
 import { createVehicle } from "@/actions/createVehicle";
-import { updateVehicle } from "@/actions/updateVehicle"; // Importamos la nueva acción
-import { Save, Image as ImageIcon, X, Upload } from "lucide-react";
+import { updateVehicle } from "@/actions/updateVehicle"; 
+import { Save, Image as ImageIcon, X, Upload, Lock, Calendar } from "lucide-react";
 import Image from "next/image";
 
-// Definimos qué datos esperamos recibir si es edición
 interface FleetFormProps {
   vehicle?: {
     _id: string;
@@ -22,20 +21,14 @@ interface FleetFormProps {
 }
 
 export default function FleetForm({ vehicle }: FleetFormProps) {
-  // Si hay vehículo, es EDICIÓN. Si no, es CREACIÓN.
   const isEditing = !!vehicle;
-
-  // Estados iniciales (Si editamos, usamos los datos del vehículo)
-  const [status, setStatus] = useState(vehicle?.status || "available");
   const [preview, setPreview] = useState<string | null>(vehicle?.imageUrl || null);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -44,21 +37,26 @@ export default function FleetForm({ vehicle }: FleetFormProps) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Traducción visual de estados
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available': return "🟢 Disponible";
+      case 'in_transit': return "🚚 En Ruta";
+      case 'maintenance': return "🔧 En Taller";
+      default: return status;
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-      {/* MAGIA AQUÍ: 
-         Si es edición -> usa updateVehicle 
-         Si es nuevo -> usa createVehicle 
-      */}
       <form action={isEditing ? updateVehicle : createVehicle} className="p-6">
         
-        {/* Si editamos, necesitamos enviar el ID oculto */}
         {isEditing && <input type="hidden" name="id" value={vehicle._id} />}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-6">
           
-          {/* COLUMNA IZQUIERDA */}
-          <div className="space-y-4">
+          {/* --- COLUMNA IZQUIERDA: DATOS TÉCNICOS --- */}
+          <div className="space-y-5">
              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
                 <input name="model" type="text" required placeholder="Ej: Toyota Hilux" defaultValue={vehicle?.model}
@@ -84,15 +82,20 @@ export default function FleetForm({ vehicle }: FleetFormProps) {
                 </div>
              </div>
              
-             <div>
-               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Última Revisión</label>
-               <input name="lastMaintenance" type="date" defaultValue={vehicle?.lastMaintenance}
-                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none text-gray-600" />
-            </div>
+             {/* FECHA DE REVISIÓN (SOLO LECTURA) */}
+             {isEditing && (
+               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Última Revisión</label>
+                  <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                     <Calendar className="w-4 h-4 text-gray-400"/>
+                     {vehicle?.lastMaintenance ? vehicle.lastMaintenance : "- (Sin registros)"}
+                  </div>
+               </div>
+             )}
           </div>
 
-          {/* COLUMNA DERECHA */}
-          <div className="space-y-4">
+          {/* --- COLUMNA DERECHA: FOTO Y ESTADO (SOLO LECTURA) --- */}
+          <div className="space-y-5">
              
              {/* FOTO */}
              <div>
@@ -123,35 +126,48 @@ export default function FleetForm({ vehicle }: FleetFormProps) {
                 </div>
              </div>
 
-             <hr className="border-gray-100 my-6" />
+             <hr className="border-gray-100" />
 
-             {/* ESTADO */}
-             <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Estado Actual</label>
-                <select name="status" value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black bg-white cursor-pointer">
-                    <option value="available">🟢 Disponible</option>
-                    <option value="in_transit">🚚 En Ruta</option>
-                    <option value="maintenance">🔧 Mantenimiento</option>
-                </select>
-             </div>
+             {/* ESTADO Y RUTA AUTOMÁTICOS */}
+             {isEditing ? (
+               <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div className="flex items-center gap-2 mb-2 border-b border-gray-200 pb-2">
+                    <Lock className="w-3 h-3 text-gray-400" />
+                  </div>
 
-             {/* RUTA */}
-             <div className={`transition-opacity duration-300 ${status !== 'in_transit' ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Destino / Ciudad</label>
-                <input name="currentRoute" type="text" disabled={status !== 'in_transit'} defaultValue={vehicle?.currentRoute}
-                  placeholder={status === 'in_transit' ? "Ej: Buenos Aires" : "Bloqueado"}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100" />
-             </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Estado Actual</label>
+                    <div className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-gray-600 font-medium shadow-sm">
+                       {getStatusLabel(vehicle.status)}
+                    </div>
+                  </div>
+
+                  {vehicle.status === 'in_transit' && (
+                    <div className="animate-in fade-in slide-in-from-top-2">
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Destino Actual</label>
+                      <div className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-gray-600 font-medium">
+                         {vehicle.currentRoute || "Sin ruta especificada"}
+                      </div>
+                    </div>
+                  )}
+               </div>
+             ) : (
+               /* ESTADO INICIAL AL CREAR (Oculto, se envía por defecto) */
+               <>
+                 <input type="hidden" name="status" value="available" />
+               </>
+             )}
+
           </div>
         </div>
 
         <div className="flex justify-end pt-4 border-t border-gray-100">
           <button type="submit" className="flex items-center gap-2 bg-black text-white px-8 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-800 transition shadow-lg hover:shadow-xl active:scale-95">
             <Save className="w-4 h-4" />
-            {isEditing ? "Guardar Cambios" : "Guardar Vehículo"}
+            {isEditing ? "Guardar Cambios" : "Registrar Unidad"}
           </button>
         </div>
+
       </form>
     </div>
   );

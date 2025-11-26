@@ -58,11 +58,6 @@ export const vehicleType = defineType({
       options: { dateFormat: 'YYYY-MM-DD' } // Corregido: Sin calendarTodayLabel
     }),
     defineField({
-      name: "currentRoute",
-      title: "Ruta Actual",
-      type: "string",
-    }),
-    defineField({
       name: "image",
       title: "Foto",
       type: "image",

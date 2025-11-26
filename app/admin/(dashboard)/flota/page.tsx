@@ -4,31 +4,34 @@ import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
 import { 
-  Plus, MapPin, AlertCircle, CheckCircle2, Wrench, Truck
+  Plus, 
+  MapPin, 
+  AlertCircle,
+  CheckCircle2,
+  Wrench,
+  Truck,
+  Calendar
 } from "lucide-react";
 
-// Interfaz para TypeScript
 interface Vehicle {
   _id: string;
   model: string;
   plate: string;
   status: string;
   fuelLevel: number;
-  mileage?: number;         // Puede venir o no
-  lastMaintenance?: string; // Puede venir o no
+  mileage?: number;
+  lastMaintenance?: string;
   currentRoute?: string;
   imageUrl?: string;
 }
 
 async function getVehiculos() {
-  // OJO: Aquí pedimos explícitamente 'mileage', 'lastMaintenance', 'currentRoute'
   const query = `*[_type == "vehicle"] | order(_createdAt desc) {
     _id, model, plate, status, fuelLevel, 
     mileage, lastMaintenance, currentRoute,
     "imageUrl": image.asset->url 
   }`;
   
-  // Usamos fetch con 'no-store' para que NO use caché y veas los cambios al instante
   return await client.fetch(query, {}, { cache: 'no-store' });
 }
 
@@ -84,8 +87,12 @@ export default async function FleetPage() {
                   {/* UNIDAD */}
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
-                        {v.imageUrl ? <Image src={v.imageUrl} alt={v.model} fill className="object-cover" /> : <span className="text-xs">🚛</span>}
+                      <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
+                        {v.imageUrl ? (
+                          <Image src={v.imageUrl} alt={v.model} fill sizes="40px" className="object-cover" />
+                        ) : (
+                          <span className="text-xs">🚛</span>
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 leading-none">{v.model}</div>
@@ -109,13 +116,19 @@ export default async function FleetPage() {
 
                   {/* KILOMETRAJE */}
                   <td className="px-4 py-2.5 font-mono text-xs text-gray-600">
-                    {/* Verificamos si existe el dato, sino mostramos '-' */}
                     {(v.mileage !== undefined && v.mileage !== null) ? v.mileage.toLocaleString() + " km" : "-"}
                   </td>
 
-                  {/* FECHA */}
+                  {/* FECHA (CAMBIO SOLICITADO) */}
                   <td className="px-4 py-2.5 text-xs text-gray-600">
-                    {v.lastMaintenance ? v.lastMaintenance : <span className="text-gray-300 italic">--/--/--</span>}
+                    {v.lastMaintenance ? (
+                       <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3 h-3 text-gray-400"/>
+                          {v.lastMaintenance}
+                       </div>
+                    ) : (
+                       <span className="text-gray-400 font-mono pl-2">–</span>
+                    )}
                   </td>
 
                   {/* COMBUSTIBLE */}
@@ -129,16 +142,17 @@ export default async function FleetPage() {
                        </div>
                        <span className="text-[10px] font-bold w-6 text-right">{v.fuelLevel}%</span>
                     </div>
+                    {v.fuelLevel < 20 && <div className="text-[9px] text-red-500 font-bold flex items-center gap-0.5 mt-0.5"><AlertCircle className="w-2.5 h-2.5"/> Crítico</div>}
                   </td>
-                  {/* COLUMNA ACCIONES */}
+
+                  {/* ACCIÓN */}
                   <td className="px-4 py-2.5 text-right">
                     {usuarioSeguridad.puedo("editar_vehiculo") && (
                       <Link 
                         href={`/admin/flota/${v._id}`} 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-black hover:bg-gray-50 transition shadow-sm"
                       >
-                        {/* Puedes importar Pencil de lucide-react */}
-                         Editar
+                          Editar
                       </Link>
                     )}
                   </td>
