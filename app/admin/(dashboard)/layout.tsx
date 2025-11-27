@@ -8,7 +8,8 @@ import {
   Users, 
   Database, 
   Package,
-  Wrench // <--- NUEVO ICONO IMPORTADO
+  Wrench,
+  Map // <--- Importamos Map para la sección de Envíos
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -43,10 +44,16 @@ export default async function AdminLayout({
       permission: "ver_flota" 
     },
     { 
-      name: "Mantenimiento", // <--- NUEVA SECCIÓN
+      name: "Envíos y Logística", // <--- NUEVA SECCIÓN AGREGADA
+      href: "/admin/envios", 
+      icon: <Map className="w-5 h-5" />, 
+      permission: "ver_flota" 
+    },
+    { 
+      name: "Mantenimiento", 
       href: "/admin/mantenimiento", 
       icon: <Wrench className="w-5 h-5" />, 
-      permission: "ver_flota" // Usamos el mismo permiso que flota (o crea uno nuevo si prefieres)
+      permission: "ver_flota" 
     },
     { 
       name: "Gestión Usuarios", 
