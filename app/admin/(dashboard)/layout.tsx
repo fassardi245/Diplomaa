@@ -9,7 +9,8 @@ import {
   Database, 
   Package,
   Wrench,
-  Map // <--- Importamos Map para la sección de Envíos
+  Map,
+  Tag// <--- Importamos Map para la sección de Envíos
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -73,6 +74,12 @@ export default async function AdminLayout({
       icon: <Database className="w-5 h-5" />, 
       permission: "acceso_studio", 
       external: true 
+    },
+    { 
+      name: "Productos", 
+      href: "/admin/products", 
+      icon: <Tag className="w-5 h-5" />, 
+      permission: "gestionar_productos" // Asegúrate de tener este permiso o usa 'ver_flota' si eres el único admin
     },
   ];
 
