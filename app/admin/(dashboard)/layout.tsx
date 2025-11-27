@@ -44,7 +44,7 @@ export default async function AdminLayout({
       permission: "ver_flota" 
     },
     { 
-      name: "Envíos y Logística", // <--- NUEVA SECCIÓN AGREGADA
+      name: "Envíos y Logística", 
       href: "/admin/envios", 
       icon: <Map className="w-5 h-5" />, 
       permission: "ver_flota" 

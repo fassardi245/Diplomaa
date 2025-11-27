@@ -6,10 +6,10 @@ import {
   CalendarClock, 
   AlertCircle
 } from "lucide-react";
-import Link from "next/link";
-import StartShipmentButton from "@/components/admin/StartShipmentButton"; // Importamos el botón
+import StartShipmentButton from "@/components/admin/StartShipmentButton";
+import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton"; // <--- IMPORTANTE
 
-// --- INTERFACES PARA CORREGIR ERROR TYPESCRIPT ---
+// --- INTERFACES ---
 interface Shipment {
   _id: string;
   status: string;
@@ -31,9 +31,9 @@ interface PendingOrder {
   status: string;
 }
 
-// --- FETCHING DE DATOS ---
+// --- FETCHING ---
 async function getData() {
-  // 1. Envíos existentes
+  // 1. Envíos (Historial y Activos)
   const shipmentsQuery = `*[_type == "shipment"] | order(departureDate desc) {
     _id,
     status,
@@ -47,8 +47,7 @@ async function getData() {
     "vehicleImage": vehicle->image.asset->url
   }`;
 
-  // 2. Pedidos PAGADOS que aún NO están "en camino" ni "entregados"
-  // Esto nos da la lista de trabajo pendiente
+  // 2. Pedidos Pendientes de Asignación (Pagados)
   const pendingQuery = `*[_type == "order" && status == "pagado"] {
     _id, orderNumber, customerName, totalPrice, status
   }`;
@@ -77,7 +76,7 @@ export default async function ShipmentsPage() {
         <p className="text-gray-500 mt-2">Gestiona los despachos y asignaciones automáticas.</p>
       </div>
 
-      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES DE DESPACHO (NUEVO) --- */}
+      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES (PARA INICIAR) --- */}
       {pendingOrders.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">
@@ -98,7 +97,6 @@ export default async function ShipmentsPage() {
                        </div>
                     </div>
                     
-                    {/* AQUÍ ESTÁ EL BOTÓN QUE QUERÍAS EN ESTA PESTAÑA */}
                     <div className="flex items-center gap-4">
                        <div className="text-right mr-4 hidden md:block">
                           <p className="text-sm font-bold text-gray-900">${order.totalPrice}</p>
@@ -112,12 +110,12 @@ export default async function ShipmentsPage() {
         </div>
       )}
 
-      {/* --- SECCIÓN 2: ENVÍOS EN CURSO --- */}
+      {/* --- SECCIÓN 2: ENVÍOS (EN TRÁNSITO E HISTORIAL) --- */}
       <h2 className="text-lg font-bold text-gray-800 mb-4">Envíos Activos e Historial</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {shipments.map((ship) => (
-          <div key={ship._id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+          <div key={ship._id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col">
             
             {/* Estado Badge */}
             <div className="absolute top-4 right-4">
@@ -125,11 +123,11 @@ export default async function ShipmentsPage() {
                   ship.status === 'in_transit' ? 'bg-blue-100 text-blue-700 animate-pulse' : 
                   ship.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                }`}>
-                  {ship.status === 'in_transit' ? 'En Tránsito' : ship.status === 'preparing' ? 'Preparando' : ship.status}
+                  {ship.status === 'in_transit' ? 'En Tránsito' : ship.status === 'preparing' ? 'Preparando' : 'Finalizado'}
                </span>
             </div>
 
-            {/* Info del Pedido */}
+            {/* Info Pedido */}
             <div className="mb-6">
                <p className="text-xs text-gray-400 font-bold uppercase mb-1">Pedido</p>
                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -160,29 +158,39 @@ export default async function ShipmentsPage() {
                </div>
             </div>
 
-            {/* Info del Vehículo */}
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4">
-               <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-2xl shadow-sm overflow-hidden relative">
-                  {/* Si tienes la imagen la mostramos, sino el icono */}
-                  {/* ship.vehicleImage está disponible si lo agregaste a la query */}
-                  <span className="text-xl">🚛</span>
+            {/* Info Vehículo */}
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4 mb-auto">
+               <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-2xl shadow-sm overflow-hidden relative shrink-0">
+                  {ship.vehicleImage ? (
+                    // Si usas <Image>, asegúrate de importar Image de next/image y configurar el dominio
+                    <img src={ship.vehicleImage} alt="Vehículo" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl">🚛</span>
+                  )}
                </div>
                <div>
                   <p className="text-sm font-bold text-gray-900">{ship.vehicleModel}</p>
                   <p className="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 w-fit mt-0.5">
                      {ship.vehiclePlate}
                   </p>
-                  <p className="text-[10px] text-gray-400 mt-1">Chofer: {ship.driverName}</p>
                </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-               <div className="flex items-center gap-1">
+            {/* PIE DE TARJETA (ACCIONES) */}
+            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+               <div className="flex items-center gap-1 text-xs text-gray-500">
                   <CalendarClock className="w-3.5 h-3.5" />
                   {ship.departureDate ? new Date(ship.departureDate).toLocaleDateString() : "Hoy"}
                </div>
-               {/* Link a detalle si quisieras hacerlo en el futuro */}
-               <span className="text-gray-300 cursor-default">Detalle</span>
+               
+               {/* BOTÓN DE FINALIZAR ENTREGA (Solo si está en tránsito) */}
+               {ship.status === 'in_transit' ? (
+                  <CompleteShipmentButton shipmentId={ship._id} />
+               ) : (
+                  <span className="text-xs font-medium text-gray-400 italic">
+                     {ship.status === 'delivered' ? 'Completado' : 'Inactivo'}
+                  </span>
+               )}
             </div>
 
           </div>
