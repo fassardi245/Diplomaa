@@ -70,9 +70,7 @@ export const orderType = defineType({
               title: "Product Bought",
               type: "reference",
               to: [{ type: "product" }],
-              // 👇 AQUÍ ESTÁ LA SOLUCIÓN
               weak: true, 
-              // Esto permite borrar el producto original sin que Sanity te lo impida por "estar en una orden".
             }),
             defineField({
               name: "quantity",
@@ -116,6 +114,11 @@ export const orderType = defineType({
       title: "Amount Discount",
       type: "number",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "shippingCost",
+      title: "Costo de Envío",
+      type: "number",
     }),
     defineField({
       name: "status",
