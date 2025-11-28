@@ -34,8 +34,24 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    
-    // Recuperamos la factura para sacar el link del PDF
+
+    // --- 1. CHECK DE IDEMPOTENCIA (Anti-Duplicados) ---
+    // Preguntamos a Sanity si ya existe una orden con este ID de sesión
+    try {
+        const existingOrder = await backendClient.fetch(
+            `*[_type == "order" && stripeCheckoutSessionId == $sessionId][0]`,
+            { sessionId: session.id }
+        );
+
+        if (existingOrder) {
+            console.log(`⚠️ Orden duplicada detectada (${existingOrder.orderNumber}). Ignorando creación.`);
+            return NextResponse.json({ message: "Order already processed" });
+        }
+    } catch (err) {
+        console.error("Error verificando idempotencia:", err);
+    }
+    // --------------------------------------------------
+
     const invoice = session.invoice
       ? await stripe.invoices.retrieve(session.invoice as string)
       : null;
@@ -54,7 +70,6 @@ async function createOrderInSanity(
   session: Stripe.Checkout.Session,
   invoice: Stripe.Invoice | null
 ) {
-  // Inicializamos Resend aquí
   const resend = new Resend(process.env.RESEND_API_KEY);
   
   const {
@@ -63,19 +78,17 @@ async function createOrderInSanity(
     currency,
     metadata,
     payment_intent,
-    total_details,
+    total_details, // <--- Aquí viene el shipping de Stripe
   } = session;
 
   const { orderNumber, customerName, customerEmail, clerkUserId } =
     metadata as unknown as Metadata;
 
-  // 1. Traemos los items expandidos
   const lineItemsWithProduct = await stripe.checkout.sessions.listLineItems(
     id,
     { expand: ["data.price.product"] }
   );
 
-  // 2. Preparamos productos para Sanity
   const sanityProducts = lineItemsWithProduct.data.map((item) => ({
     _key: crypto.randomUUID(),
     product: {
@@ -85,7 +98,7 @@ async function createOrderInSanity(
     quantity: item?.quantity || 0,
   }));
 
-  // 3. CREAMOS LA ORDEN
+  // 2. CREAMOS LA ORDEN
   const order = await backendClient.create({
     _type: "order",
     orderNumber,
@@ -99,6 +112,12 @@ async function createOrderInSanity(
     amountDiscount: total_details?.amount_discount
       ? total_details.amount_discount / 100
       : 0,
+    
+    // --- 3. GUARDAMOS EL COSTO DE ENVÍO ---
+    shippingCost: total_details?.amount_shipping 
+      ? total_details.amount_shipping / 100 
+      : 0,
+
     products: sanityProducts,
     totalPrice: amount_total ? amount_total / 100 : 0,
     status: "pagado",
@@ -112,7 +131,7 @@ async function createOrderInSanity(
       : null,
   });
   
-  // 4. GESTIÓN DE STOCK Y ALERTAS (RF5)
+  // 4. GESTIÓN DE STOCK Y ALERTAS
   console.log("Iniciando gestión de stock y alertas...");
 
   for (const item of lineItemsWithProduct.data) {
@@ -122,7 +141,6 @@ async function createOrderInSanity(
 
     if (sanityId) {
       try {
-        // A) Consultamos el stock ACTUAL antes de restar
         const productDoc = await backendClient.fetch(
             `*[_type == "product" && _id == $id][0]{name, stock}`, 
             { id: sanityId }
@@ -132,7 +150,6 @@ async function createOrderInSanity(
             const currentStock = productDoc.stock || 0;
             const newStock = currentStock - quantityBought;
 
-            // B) Restamos el stock
             await backendClient
               .patch(sanityId)
               .dec({ stock: quantityBought })
@@ -140,7 +157,6 @@ async function createOrderInSanity(
             
             console.log(`Stock descontado (-${quantityBought}). Nuevo stock: ${newStock}`);
 
-            // C) ALERTA DE STOCK BAJO (Si queda en 5 o menos)
             if (newStock <= 5) {
                 console.log("⚠️ ALERTA: Stock bajo. Enviando email al admin...");
                 await resend.emails.send({
@@ -162,8 +178,6 @@ async function createOrderInSanity(
   }
 
   // 5. ENVIAR RECIBO AL CLIENTE
-  // En modo prueba (localhost), el 'customerEmail' debe ser TU email propio
-  // o Resend bloqueará el envío.
   if (customerEmail) {
       try {
         await resend.emails.send({

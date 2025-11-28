@@ -45,6 +45,47 @@ export async function createCheckoutSession(
       },
       mode: "payment",
       payment_method_types: ["card"],
+      shipping_address_collection: {
+        allowed_countries: ["AR", "US", "ES", "UY", "CL"], // Agrega los países que quieras permitir
+      },
+
+      // 2. OPCIONES DE ENVÍO (NUEVO)
+      // Aquí definimos las tarifas para simular logística
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 0, currency: "USD" },
+            display_name: "Retiro en Local",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 1 },
+              maximum: { unit: "business_day", value: 2 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 1500, currency: "USD" }, // $15.00
+            display_name: "Envío Estándar",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 3 },
+              maximum: { unit: "business_day", value: 5 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 3500, currency: "USD" }, // $35.00
+            display_name: "Envío Express (Prioritario)",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 1 },
+              maximum: { unit: "business_day", value: 2 },
+            },
+          },
+        },
+      ],
       invoice_creation: {
         enabled: true,
       },

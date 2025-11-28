@@ -102,9 +102,12 @@ export const getMyOrders = async (userId: string) => {
     throw new Error("User ID is required");
   }
   const MY_ORDERS_QUERY =
-    defineQuery(`*[_type == 'order' && clerkUserId == $userId] | order(orderData desc){
-    ...,products[]{
-      ...,product->
+    defineQuery(`*[_type == 'order' && clerkUserId == $userId] | order(orderDate desc){
+    ...,
+    shippingCost,
+    products[]{
+      ...,
+      product->
     }
   }`);
 
