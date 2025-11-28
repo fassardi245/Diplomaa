@@ -2,30 +2,44 @@ import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { client } from "@/sanity/lib/client";
 import { syncUsers } from "@/actions/syncUsers";
-import Link from "next/link"; 
-import { RefreshCw } from "lucide-react"; // <--- Agregamos el icono bonito
+import Link from "next/link";
+import { 
+  RefreshCw, 
+  Shield, 
+  ShieldAlert, 
+  UserCog, 
+  Search,
+  CheckCircle2,
+  Users,
+  Zap // Icono para las Acciones (Permisos Extra)
+} from "lucide-react";
 
-// 1. Definimos la interfaz
+// --- INTERFACES ---
 interface UsuarioSanity {
   _id: string;
   email: string;
   clerkId: string;
-  roles: string[] | null; 
-  imageUrl?: string;
+  // CAMBIO: Ahora roles es un objeto con nombre y tipo
+  roles: { name: string; type: "grupo" | "accion" }[] | null; 
 }
 
+// --- DATA FETCHING ---
 async function getUsuarios() {
-  const query = `*[_type == "usuario"] {
+  // CORRECCIÓN GROQ: Traemos el objeto completo con nombre y tipo
+  const query = `*[_type == "usuario"] | order(_createdAt desc) {
     _id,
     email,
     clerkId,
-    "roles": rolesAsignados[]->nombre
+    "roles": rolesAsignados[]->{
+      "name": coalesce(nombre, titulo),
+      "type": _type
+    }
   }`;
-  return await client.fetch(query);
+  return await client.fetch(query, {}, { cache: 'no-store' });
 }
 
 export default async function UsuariosPage() {
-  // --- A. SEGURIDAD ---
+  // 1. SEGURIDAD
   const user = await currentUser();
   if (!user) return <div>Inicia sesión por favor.</div>;
 
@@ -36,114 +50,167 @@ export default async function UsuariosPage() {
 
   if (!usuarioSeguridad.puedo("ver_usuarios")) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-red-600">
-        <h1 className="text-2xl font-bold">⛔ Acceso Denegado</h1>
-        <p>No tienes permisos para gestionar usuarios.</p>
+      <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 animate-in fade-in duration-700">
+        <ShieldAlert className="w-16 h-16 text-red-500 mb-4 opacity-80" />
+        <h1 className="text-2xl font-bold text-gray-800">Acceso Restringido</h1>
+        <p>No tienes permisos suficientes para ver este módulo.</p>
       </div>
     );
   }
 
-  // --- B. DATOS ---
+  // 2. DATOS
   const usuarios: UsuarioSanity[] = await getUsuarios();
 
-  // --- SOLUCIÓN AL ERROR DE TYPESCRIPT ---
+  // 3. SERVER ACTION WRAPPER
   async function handleSync() {
     "use server";
     await syncUsers();
   }
 
-  // --- C. UI ---
+  // --- UI ---
   return (
-    <div className="p-10">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-7xl mx-auto p-8">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">👥 Gestión de Usuarios</h1>
-          <p className="text-gray-500 text-sm mt-1">Administra roles y permisos del sistema</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+             <span className="bg-indigo-100 p-2 rounded-xl text-indigo-600">
+                <Users className="w-8 h-8" />
+             </span>
+             Gestión de Usuarios
+          </h1>
+          <p className="text-gray-500 mt-2 text-sm">
+            Controla el acceso y los roles de los <strong>{usuarios.length}</strong> miembros del equipo.
+          </p>
         </div>
         
-        {/* Botón de Sincronización MEJORADO */}
         <form action={handleSync}>
           <button 
             type="submit" 
-            className="group flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-2.5 rounded-full font-bold shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 active:scale-95"
+            className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs transition-all hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95"
           >
-            {/* El icono gira suavemente al pasar el mouse */}
             <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
-            <span>Sincronizar con Clerk</span>
+            <span>Sincronizar Clerk</span>
           </button>
         </form>
-
       </div>
 
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
-        <table className="min-w-full leading-normal">
-          <thead>
-            <tr className="bg-gray-50 text-left border-b border-gray-200">
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Usuario</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Roles / Permisos</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Clerk ID</th>
-              <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr key={u._id} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                
-                <td className="px-6 py-4 bg-white">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl">
-                      {/* Agregué el ? para evitar error si no hay email */}
-                      {u.email?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">{u.email}</p>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4 bg-white">
-                  <div className="flex flex-wrap gap-2">
-                    {u.roles && u.roles.length > 0 ? (
-                      u.roles.map((rol, index) => (
-                        <span 
-                          key={index} 
-                          className="px-2 py-1 text-xs font-semibold leading-tight text-indigo-700 bg-indigo-100 rounded-full border border-indigo-200"
-                        >
-                          {rol}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">
-                        Sin roles asignados
-                      </span>
-                    )}
-                  </div>
-                </td>
-
-                <td className="px-6 py-4 bg-white text-sm">
-                  <code className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">
-                    {u.clerkId ? u.clerkId.slice(0, 15) + "..." : "No vinculado"}
-                  </code>
-                </td>
-
-                <td className="px-6 py-4 bg-white text-center">
-                <Link 
-                  href={`/admin/users/${u._id}`} 
-                  // Agregué: 'whitespace-nowrap' y 'inline-block'
-                  className="text-indigo-600 hover:text-indigo-900 font-medium text-sm bg-indigo-50 px-3 py-1 rounded hover:bg-indigo-100 transition whitespace-nowrap inline-block"
-                >
-                  Editar Roles
-                </Link>
-              </td>
+      {/* TABLA */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4">Usuario</th>
+                <th className="px-6 py-4">Roles & Permisos</th>
+                <th className="px-6 py-4 hidden md:table-cell">ID Sistema</th>
+                <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {usuarios.map((u) => (
+                <tr key={u._id} className="hover:bg-indigo-50/20 transition-colors duration-200 group">
+                  
+                  {/* USUARIO */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 flex items-center justify-center font-bold text-sm shadow-inner ring-1 ring-white border border-indigo-50">
+                        {u.email?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                            {u.email}
+                        </span>
+                        <span className="text-[10px] text-green-600 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Verificado
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* ROLES (LÓGICA DE COLORES MEJORADA) */}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      {u.roles && u.roles.length > 0 ? (
+                        u.roles.map((rol, index) => {
+                          if (!rol.name) return null;
+
+                          // 1. SI ES ACCIÓN (Permiso Extra) -> Violeta Suave
+                          if (rol.type === 'accion') {
+                            return (
+                              <span 
+                                key={index} 
+                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-purple-50 text-purple-700 border-purple-200"
+                              >
+                                {rol.name}
+                              </span>
+                            );
+                          }
+
+                          // 2. SI ES ADMIN -> Violeta Oscuro Intenso
+                          if (rol.name === 'Admin') {
+                            return (
+                              <span 
+                                key={index} 
+                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-violet-900 text-white border-violet-950"
+                              >
+                                <Shield className="w-3 h-3 mr-1" />
+                                {rol.name}
+                              </span>
+                            );
+                          }
+
+                          // 3. OTROS GRUPOS -> Azul/Indigo Estándar
+                          return (
+                            <span 
+                              key={index} 
+                              className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-white text-indigo-700 border-indigo-100"
+                            >
+                              {rol.name}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className="text-xs text-gray-400 italic px-2 py-1 bg-gray-50 rounded-md border border-gray-100">
+                          Sin roles
+                        </span>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* ID */}
+                  <td className="px-6 py-4 hidden md:table-cell">
+                    <code className="bg-gray-50 text-gray-500 px-2 py-1 rounded-lg text-[10px] font-mono border border-gray-100">
+                      {u.clerkId ? u.clerkId.slice(0, 12) + "..." : "N/A"}
+                    </code>
+                  </td>
+
+                  {/* ACCIONES */}
+                  <td className="px-6 py-4 text-right">
+                    <Link 
+                      href={`/admin/users/${u._id}`} 
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm"
+                    >
+                      <UserCog className="w-3.5 h-3.5" />
+                      Editar
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {usuarios.length === 0 && (
-          <div className="p-12 text-center text-gray-500">
-            <p>No se encontraron usuarios registrados en Sanity.</p>
-            <p className="text-sm mt-2">Haz clic en &quot;Sincronizar&quot; para traerlos desde Clerk.</p>
+          <div className="py-20 text-center flex flex-col items-center justify-center bg-gray-50/30">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">No hay usuarios aún</h3>
+            <p className="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">
+              Haz clic en "Sincronizar" para importar los usuarios desde Clerk.
+            </p>
           </div>
         )}
       </div>

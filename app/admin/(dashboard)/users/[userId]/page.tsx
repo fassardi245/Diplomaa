@@ -6,13 +6,12 @@ import Link from "next/link";
 import { 
   ArrowLeft, 
   Save, 
-  CheckCircle2, 
   Users, 
   Zap, 
-  Shield 
+  Shield, 
+  Check 
 } from "lucide-react";
 
-// --- INTERFACES ---
 interface RolDisponible {
   _id: string;
   _type: "grupo" | "accion";
@@ -25,11 +24,11 @@ interface UsuarioEdit {
   rolesAsignados: { _ref: string }[] | null;
 }
 
-// --- DATA FETCHING ---
 async function getUsuario(id: string) {
   return await client.fetch<UsuarioEdit>(
     `*[_type == "usuario" && _id == $id][0]{ _id, email, rolesAsignados }`, 
-    { id }
+    { id },
+    { cache: 'no-store' }
   );
 }
 
@@ -44,7 +43,6 @@ async function getAllRoles() {
 export default async function EditUserPage({ params }: { params: { userId: string } }) {
   const { userId } = params;
 
-  // 1. SEGURIDAD
   const user = await currentUser();
   if (!user) return <div>Inicia sesión.</div>;
   
@@ -53,7 +51,6 @@ export default async function EditUserPage({ params }: { params: { userId: strin
     return <div className="p-10 text-red-600 font-bold">⛔ Acceso Denegado</div>;
   }
 
-  // 2. CARGA PARALELA
   const [usuarioEdit, allRoles] = await Promise.all([
     getUsuario(userId),
     getAllRoles()
@@ -63,11 +60,9 @@ export default async function EditUserPage({ params }: { params: { userId: strin
 
   const rolesActualesIds = new Set(usuarioEdit.rolesAsignados?.map(r => r._ref) || []);
 
-  // --- UI ---
   return (
-    <div className="max-w-5xl mx-auto pb-20">
+    <div className="max-w-5xl mx-auto pb-20 p-8">
       
-      {/* HEADER DE NAVEGACIÓN */}
       <div className="mb-8">
         <Link 
           href="/admin/users" 
@@ -82,20 +77,19 @@ export default async function EditUserPage({ params }: { params: { userId: strin
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Editar Permisos</h1>
-                <p className="text-black mt-1 flex items-center gap-2">
+                <p className="text-gray-500 mt-1 flex items-center gap-2">
                     Usuario: <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">{usuarioEdit.email}</span>
                 </p>
             </div>
         </div>
       </div>
 
-      {/* FORMULARIO PRINCIPAL */}
       <form action={updateUserRoles}>
         <input type="hidden" name="userId" value={usuarioEdit._id} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* COLUMNA 1: GRUPOS (Roles Mayores) */}
+          {/* --- COLUMNA 1: GRUPOS (AZUL) --- */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
                 <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
@@ -115,39 +109,36 @@ export default async function EditUserPage({ params }: { params: { userId: strin
                     name="roles" 
                     value={rol._id} 
                     defaultChecked={rolesActualesIds.has(rol._id)}
-                    className="peer sr-only" // Ocultamos el checkbox feo
+                    className="peer sr-only"
                   />
                   
-                  {/* DISEÑO TARJETA INTERACTIVA (usando peer-checked) */}
+                  {/* CARD GRUPO */}
                   <div className="p-4 rounded-xl border-2 border-gray-100 bg-gray-50/50 transition-all duration-200 
                     hover:border-blue-200 hover:bg-blue-50/30
-                    peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:shadow-sm flex items-center justify-between">
+                    group-has-[:checked]:border-blue-500 group-has-[:checked]:bg-blue-50 group-has-[:checked]:shadow-sm flex items-center justify-between">
                     
                     <div className="flex items-center gap-3">
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-blue-500 peer-checked:bg-blue-500 flex items-center justify-center transition-colors">
-                             {/* Icono check simulado (se maneja con css del padre si quieres, pero aqui es visual) */}
-                             <div className="w-2.5 h-2.5 bg-blue-500 rounded-full opacity-0 peer-checked:opacity-100" />
-                        </span>
-                        <span className="font-semibold text-gray-700 peer-checked:text-blue-700">
+                        {/* Círculo con Tick (AZUL) */}
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white 
+                                        group-has-[:checked]:bg-blue-500 group-has-[:checked]:border-blue-500 
+                                        flex items-center justify-center transition-all duration-200 shrink-0">
+                             <Check className="w-3.5 h-3.5 text-white opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
+                        </div>
+                        <span className="font-semibold text-gray-700 group-has-[:checked]:text-blue-700">
                             {rol.nombre}
                         </span>
                     </div>
 
                     {rol.nombre === 'Admin' && (
-                        <Shield className="w-4 h-4 text-gray-400 peer-checked:text-blue-600" />
+                        <Shield className="w-4 h-4 text-gray-400 group-has-[:checked]:text-blue-600" />
                     )}
-                  </div>
-                  
-                  {/* Icono de check absoluto para confirmación visual extra */}
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 text-blue-600 transition-opacity">
-                    <CheckCircle2 className="w-5 h-5 fill-blue-100" />
                   </div>
                 </label>
               ))}
             </div>
           </div>
 
-          {/* COLUMNA 2: ACCIONES (Permisos Micro) */}
+          {/* --- COLUMNA 2: ACCIONES (VIOLETA) --- */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
                 <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
@@ -161,7 +152,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {allRoles.filter(r => r._type === 'accion').map((rol) => (
-                <label key={rol._id} className="relative block cursor-pointer">
+                <label key={rol._id} className="relative block cursor-pointer group">
                   <input 
                     type="checkbox" 
                     name="roles" 
@@ -170,15 +161,23 @@ export default async function EditUserPage({ params }: { params: { userId: strin
                     className="peer sr-only"
                   />
                   
+                  {/* CARD ACCIÓN */}
                   <div className="p-3 rounded-lg border border-gray-200 bg-white transition-all duration-200 
-                    hover:border-purple-300 
-                    peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:shadow-sm">
+                    hover:border-purple-300 hover:bg-purple-50/30
+                    group-has-[:checked]:border-purple-500 group-has-[:checked]:bg-purple-50 group-has-[:checked]:shadow-sm">
                     
-                    <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">Acción</span>
-                        <div className={`w-4 h-4 rounded-full border border-gray-300 peer-checked:bg-purple-500 peer-checked:border-purple-500`} />
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider bg-purple-100 px-1.5 py-0.5 rounded">Acción</span>
+                        
+                        {/* Círculo con Tick (VIOLETA) */}
+                        <div className="w-5 h-5 rounded-full border border-gray-300 bg-white 
+                                        group-has-[:checked]:bg-purple-500 group-has-[:checked]:border-purple-500 
+                                        flex items-center justify-center transition-all duration-200">
+                            <Check className="w-3 h-3 text-white opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
+                        </div>
+
                     </div>
-                    <span className="font-medium text-gray-800 text-sm peer-checked:text-purple-900">
+                    <span className="font-bold text-gray-800 text-sm group-has-[:checked]:text-purple-900 leading-tight block">
                         {rol.nombre}
                     </span>
                   </div>
@@ -189,7 +188,6 @@ export default async function EditUserPage({ params }: { params: { userId: strin
 
         </div>
 
-        {/* BARRA DE ACCIÓN FLOTANTE O FINAL */}
         <div className="mt-8 flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
             <Link href="/admin/users" className="px-6 py-3 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">
                 Cancelar
@@ -198,7 +196,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
                 type="submit" 
                 className="group flex items-center gap-2 bg-gray-900 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-xl shadow-gray-200 hover:bg-indigo-600 hover:shadow-indigo-200 hover:scale-[1.02] transition-all active:scale-95"
             >
-                
+                <Save className="w-4 h-4" />
                 Guardar Cambios
             </button>
         </div>
