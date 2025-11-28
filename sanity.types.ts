@@ -13,6 +13,77 @@
  */
 
 // Source: schema.json
+export type Claim = {
+  _id: string;
+  _type: "claim";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  order?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "order";
+  };
+  reason?: "damaged" | "wrong_item" | "wrong_size" | "regret" | "other";
+  description?: string;
+  status?: "pending" | "approved" | "rejected" | "resolved";
+  date?: string;
+};
+
+export type Shipment = {
+  _id: string;
+  _type: "shipment";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  order?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "order";
+  };
+  vehicle?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "vehicle";
+  };
+  driver?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "driver";
+  };
+  destinationAddress?: string;
+  status?: "preparing" | "in_transit" | "delivered" | "failed";
+  departureDate?: string;
+  deliveryDate?: string;
+};
+
+export type Driver = {
+  _id: string;
+  _type: "driver";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  license?: string;
+  status?: "available" | "busy" | "off_duty";
+  photo?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+};
+
 export type Maintenance = {
   _id: string;
   _type: "maintenance";
@@ -141,7 +212,8 @@ export type Order = {
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "pendiente" | "pagado" | "en camino" | "entregado" | "cancelado";
+  shippingCost?: number;
+  status?: "pendiente" | "pagado" | "en camino" | "entregado" | "cancelado" | "devuelto";
   orderDate?: string;
 };
 
@@ -355,7 +427,7 @@ export type SanityAssetSourceData = {
   url?: string;
 };
 
-export type AllSanitySchemaTypes = Maintenance | Accion | Usuario | Grupo | Vehicle | Order | Product | Category | BlockContent | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
+export type AllSanitySchemaTypes = Claim | Shipment | Driver | Maintenance | Accion | Usuario | Grupo | Vehicle | Order | Product | Category | BlockContent | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./app/(client)/success/page.tsx
 // Variable: query
@@ -421,7 +493,8 @@ export type QueryResult = Array<{
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "cancelado" | "en camino" | "entregado" | "pagado" | "pendiente";
+  shippingCost?: number;
+  status?: "cancelado" | "devuelto" | "en camino" | "entregado" | "pagado" | "pendiente";
   orderDate?: string;
 }>;
 
@@ -644,77 +717,9 @@ export type MY_ORDERS_QUERYResult = Array<{
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino" | "devuelto";
+  shippingCost: number | null;
+  status?: "cancelado" | "devuelto" | "en camino" | "entregado" | "pagado" | "pendiente";
   orderDate?: string;
-}>;
-
-// Source: ./app/(client)/success/page.tsx
-// Variable: query
-// Query: *[_type == 'order' && clerkUserId == $userId] | order(orderData desc){  ...,products[]{    ...,product->  }}
-export type QueryResult = Array<{
-  _id: string;
-  _type: "order";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  orderNumber?: string;
-  invoice?: {
-    id?: string;
-    number?: string;
-    hosted_invoice_url?: string;
-  };
-  stripeCheckoutSessionId?: string;
-  stripeCustomerId?: string;
-  clerkUserId?: string;
-  customerName?: string;
-  email?: string;
-  stripePaymentIntentId?: string;
-  products: Array<{
-    product: {
-      _id: string;
-      _type: "product";
-      _createdAt: string;
-      _updatedAt: string;
-      _rev: string;
-      name?: string;
-      slug?: Slug;
-      images?: Array<{
-        asset?: {
-          _ref: string;
-          _type: "reference";
-          _weak?: boolean;
-          [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-        };
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        _type: "image";
-        _key: string;
-      }>;
-      intro?: string;
-      description?: string;
-      price?: number;
-      discount?: number;
-      categories?: Array<{
-        _ref: string;
-        _type: "reference";
-        _weak?: boolean;
-        _key: string;
-        [internalGroqTypeReferenceTo]?: "category";
-      }>;
-      stock?: number;
-      status?: "destacado" | "nuevo" | "oferta";
-      variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
-    } | null;
-    quantity?: number;
-    _key: string;
-  }> | null;
-  totalPrice?: number;
-  currency?: string;
-  amountDiscount?: number;
-  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino";
-  status?: "cancelado" | "en camino" | "entregado" | "pagado" | "pendiente";
-  orderDate?: string;
-  shippingCost: null;
 }>;
 
 // Query TypeMap

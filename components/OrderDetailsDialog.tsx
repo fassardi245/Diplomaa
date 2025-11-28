@@ -52,17 +52,33 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             </span>
           </p>
           <p>
-            <strong>Numero de factura:</strong> {order?.invoice?.number}
+            <strong>Numero de factura:</strong> {order?.invoice?.number || "N/A"}
           </p>
-          {order?.invoice && (
-            <Button className="bg-transparent border text-darkColor/80 mt-2 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect ">
-              {order?.invoice?.hosted_invoice_url && (
-                <Link href={order?.invoice?.hosted_invoice_url} target="_blank">
+
+          {/* --- ZONA DE BOTONES (Factura y Seguimiento) --- */}
+          <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
+            {/* Botón Descargar Factura (Existente) */}
+            {order?.invoice?.hosted_invoice_url && (
+              <Button 
+                variant="outline" 
+                asChild
+                className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect"
+              >
+                <Link href={order.invoice.hosted_invoice_url} target="_blank">
                   Descargar factura
                 </Link>
-              )}
+              </Button>
+            )}
+
+            {/* Botón Ver Seguimiento (NUEVO) */}
+            <Button asChild className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect">
+              <Link href={`/orders/${order.orderNumber}`}>
+                Ver Seguimiento
+              </Link>
             </Button>
-          )}
+          </div>
+          {/* ----------------------------------------------- */}
+
         </div>
         <Table>
           <TableHeader>
@@ -110,7 +126,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   amount={
                     (order?.totalPrice as number) +
                     (order?.amountDiscount as number) -
-                    (order?.shippingCost || 0) // Restamos el envío para obtener el subtotal de productos puro
+                    (order?.shippingCost || 0) 
                   }
                   className="text-black font-bold"
                 />
@@ -128,7 +144,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
               </div>
             )}
 
-            {/* ENVÍO (NUEVA SECCIÓN) */}
+            {/* ENVÍO */}
             {order?.shippingCost !== undefined && (
                 <div className="w-full flex items-center justify-between">
                     <strong>Envío: </strong>
@@ -136,7 +152,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                         <span className="text-green-600 font-bold">Gratis</span>
                     ) : (
                         <PriceFormatter
-                          amount={order.shippingCost ?? 0} // <--- Usa '?? 0' en lugar de '|| 0'
+                          amount={order.shippingCost ?? 0}
                           className="text-black font-bold"
                         />
                     )}
