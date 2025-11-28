@@ -13,47 +13,55 @@ export async function assignLogistics(orderId: string) {
     throw new Error("Este pedido ya tiene logística asignada");
   }
 
-  // 2. BUSCAR VEHÍCULO DISPONIBLE (RF2 - Automático)
-  // Filtramos que NO esté en mantenimiento y que esté 'available'
+  // 2. BUSCAR RECURSOS DISPONIBLES (RF2 - Automático Avanzado)
+  
+  // A. Buscar Vehículo
   const availableVehicle = await backendClient.fetch(
     `*[_type == "vehicle" && status == "available"][0]`
   );
 
+  // B. Buscar Chofer
+  const availableDriver = await backendClient.fetch(
+    `*[_type == "driver" && status == "available"][0]`
+  );
+
   if (!availableVehicle) {
-    // Si no hay vehículos, lanzamos error (o podrías ponerlo en cola de espera)
-    throw new Error("No hay vehículos disponibles en la flota en este momento.");
+    throw new Error("No hay vehículos disponibles en la flota.");
+  }
+
+  if (!availableDriver) {
+    throw new Error("No hay choferes disponibles para realizar el viaje.");
   }
 
   try {
     const departureDate = new Date().toISOString();
 
-    // 3. CREAR EL ENVÍO
+    // 3. CREAR EL ENVÍO (Con referencia a Chofer)
     await backendClient.create({
       _type: "shipment",
       order: { _type: "reference", _ref: orderId },
       vehicle: { _type: "reference", _ref: availableVehicle._id },
-      driverName: "Chofer Automático #1", // Aquí podrías tener una tabla de choferes
+      driver: { _type: "reference", _ref: availableDriver._id }, // Asignamos chofer
       destinationAddress: "Dirección del Cliente (Simulada)", 
       status: "in_transit",
       departureDate: departureDate,
     });
 
-    // 4. ACTUALIZAR EL PEDIDO -> "En Camino"
-    await backendClient
-      .patch(orderId)
-      .set({ status: "en camino" })
-      .commit();
+    // 4. ACTUALIZAR ESTADOS
+    
+    // Pedido -> En Camino
+    await backendClient.patch(orderId).set({ status: "en camino" }).commit();
 
-    // 5. ACTUALIZAR EL VEHÍCULO -> "En Ruta" (Y bloqueamos su ruta)
-    await backendClient
-      .patch(availableVehicle._id)
-      .set({ 
+    // Vehículo -> En Tránsito
+    await backendClient.patch(availableVehicle._id).set({ 
         status: "in_transit",
         currentRoute: `Entrega Pedido #${order.orderNumber.slice(-6)}`
-      })
-      .commit();
+      }).commit();
 
-    console.log(`✅ Logística asignada: Pedido ${orderId} -> Vehículo ${availableVehicle.plate}`);
+    // Chofer -> Ocupado (Busy)
+    await backendClient.patch(availableDriver._id).set({ status: "busy" }).commit();
+
+    console.log(`✅ Logística asignada: Pedido ${orderId} -> Vehículo ${availableVehicle.plate} -> Chofer ${availableDriver.name}`);
     
     revalidatePath("/admin/envios");
     revalidatePath("/admin/orders");

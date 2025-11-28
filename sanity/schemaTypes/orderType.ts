@@ -128,6 +128,8 @@ export const orderType = defineType({
           { title: "En camino", value: "en camino" },
           { title: "Entregado", value: "entregado" },
           { title: "Cancelado", value: "cancelado" },
+          { title: "Devuelto", value: "devuelto" },
+
         ],
       },
     }),

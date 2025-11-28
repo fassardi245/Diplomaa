@@ -546,7 +546,7 @@ export type MY_ORDERS_QUERYResult = Array<{
   totalPrice?: number;
   currency?: string;
   amountDiscount?: number;
-  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino";
+  status?: "cancelado" | "entregado" | "pagado" | "pendiente" | "en camino" | "devuelto";
   orderDate?: string;
 }>;
 
