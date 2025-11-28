@@ -162,7 +162,7 @@ export type Product = {
     [internalGroqTypeReferenceTo]?: "category";
   }>;
   stock?: number;
-  status?: "new" | "hot" | "sale";
+  status?: "nuevo" | "destacado" | "oferta";
   variant?: "remera" | "campera" | "pantalon" | "buzo" | "short" | "otros";
 };
 
@@ -319,7 +319,7 @@ export type PRODUCTS_QUERYResult = Array<{
     [internalGroqTypeReferenceTo]?: "category";
   }>;
   stock?: number;
-  status?: "hot" | "new" | "sale";
+  status?: "destacado" | "nuevo" | "oferta";
   variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: CATEGORIES_QUERY
@@ -379,7 +379,7 @@ export type PRODUCT_SEARCH_QUERYResult = Array<{
     [internalGroqTypeReferenceTo]?: "category";
   }>;
   stock?: number;
-  status?: "hot" | "new" | "sale";
+  status?: "destacado" | "nuevo" | "oferta";
   variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: PRODUCT_BY_ID_QUERY
@@ -416,7 +416,7 @@ export type PRODUCT_BY_ID_QUERYResult = {
     [internalGroqTypeReferenceTo]?: "category";
   }>;
   stock?: number;
-  status?: "hot" | "new" | "sale";
+  status?: "destacado" | "nuevo" | "oferta";
   variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 } | null;
 // Variable: PRODUCT_BY_CATEGORY_QUERY
@@ -453,7 +453,7 @@ export type PRODUCT_BY_CATEGORY_QUERYResult = Array<{
     [internalGroqTypeReferenceTo]?: "category";
   }>;
   stock?: number;
-  status?: "hot" | "new" | "sale";
+  status?: "destacado" | "nuevo" | "oferta";
   variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
 }>;
 // Variable: SALE_QUERY
@@ -537,7 +537,7 @@ export type MY_ORDERS_QUERYResult = Array<{
         [internalGroqTypeReferenceTo]?: "category";
       }>;
       stock?: number;
-      status?: "hot" | "new" | "sale";
+      status?: "destacado" | "nuevo" | "oferta";
       variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
     } | null;
     quantity?: number;
@@ -604,7 +604,7 @@ export type QueryResult = Array<{
         [internalGroqTypeReferenceTo]?: "category";
       }>;
       stock?: number;
-      status?: "hot" | "new" | "sale";
+      status?: "destacado" | "nuevo" | "oferta";
       variant?: "buzo" | "campera" | "otros" | "pantalon" | "short" | "remera";
     } | null;
     quantity?: number;

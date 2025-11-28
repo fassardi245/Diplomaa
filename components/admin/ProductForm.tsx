@@ -116,9 +116,9 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Etiqueta</label>
                     <select name="status" defaultValue={product?.status} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white">
                         <option value="">Ninguna</option>
-                        <option value="new">Nuevo</option>
-                        <option value="hot">Destacado</option>
-                        <option value="sale">En Oferta</option>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="destacado">Destacado</option>
+                        <option value="oferta">En Oferta</option>
                     </select>
                 </div>
              </div>

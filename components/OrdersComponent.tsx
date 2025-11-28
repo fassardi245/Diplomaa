@@ -11,12 +11,13 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { format } from "date-fns";
-import { Trash } from "lucide-react";
+import { Trash, Ban } from "lucide-react"; // Importé 'Ban' por si quisieras cambiar el icono, pero mantendré Trash
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { cancelOrder } from "@/actions/cancelOrder"; // <--- CAMBIO: Importamos cancelar
 
 const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<
     MY_ORDERS_QUERYResult[number] | null
   >(null);
@@ -27,56 +28,34 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
 
   const router = useRouter();
 
-  const refreshOrders = useCallback(() => {
-    // Esto actualiza los datos de la página
-    router.refresh();
-  }, [router]);
-
-  const handleDeleteOrder = async (
+  const handleCancelOrder = async (
     orderId: string,
     event: React.MouseEvent
   ) => {
-    event.stopPropagation(); // Evita abrir el detalle al hacer clic en eliminar
+    event.stopPropagation(); 
 
     if (
       !confirm(
-        "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+        "¿Estás seguro de que deseas CANCELAR este pedido? Se notificará a la administración."
       )
     ) {
       return;
     }
 
-    setIsDeleting(orderId);
+    setIsCancelling(orderId);
 
     try {
-      const response = await fetch("/api/delete-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orderId }),
-      });
+      // Llamamos a la acción de cancelar
+      await cancelOrder(orderId);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "No se pudo eliminar la orden."
-        );
-      }
+      toast.success("¡Orden cancelada correctamente!");
+      router.refresh();
 
-      toast.success("¡Orden eliminada correctamente!");
-
-      // Refresca la lista de órdenes
-      refreshOrders();
     } catch (error) {
-      console.error("Error al eliminar la orden:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo eliminar la orden. Intenta nuevamente."
-      );
+      console.error("Error al cancelar:", error);
+      toast.error("No se pudo cancelar la orden. Intenta nuevamente.");
     } finally {
-      setIsDeleting(null);
+      setIsCancelling(null);
     }
   };
 
@@ -84,7 +63,13 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
     <>
       <TableBody>
         <TooltipProvider>
-          {orders.map((order) => (
+          {orders.map((order) => {
+            // LÓGICA DE VISIBILIDAD:
+            // Solo se puede cancelar si está 'pendiente' o 'pagado'.
+            // Si ya está en camino, entregado o cancelado, no mostramos el botón.
+            const canCancel = order.status === 'pendiente' || order.status === 'pagado';
+
+            return (
             <Tooltip key={order?.orderNumber}>
               <TooltipTrigger asChild>
                 <TableRow
@@ -108,18 +93,19 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                       className="text-black font-medium"
                     />
                   </TableCell>
+                  
+                  {/* ESTADO */}
                   <TableCell>
                     {order?.status && (
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          order.status === "pagado"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                          order.status === "pagado" ? "bg-green-100 text-green-800" :
+                          order.status === "cancelado" ? "bg-red-100 text-red-800" :
+                          order.status === "entregado" ? "bg-green-100 text-green-800" :
+                          "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {order?.status === "pagado"
-                          ? "Pagado"
-                          : "Pendiente"}
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     )}
                   </TableCell>
@@ -131,20 +117,25 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                       </p>
                     )}
                   </TableCell>
+                  
                   <TableCell>
-                    {/* Botón de eliminar */}
-                    <button
-                      onClick={(e) => handleDeleteOrder(order._id, e)}
-                      className="ml-2 text-red-500 hover:text-red-700 cursor-pointer transition-colors"
-                      disabled={isDeleting === order._id}
-                      aria-label="Eliminar orden"
-                    >
-                      {isDeleting === order._id ? (
-                        <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <Trash size={18} />
-                      )}
-                    </button>
+                    {/* BOTÓN DE CANCELAR (El Tacho) */}
+                    {/* Solo se muestra si el pedido es cancelable */}
+                    {canCancel && (
+                      <button
+                        onClick={(e) => handleCancelOrder(order._id, e)}
+                        className="ml-2 text-gray-400 hover:text-red-600 cursor-pointer transition-colors"
+                        disabled={isCancelling === order._id}
+                        aria-label="Cancelar orden"
+                        title="Cancelar pedido"
+                      >
+                        {isCancelling === order._id ? (
+                          <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Trash size={18} />
+                        )}
+                      </button>
+                    )}
                   </TableCell>
                 </TableRow>
               </TooltipTrigger>
@@ -152,7 +143,7 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                 <p>Haz clic para ver los detalles de la orden</p>
               </TooltipContent>
             </Tooltip>
-          ))}
+          )})}
         </TooltipProvider>
       </TableBody>
       <OrderDetailsDialog

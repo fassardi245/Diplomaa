@@ -13,7 +13,7 @@ export const orderType = defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
-    {
+    defineField({
       name: "invoice",
       type: "object",
       fields: [
@@ -21,7 +21,7 @@ export const orderType = defineType({
         { name: "number", type: "string" },
         { name: "hosted_invoice_url", type: "url" },
       ],
-    },
+    }),
     defineField({
       name: "stripeCheckoutSessionId",
       title: "Stripe Checkout Session ID",
@@ -70,6 +70,9 @@ export const orderType = defineType({
               title: "Product Bought",
               type: "reference",
               to: [{ type: "product" }],
+              // 👇 AQUÍ ESTÁ LA SOLUCIÓN
+              weak: true, 
+              // Esto permite borrar el producto original sin que Sanity te lo impida por "estar en una orden".
             }),
             defineField({
               name: "quantity",
@@ -87,8 +90,8 @@ export const orderType = defineType({
             },
             prepare(select) {
               return {
-                title: `${select.product} x ${select.quantity}`,
-                subtitle: `${select.price * select.quantity}`,
+                title: `${select.product || 'Producto eliminado'} x ${select.quantity}`,
+                subtitle: select.price ? `${select.price * select.quantity}` : 'Precio no disponible',
                 media: select.image,
               };
             },
@@ -120,26 +123,11 @@ export const orderType = defineType({
       type: "string",
       options: {
         list: [
-          {
-            title: "Pendiente",
-            value: "pendiente",
-          },
-          {
-            title: "Pagado",
-            value: "pagado",
-          },
-          {
-            title: "En camino",
-            value: "en camino",
-          },
-          {
-            title: "Entregado",
-            value: "entregado",
-          },
-          {
-            title: "Cancelado",
-            value: "cancelado",
-          },
+          { title: "Pendiente", value: "pendiente" },
+          { title: "Pagado", value: "pagado" },
+          { title: "En camino", value: "en camino" },
+          { title: "Entregado", value: "entregado" },
+          { title: "Cancelado", value: "cancelado" },
         ],
       },
     }),

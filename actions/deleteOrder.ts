@@ -4,39 +4,49 @@ import { backendClient } from "@/sanity/lib/backendClient";
 import { revalidatePath } from "next/cache";
 
 export async function deleteOrder(orderId: string) {
+  if (!orderId) throw new Error("No se recibió ID de pedido");
+
+  console.log(`🗑️ Iniciando proceso de eliminación para: ${orderId}`);
+
   try {
-    console.log(`🗑️ Intentando eliminar pedido: ${orderId}`);
+    // 1. BUSQUEDA AMPLIA DE REFERENCIAS
+    // Buscamos CUALQUIER documento que esté apuntando a este pedido.
+    // Esto incluye 'shipment' y cualquier otro futuro schema que crees.
+    const referencesQuery = `*[references($orderId)]._id`;
+    const referencingIds = await backendClient.fetch(referencesQuery, { orderId });
 
-    // 1. BUSCAR DEPENDENCIAS (Envíos asociados)
-    // Buscamos si existe algún 'shipment' que apunte a este pedido
-    const shipmentQuery = `*[_type == "shipment" && order._ref == $orderId]._id`;
-    const shipmentsToDelete = await backendClient.fetch(shipmentQuery, { orderId });
+    console.log(`🔎 Se encontraron ${referencingIds.length} documentos asociados.`);
 
-    // 2. PREPARAR TRANSACCIÓN
-    // Usamos una transacción para que se borre todo junto o nada (más seguro)
+    // 2. CREAR TRANSACCIÓN
     const transaction = backendClient.transaction();
 
-    // A. Si hay envíos asociados, los agendamos para borrar
-    if (shipmentsToDelete.length > 0) {
-      console.log(`⚠️ Se encontraron ${shipmentsToDelete.length} envíos asociados. Borrando...`);
-      shipmentsToDelete.forEach((shipId: string) => {
-        transaction.delete(shipId);
+    // A. Si hay referencias (envíos, etc.), las borramos primero
+    if (referencingIds.length > 0) {
+      referencingIds.forEach((refId: string) => {
+        console.log(`   - Agendando borrado de dependencia: ${refId}`);
+        transaction.delete(refId);
       });
     }
 
-    // B. Agendamos el borrado del pedido
+    // B. Borramos el pedido principal
+    console.log(`   - Agendando borrado de pedido principal: ${orderId}`);
     transaction.delete(orderId);
 
     // 3. EJECUTAR
     await transaction.commit();
-    
-    console.log("✅ Pedido y sus dependencias eliminados correctamente.");
+    console.log("✅ Eliminación en cascada exitosa.");
+
+    // 4. REVALIDAR
     revalidatePath("/admin/orders");
     revalidatePath("/admin/envios");
+    revalidatePath("/admin/flota");
+
+    // Retornamos éxito (para que el cliente no reciba JSON vacío)
+    return { success: true };
 
   } catch (error: any) {
-    // Esto te mostrará el error REAL en tu terminal de VS Code
-    console.error("❌ Error detallado de Sanity:", error.message);
-    throw new Error("No se pudo eliminar el pedido (Revisa la terminal)");
+    console.error("❌ ERROR CRÍTICO EN DELETE:", error);
+    // IMPORTANTE: Lanzar el error para que el cliente lo note, pero con mensaje claro
+    throw new Error(`Fallo al eliminar: ${error.message}`);
   }
 }
