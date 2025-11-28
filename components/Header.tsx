@@ -11,6 +11,7 @@ import CartIcon from "./new/CartIcon";
 import MobileMenu from "./new/MobileMenu";
 import SearchBar from "./new/SearchBar";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { Heart } from "lucide-react"; 
 
 const Header = async () => {
   const user = await currentUser();
@@ -63,6 +64,14 @@ const Header = async () => {
               <span>Admin</span>
             </div>
           )}
+
+                    <Link href="/wishlist" className="group relative">
+                    <Heart className="w-6 h-6 group-hover:text-darkColor hoverEffect text-gray-600" />
+                    {/* Opcional: Contador si quisieras implementarlo con Zustand */}
+                    {/* <span className="absolute -top-1 -right-1 bg-darkColor text-white h-3.5 w-3.5 rounded-full text-xs font-semibold flex items-center justify-center">
+                        {wishlistCount}
+                    </span> */}
+                  </Link>
 
           <CartIcon />
           

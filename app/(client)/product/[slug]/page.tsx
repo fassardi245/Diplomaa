@@ -3,14 +3,10 @@ import Container from "@/components/Container";
 import ImageView from "@/components/new/ImageView";
 import PriceView from "@/components/PriceView";
 import ProductCharacteristics from "@/components/ProductCharacteristics";
+import AddToWishlistButton from "@/components/AddToWishlistButton"; // <--- IMPORTANTE
 import { getProductBySlug } from "@/sanity/helpers";
-import { Heart } from "lucide-react";
 import { notFound } from "next/navigation";
 import React from "react";
-import { FaRegQuestionCircle } from "react-icons/fa";
-import { FiShare2 } from "react-icons/fi";
-import { RxBorderSplit } from "react-icons/rx";
-import { TbTruckDelivery } from "react-icons/tb";
 
 const ProductPage = async ({
   params,
@@ -24,91 +20,75 @@ const ProductPage = async ({
     return notFound();
   }
 
-  // Lógica para saber si está agotado (stock 0 o negativo)
   const isOutOfStock = product?.stock === undefined || product?.stock <= 0;
 
   return (
     <div>
       <Container className="flex flex-col md:flex-row gap-10 py-10">
+        
+        {/* GALERÍA DE FOTOS */}
         {product?.images && <ImageView images={product?.images} />}
-        <div className="w-full md:w-1/2 flex flex-col gap-5">
+        
+        {/* INFO DEL PRODUCTO */}
+        <div className="w-full md:w-1/2 flex flex-col gap-6">
           <div>
-            <p className="text-4xl font-bold mb-2">{product?.name}</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900 leading-tight">
+                {product?.name}
+            </h1>
             <PriceView
               price={product?.price}
               discount={product?.discount}
-              className="text-lg font-bold"
+              className="text-xl font-bold"
             />
           </div>
 
-          {/* ETIQUETA DE STOCK DINÁMICA */}
-          {isOutOfStock ? (
-            <p className="bg-red-100 w-28 text-center text-red-600 text-sm py-2.5 font-semibold rounded-lg">
-              Agotado
-            </p>
-          ) : (
-            <p className="bg-green-100 w-24 text-center text-green-600 text-sm py-2.5 font-semibold rounded-lg">
-              En Stock
-            </p>
-          )}
+          {/* ETIQUETA DE STOCK */}
+          <div>
+            {isOutOfStock ? (
+              <span className="bg-red-100 text-red-700 px-4 py-1.5 rounded-full text-sm font-bold inline-block">
+                Agotado
+              </span>
+            ) : (
+              <span className="bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold inline-block">
+                En Stock
+              </span>
+            )}
+          </div>
 
-          <p className="text-sm text-gray-600 tracking-wide">
+          <p className="text-gray-600 leading-relaxed text-base">
             {product?.description}
           </p>
 
-          <div className="flex items-center gap-2.5 lg:gap-5">
-            {/* BOTÓN DINÁMICO: Si no hay stock, muestra botón gris deshabilitado */}
-            {isOutOfStock ? (
-              <button
-                disabled
-                className="bg-gray-300 text-gray-500 px-6 py-3 rounded-md cursor-not-allowed opacity-80"
-              >
-                Sin Stock
-              </button>
-            ) : (
-              <AddToCartButton
-                product={product}
-                className="bg-darkColor/80 text-white hover:bg-darkColor hoverEffect"
-              />
-            )}
+          {/* BOTONES DE ACCIÓN */}
+          <div className="flex items-center gap-4 mt-2">
+            {/* 1. Agregar al Carrito */}
+            <div className="flex-1">
+                {isOutOfStock ? (
+                <button
+                    disabled
+                    className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed"
+                >
+                    Sin Stock
+                </button>
+                ) : (
+                <AddToCartButton
+                    product={product}
+                    className="w-full bg-black text-white py-3.5 rounded-xl hover:bg-gray-800 transition-colors font-bold shadow-lg shadow-gray-200"
+                />
+                )}
+            </div>
 
-            <button className="border-2 border-darkColor/30 text-darkColor/60 px-2.5 py-1.5 rounded-md hover:text-darkColor hover:border-darkColor hoverEffect">
-              <Heart className="w-5 h-5" />
-            </button>
+            {/* 2. Botón de Favoritos (Nuevo) */}
+            <AddToWishlistButton product={product} />
           </div>
 
-          <ProductCharacteristics product={product} />
-          <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-b-gray-200 py-5 -mt-2">
-            <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
-              <RxBorderSplit className="text-lg" />
-              <p>Comparar color</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
-              <FaRegQuestionCircle className="text-lg" />
-              <p>Hacer una consulta</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
-              <TbTruckDelivery className="text-lg" />
-              <p>Delivery y devolucion</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-black hover:text-red-600 hoverEffect">
-              <FiShare2 className="text-lg" />
-              <p>Compartir</p>
-            </div>
+          {/* CARACTERÍSTICAS (Acordeón) */}
+          <div className="mt-4 pt-6 border-t border-gray-100">
+             <ProductCharacteristics product={product} />
           </div>
-          <div className="flex flex-wrap items-center gap-5">
-            <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
-              <p className="text-base font-semibold text-black">Envio gratis</p>
-            </div>
-            <div className="border border-darkBlue/20 text-center p-3 hover:border-darkBlue hoverEffect rounded-md">
-              <p className="text-base font-semibold text-black">
-                Pago sencillo
-              </p>
-              <p className="text-sm text-gray-500">
-                Pagar con varias tarjetas de credito
-              </p>
-            </div>
-          </div>
+
+          {/* --- AQUÍ BORRAMOS TODO LO QUE NO QUERÍAS (Comparar, Envíos, etc.) --- */}
+
         </div>
       </Container>
     </div>

@@ -20,9 +20,6 @@ const HomeTabbar = ({ selectedTab, onTabSelect }: Props) => {
           </button>
         ))}
       </div>
-      <button className="border border-darkColor px-2 py-2 rounded-full hover:bg-darkColor hover:text-white hoverEffect">
-        <Repeat className="w-5 h-5" />
-      </button>
     </div>
   );
 };

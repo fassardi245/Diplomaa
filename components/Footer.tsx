@@ -20,13 +20,6 @@ const Footer = () => {
               Descubrí las colecciones de indumentaria de Smartcloth, que combinan estilo,
               comodidad y diseño para acompañarte todos los días.
             </p>
-            <div className="flex justify-center">
-              <SocialMedia
-                className="text-darkColor/60"
-                iconClassName="border-darkColor/60 hover:border-darkColor hover:text-darkColor"
-                tooltipClassName="bg-darkColor text-white"
-              />
-            </div>
           </div>
 
           {/* Enlaces rápidos y categorías centrados */}

@@ -25,7 +25,7 @@ export async function createCheckoutSession(
     // Validate if any grouped items don't have a price
     const itemsWithoutPrice = items.filter((item) => !item.product.price);
     if (itemsWithoutPrice.length > 0) {
-      throw new Error("Some items do not have a price");
+      throw new Error("algunos items no tienen precio definido");
     }
 
     // Retrieve existing customer or create a new one
@@ -44,7 +44,6 @@ export async function createCheckoutSession(
         clerkUserId: metadata.clerkUserId,
       },
       mode: "payment",
-      allow_promotion_codes: true,
       payment_method_types: ["card"],
       invoice_creation: {
         enabled: true,
@@ -84,7 +83,7 @@ export async function createCheckoutSession(
 
     return session.url;
   } catch (error) {
-    console.error("Error creating checkout session:", error);
+    console.error("Error creando la sesion:", error);
     throw error;
   }
 }

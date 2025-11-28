@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { client } from "@/sanity/lib/client";
 import OrderActions from "@/components/admin/OrderActions";
+import OrderSearch from "@/components/admin/OrderSearch"; // <--- Importamos el componente nuevo
 import { 
   ShoppingBag, 
   Calendar, 
@@ -10,13 +11,10 @@ import {
   CheckCircle2, 
   XCircle, 
   Clock, 
-  Package, 
-  MoreHorizontal,
-  Search,
-  BadgeCheck // Importé este icono extra para "Pagado"
+  BadgeCheck 
 } from "lucide-react";
 
-// 1. Interfaces
+// Interfaces (Igual que antes)
 interface Order {
   _id: string;
   orderNumber: string;
@@ -29,15 +27,21 @@ interface Order {
   stripePaymentIntentId?: string;
   products: {
     quantity: number;
-    product: {
-        name: string;
-    }
+    product: { name: string; }
   }[];
 }
 
-// 2. Data Fetching
-async function getOrders() {
-  const query = `*[_type == "order"] | order(orderDate desc) {
+// 2. Data Fetching con Filtro
+async function getOrders(queryText: string) {
+  // Si hay texto de búsqueda, filtramos. Si no, traemos todo.
+  // El filtro busca coincidencia en el orderNumber (los últimos dígitos sirven)
+  // Opcional: También busca por nombre de cliente
+  
+  const filter = queryText 
+    ? `&& (orderNumber match "*${queryText}*" || customerName match "*${queryText}*")` 
+    : "";
+
+  const query = `*[_type == "order" ${filter}] | order(orderDate desc) {
     _id,
     orderNumber,
     customerName,
@@ -56,7 +60,15 @@ async function getOrders() {
   return await client.fetch(query, {}, { cache: 'no-store' });
 }
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams?: {
+    query?: string;
+  };
+}) {
+  const queryText = searchParams?.query || "";
+
   // --- SEGURIDAD ---
   const user = await currentUser();
   if (!user) return <div>Inicia sesión.</div>;
@@ -65,21 +77,18 @@ export default async function OrdersPage() {
   if (!usuarioSeguridad.puedo("ver_pedidos")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   // --- DATOS ---
-  const orders: Order[] = await getOrders();
+  const orders: Order[] = await getOrders(queryText);
 
-  // --- HELPERS VISUALES ---
-  
+  // --- HELPERS ---
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
+      style: 'currency', currency: currency.toUpperCase(),
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit"
+      day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
 
@@ -88,32 +97,15 @@ export default async function OrdersPage() {
     return products.reduce((acc, item) => acc + (item.quantity || 0), 0);
   };
 
-  // --- BADGES DE ESTADO (COLORES PERSONALIZADOS) ---
   const getStatusBadge = (status: string) => {
     const s = status?.toLowerCase() || "pendiente";
     switch (s) {
-      case 'pagado': 
-        // GRIS: Confirmado pero aún no procesado logísticamente
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200"><BadgeCheck className="w-3 h-3 mr-1"/>Pagado</span>;
-      
-      case 'pendiente':
-        // GRIS: Estado inicial neutro
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200"><Clock className="w-3 h-3 mr-1"/>Pendiente</span>;
-
-      case 'en camino': 
-        // CELESTE (Sky): Acción de transporte
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-700 border border-sky-200"><Truck className="w-3 h-3 mr-1"/>En Camino</span>;
-      
-      case 'entregado': 
-        // VERDE: Éxito final
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200"><CheckCircle2 className="w-3 h-3 mr-1"/>Entregado</span>;
-      
-      case 'cancelado': 
-        // ROJO: Error o cancelación
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200"><XCircle className="w-3 h-3 mr-1"/>Cancelado</span>;
-      
-      default: 
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200">{status}</span>;
+      case 'pagado': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200"><BadgeCheck className="w-3 h-3 mr-1"/>Pagado</span>;
+      case 'pendiente': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200"><Clock className="w-3 h-3 mr-1"/>Pendiente</span>;
+      case 'en camino': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-700 border border-sky-200"><Truck className="w-3 h-3 mr-1"/>En Camino</span>;
+      case 'entregado': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200"><CheckCircle2 className="w-3 h-3 mr-1"/>Entregado</span>;
+      case 'cancelado': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200"><XCircle className="w-3 h-3 mr-1"/>Cancelado</span>;
+      default: return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200">{status}</span>;
     }
   };
 
@@ -130,20 +122,12 @@ export default async function OrdersPage() {
              Pedidos
           </h1>
           <p className="text-gray-500 mt-2 text-sm">
-            Historial de transacciones y envíos. Total: <strong>{orders.length}</strong> órdenes.
+            Historial de transacciones y envíos. {queryText ? `Resultados para "${queryText}"` : `Total: ${orders.length} órdenes.`}
           </p>
         </div>
         
-        {/* Buscador visual */}
-        <div className="relative hidden md:block">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-                type="text" 
-                placeholder="Buscar por N° Orden..." 
-                disabled
-                className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 w-64 shadow-sm cursor-not-allowed opacity-70" 
-            />
-        </div>
+        {/* Usamos el componente cliente aquí */}
+        <OrderSearch />
       </div>
 
       {/* TABLA DE PEDIDOS */}
@@ -162,12 +146,9 @@ export default async function OrdersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50/50 transition-colors group">
-                  
-                  {/* 1. ORDEN Y CLIENTE */}
+                <tr key={order._id} className="hover:bg-indigo-50/30 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                        {/* Avatar con iniciales */}
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs shrink-0">
                             {order.customerName ? order.customerName.slice(0,2).toUpperCase() : "??"}
                         </div>
@@ -182,50 +163,30 @@ export default async function OrdersPage() {
                         </div>
                     </div>
                   </td>
-
-                  {/* 2. ESTADO (COLORES NUEVOS) */}
-                  <td className="px-6 py-4">
-                    {getStatusBadge(order.status)}
-                  </td>
-
-                  {/* 3. FECHA */}
+                  <td className="px-6 py-4">{getStatusBadge(order.status)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-gray-600 text-xs">
                         <Calendar className="w-3.5 h-3.5 text-gray-400" />
                         {order.orderDate ? formatDate(order.orderDate) : "-"}
                     </div>
                   </td>
-
-                  {/* 4. TOTAL Y PRODUCTOS */}
                   <td className="px-6 py-4">
-                    <div className="font-bold text-gray-900">
-                        {formatCurrency(order.totalPrice, order.currency)}
-                    </div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">
-                        {getTotalItems(order.products)} productos
-                    </div>
+                    <div className="font-bold text-gray-900">{formatCurrency(order.totalPrice, order.currency)}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">{getTotalItems(order.products)} productos</div>
                   </td>
-
-                  {/* 5. STRIPE INFO */}
                   <td className="px-6 py-4">
                     {order.stripePaymentIntentId ? (
                         <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100 w-fit" title={order.stripePaymentIntentId}>
                             <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
-                            <span className="font-mono max-w-[100px] truncate">
-                                {order.stripePaymentIntentId}
-                            </span>
+                            <span className="font-mono max-w-[100px] truncate">{order.stripePaymentIntentId}</span>
                         </div>
                     ) : (
                         <span className="text-xs text-gray-400 italic">Sin procesar</span>
                     )}
                   </td>
-
-                 {/* 6. ACCIONES (Ahora usando el componente interactivo) */}
-                <td className="px-6 py-4 text-right">
-                {/* Le pasamos el ID para que sepa qué borrar o ver */}
-                <OrderActions orderId={order._id} />
-                </td>
-
+                  <td className="px-6 py-4 text-right">
+                    <OrderActions orderId={order._id} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -236,7 +197,9 @@ export default async function OrdersPage() {
                <div className="bg-gray-50 p-4 rounded-full mb-3">
                   <ShoppingBag className="w-8 h-8 text-gray-300" />
                </div>
-               <p className="text-gray-500 font-medium">No hay pedidos registrados.</p>
+               <p className="text-gray-500 font-medium">
+                 {queryText ? `No se encontraron pedidos con "${queryText}"` : "No hay pedidos registrados."}
+               </p>
             </div>
           )}
         </div>

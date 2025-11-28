@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import EmptyCart from "@/components/EmptyCart";
 import NoAccessToCart from "@/components/NoAccessToCart";
+import AddToWishlistButton from "@/components/AddToWishlistButton";
 import {
   createCheckoutSession,
   Metadata,
@@ -137,9 +138,10 @@ const CartPage = () => {
                               <div className="flex items-center gap-2">
                                 <TooltipProvider>
                                   <Tooltip>
-                                    <TooltipTrigger>
-                                      <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 text-gray-500 hover:text-red-600 hoverEffect" />
-                                    </TooltipTrigger>
+                                    <div className="mr-2">
+                                          <AddToWishlistButton product={product} /> 
+                                          {/* El componente AddToWishlistButton ya maneja el estilo y la lógica */}
+                                        </div>
                                     <TooltipContent className="font-bold bg-white text-black border border-gray-300 shadow-md">
                                       Agregar a favoritos
                                     </TooltipContent>

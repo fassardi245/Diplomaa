@@ -16,13 +16,6 @@ const ProductCharacteristics = ({ product }: { product: Product }) => {
         </AccordionTrigger>
         <AccordionContent className="flex flex-col gap-1">
           <p className="flex items-center justify-between">
-            Marca: <span className="font-semibold tracking-wide">Desconocida</span>
-          </p>
-          <p className="flex items-center justify-between">
-            Colección:{" "}
-            <span className="font-semibold tracking-wide">2024</span>
-          </p>
-          <p className="flex items-center justify-between">
             Tipo:{" "}
             <span className="font-semibold tracking-wide">
               {product?.variant}
