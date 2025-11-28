@@ -102,32 +102,55 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
         <div className="mt-4 text-right flex items-center justify-end">
           <div className="w-44 flex flex-col gap-1">
-            {order?.amountDiscount !== 0 && (
-              <div className="w-full flex items-center justify-between">
-                <strong>Discount: </strong>
-                <PriceFormatter
-                  amount={order?.amountDiscount}
-                  className="text-black font-bold"
-                />
-              </div>
-            )}
+            {/* SUBTOTAL */}
             {order?.amountDiscount !== 0 && (
               <div className="w-full flex items-center justify-between">
                 <strong>Subtotal: </strong>
                 <PriceFormatter
                   amount={
                     (order?.totalPrice as number) +
-                    (order?.amountDiscount as number)
+                    (order?.amountDiscount as number) -
+                    (order?.shippingCost || 0) // Restamos el envío para obtener el subtotal de productos puro
                   }
                   className="text-black font-bold"
                 />
               </div>
             )}
+
+            {/* DESCUENTO */}
+            {order?.amountDiscount !== 0 && (
+              <div className="w-full flex items-center justify-between text-green-600">
+                <strong>Discount: </strong>
+                <PriceFormatter
+                  amount={order?.amountDiscount}
+                  className="font-bold"
+                />
+              </div>
+            )}
+
+            {/* ENVÍO (NUEVA SECCIÓN) */}
+            {order?.shippingCost !== undefined && (
+                <div className="w-full flex items-center justify-between">
+                    <strong>Envío: </strong>
+                    {order.shippingCost === 0 ? (
+                        <span className="text-green-600 font-bold">Gratis</span>
+                    ) : (
+                        <PriceFormatter
+                          amount={order.shippingCost ?? 0} // <--- Usa '?? 0' en lugar de '|| 0'
+                          className="text-black font-bold"
+                        />
+                    )}
+                </div>
+            )}
+
+            <div className="border-t border-gray-200 my-1"></div>
+
+            {/* TOTAL */}
             <div className="w-full flex items-center justify-between">
               <strong>Total: </strong>
               <PriceFormatter
                 amount={order?.totalPrice}
-                className="text-black font-bold"
+                className="text-black font-bold text-lg"
               />
             </div>
           </div>
