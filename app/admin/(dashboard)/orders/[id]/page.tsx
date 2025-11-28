@@ -32,10 +32,12 @@ async function getOrder(id: string) {
         name,
         price,
         currency,
-        "imageUrl": image.asset->url
+        // ⚠️ CORRECCIÓN: Usamos 'images' (plural) y tomamos la primera [0]
+        "imageUrl": images[0].asset->url
       }
     }
   }`;
+  
   return await client.fetch(query, { id }, { cache: 'no-store' });
 }
 

@@ -21,7 +21,9 @@ const Header = async () => {
   if (userId) {
     orders = await getMyOrders(userId);
   }
-  const categories = await getAllCategories(3);
+
+  // ⚠️ CORRECCIÓN AQUÍ: Quitamos el (3) para traer TODAS las categorías
+  const categories = await getAllCategories();
 
   // 2. Lógica de Seguridad (Admin Visual)
   let esAdmin = false;
@@ -32,10 +34,7 @@ const Header = async () => {
       user.emailAddresses[0]?.emailAddress
     );
     
-    // ⚠️ CORRECCIÓN DEFINITIVA:
-    // 1. Convertimos la lista de nombres (string) en un Array real separando por comas.
-    // 2. Buscamos si alguno es EXACTAMENTE "Admin".
-    // "Acceso Panel Admin" NO es igual a "Admin", así que dará false para empleados.
+    // Verificamos si es Admin para mostrar el escudo
     const roles = seguridad.nombreRol.split(",").map(r => r.trim());
     esAdmin = roles.includes("Admin");
   }
@@ -43,6 +42,7 @@ const Header = async () => {
   return (
     <header className="bg-white sticky top-0 z-50 border-b border-b-gray-200 py-5">
       <Container className="flex items-center justify-between gap-7 text-lightColor">
+        {/* Pasamos todas las categorías al menú */}
         <HeaderMenu categories={categories} />
         
         <div className="w-auto md:w-1/3 flex items-center justify-center gap-2.5">
@@ -53,8 +53,7 @@ const Header = async () => {
         <div className="w-auto md:w-1/3 flex items-center justify-end gap-5">
           <SearchBar />
           
-          {/* --- ETIQUETA ADMIN (VISUAL) --- */}
-          {/* Solo aparece si el rol es estrictamente 'Admin' */}
+          {/* --- ETIQUETA ADMIN --- */}
           {esAdmin && (
             <div 
               title="Modo Administrador Activo"
@@ -64,7 +63,6 @@ const Header = async () => {
               <span>Admin</span>
             </div>
           )}
-          {/* ------------------------------- */}
 
           <CartIcon />
           
