@@ -4,7 +4,8 @@ import {
   MapPin, 
   Package, 
   CalendarClock, 
-  AlertCircle
+  AlertCircle,
+  Ship
 } from "lucide-react";
 import StartShipmentButton from "@/components/admin/StartShipmentButton";
 import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton"; // <--- IMPORTANTE
@@ -39,12 +40,13 @@ async function getData() {
     status,
     departureDate,
     destinationAddress,
-    driverName,
     "orderNumber": order->orderNumber,
     "customerName": order->customerName,
     "vehicleModel": vehicle->model,
     "vehiclePlate": vehicle->plate,
-    "vehicleImage": vehicle->image.asset->url
+    // Nuevos campos de chofer
+    "driverName": driver->name, 
+    "driverPhoto": driver->photo.asset->url 
   }`;
 
   // 2. Pedidos Pendientes de Asignación (Pagados)
@@ -93,6 +95,10 @@ export default async function ShipmentsPage() {
                        </div>
                        <div>
                           <p className="font-bold text-gray-900">Pedido #{order.orderNumber?.slice(-6) || "???"}</p>
+                          <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                           {/* Si hay foto del chofer, podrías mostrarla aquí en chiquito */}
+                           Chofer: <span className="font-semibold text-gray-600">{Ship.displayName || "Sin asignar"}</span>
+                        </p>
                           <p className="text-xs text-gray-500">{order.customerName} • Pago Confirmado</p>
                        </div>
                     </div>

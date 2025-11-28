@@ -11,10 +11,10 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { format } from "date-fns";
-import { Trash, Ban } from "lucide-react"; // Importé 'Ban' por si quisieras cambiar el icono, pero mantendré Trash
+import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { cancelOrder } from "@/actions/cancelOrder"; // <--- CAMBIO: Importamos cancelar
+import { cancelOrder } from "@/actions/cancelOrder"; 
 
 const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
   const [isCancelling, setIsCancelling] = useState<string | null>(null);
@@ -23,7 +23,9 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
   >(null);
 
   const handleOrderClick = (order: MY_ORDERS_QUERYResult[number]) => {
-    setSelectedOrder(order);
+    // Navegamos a la página de seguimiento en lugar de abrir el dialog modal antiguo
+    // Esto conecta con el RF4 (Seguimiento detallado)
+    window.location.href = `/orders/${order.orderNumber}`;
   };
 
   const router = useRouter();
@@ -45,12 +47,9 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
     setIsCancelling(orderId);
 
     try {
-      // Llamamos a la acción de cancelar
       await cancelOrder(orderId);
-
       toast.success("¡Orden cancelada correctamente!");
       router.refresh();
-
     } catch (error) {
       console.error("Error al cancelar:", error);
       toast.error("No se pudo cancelar la orden. Intenta nuevamente.");
@@ -66,11 +65,11 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
           {orders.map((order) => {
             // LÓGICA DE VISIBILIDAD:
             // Solo se puede cancelar si está 'pendiente' o 'pagado'.
-            // Si ya está en camino, entregado o cancelado, no mostramos el botón.
             const canCancel = order.status === 'pendiente' || order.status === 'pagado';
 
             return (
-            <Tooltip key={order?.orderNumber}>
+            // CORRECCIÓN CRÍTICA: Usamos _id como key para evitar error de duplicados
+            <Tooltip key={order._id}>
               <TooltipTrigger asChild>
                 <TableRow
                   className="cursor-pointer hover:bg-gray-100 h-12"
@@ -101,7 +100,8 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
                           order.status === "pagado" ? "bg-green-100 text-green-800" :
                           order.status === "cancelado" ? "bg-red-100 text-red-800" :
-                          order.status === "entregado" ? "bg-green-100 text-green-800" :
+                          order.status === "entregado" ? "bg-gray-100 text-gray-800" :
+                          order.status === "devuelto" ? "bg-purple-100 text-purple-800" :
                           "bg-yellow-100 text-yellow-800"
                         }`}
                       >
@@ -119,8 +119,7 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                   </TableCell>
                   
                   <TableCell>
-                    {/* BOTÓN DE CANCELAR (El Tacho) */}
-                    {/* Solo se muestra si el pedido es cancelable */}
+                    {/* BOTÓN DE CANCELAR */}
                     {canCancel && (
                       <button
                         onClick={(e) => handleCancelOrder(order._id, e)}
@@ -140,17 +139,13 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                 </TableRow>
               </TooltipTrigger>
               <TooltipContent className="text-white font-medium">
-                <p>Haz clic para ver los detalles de la orden</p>
+                <p>Haz clic para ver el seguimiento del pedido</p>
               </TooltipContent>
             </Tooltip>
           )})}
         </TooltipProvider>
       </TableBody>
-      <OrderDetailsDialog
-        order={selectedOrder}
-        isOpen={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
-      />
+      {/* Ya no necesitamos el Dialog porque vamos a la página de seguimiento completa */}
     </>
   );
 };

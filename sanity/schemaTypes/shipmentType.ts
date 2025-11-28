@@ -1,4 +1,4 @@
-import { RocketIcon } from "@sanity/icons"; // Usamos este que sabemos que funciona
+import { RocketIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 export const shipmentType = defineType({
@@ -21,11 +21,17 @@ export const shipmentType = defineType({
       to: [{ type: "vehicle" }],
       validation: (Rule) => Rule.required(),
     }),
+    
+    // --- CAMBIO AQUÍ: Referencia a Chofer ---
     defineField({
-      name: "driverName",
-      title: "Nombre del Chofer",
-      type: "string",
+      name: "driver",
+      title: "Chofer Asignado",
+      type: "reference",
+      to: [{ type: "driver" }], // Apunta al nuevo schema
+      validation: (Rule) => Rule.required(),
     }),
+    // ----------------------------------------
+
     defineField({
       name: "destinationAddress",
       title: "Dirección de Destino",
@@ -48,6 +54,11 @@ export const shipmentType = defineType({
     defineField({
       name: "departureDate",
       title: "Fecha de Salida",
+      type: "datetime",
+    }),
+    defineField({
+      name: "deliveryDate",
+      title: "Fecha de Entrega",
       type: "datetime",
     }),
   ],
