@@ -14,8 +14,15 @@ export default function StartShipmentButton({ orderId }: { orderId: string }) {
     setLoading(true);
     try {
       await assignLogistics(orderId);
-      // La acción redirige o revalida, así que esperamos
+      // La acción redirige, así que esperamos sin hacer nada más
     } catch (error: any) {
+      // --- CORRECCIÓN AQUÍ ---
+      // Si el error es la redirección de Next.js, lo dejamos pasar
+      if (error.message === 'NEXT_REDIRECT') {
+        throw error;
+      }
+      
+      // Si es un error real (ej: no hay vehículos), mostramos la alerta
       alert(error.message || "Error al asignar logística. Verifica si hay vehículos disponibles.");
       setLoading(false);
     }

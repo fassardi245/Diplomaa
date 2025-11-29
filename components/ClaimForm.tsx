@@ -29,7 +29,7 @@ export default function ClaimForm({ orderId, orderNumber }: { orderId: string, o
         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
         <h3 className="font-bold text-green-800 text-lg">¡Reclamo Recibido!</h3>
         <p className="text-green-600 text-sm mt-1">
-          Nuestro equipo revisará tu caso y te contactará por email en las próximas 24hs.
+          Nuestro equipo revisará tu caso
         </p>
       </div>
     );
@@ -65,7 +65,6 @@ export default function ClaimForm({ orderId, orderNumber }: { orderId: string, o
                 <option value="">Selecciona una opción...</option>
                 <option value="damaged">Producto llegó dañado</option>
                 <option value="wrong_item">Producto incorrecto</option>
-                <option value="wrong_size">Talle incorrecto</option>
                 <option value="regret">Me arrepentí de la compra</option>
                 <option value="other">Otro</option>
               </select>
