@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from 'resend';
-import LowStockAlertEmail from '@/components/emails/LowStockAlertEmail';
 import ReceiptEmail from '@/components/emails/ReceiptEmail';
 
 export async function POST(req: NextRequest) {
@@ -33,24 +32,30 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+    const sessionRaw = event.data.object as Stripe.Checkout.Session;
 
-    // --- 1. CHECK DE IDEMPOTENCIA (Anti-Duplicados) ---
-    // Preguntamos a Sanity si ya existe una orden con este ID de sesión
+    // --- 1. RECUPERAR DATOS EXPANDIDOS (AQUÍ ESTÁ LA SOLUCIÓN) ---
+    // Agregamos 'payment_intent' para buscar la dirección ahí si falta en la sesión
+    const session = await stripe.checkout.sessions.retrieve(sessionRaw.id, {
+      expand: [
+        'line_items.data.price.product', 
+        'shipping_cost.shipping_rate',
+        'payment_intent' // <--- ¡ESTO ES LO QUE FALTABA!
+      ]
+    });
+
+    // --- Check de Idempotencia ---
     try {
         const existingOrder = await backendClient.fetch(
             `*[_type == "order" && stripeCheckoutSessionId == $sessionId][0]`,
             { sessionId: session.id }
         );
-
         if (existingOrder) {
-            console.log(`⚠️ Orden duplicada detectada (${existingOrder.orderNumber}). Ignorando creación.`);
             return NextResponse.json({ message: "Order already processed" });
         }
     } catch (err) {
-        console.error("Error verificando idempotencia:", err);
+        console.error("Error checking idempotency", err);
     }
-    // --------------------------------------------------
 
     const invoice = session.invoice
       ? await stripe.invoices.retrieve(session.invoice as string)
@@ -71,6 +76,21 @@ async function createOrderInSanity(
   invoice: Stripe.Invoice | null
 ) {
   const resend = new Resend(process.env.RESEND_API_KEY);
+  const sessionData = session as any;
+
+  // Extraemos el Payment Intent expandido
+  const paymentIntent = sessionData.payment_intent as Stripe.PaymentIntent;
+
+  // --- LÓGICA DE DIRECCIÓN "A PRUEBA DE BALAS" ---
+  // 1. Buscamos en shipping_details de la sesión.
+  // 2. SI NO ESTÁ (tu caso): Buscamos en el payment_intent.shipping.
+  // 3. SI NO ESTÁ: Buscamos en customer_details (último recurso).
+  const shippingDetails = 
+      sessionData.shipping_details || 
+      paymentIntent?.shipping || 
+      sessionData.customer_details;
+
+  console.log("📍 Dirección encontrada en:", sessionData.shipping_details ? "Session" : (paymentIntent?.shipping ? "PaymentIntent" : "CustomerDetails"));
   
   const {
     id,
@@ -78,110 +98,77 @@ async function createOrderInSanity(
     currency,
     metadata,
     payment_intent,
-    total_details, // <--- Aquí viene el shipping de Stripe
-  } = session;
-
+    total_details,
+    shipping_cost,   
+  } = sessionData;
+  
   const { orderNumber, customerName, customerEmail, clerkUserId } =
     metadata as unknown as Metadata;
 
-  const lineItemsWithProduct = await stripe.checkout.sessions.listLineItems(
-    id,
-    { expand: ["data.price.product"] }
-  );
+  // 1. Obtener NOMBRE del envío
+  const shippingRate = shipping_cost?.shipping_rate as Stripe.ShippingRate;
+  const shippingMethodName = shippingRate?.display_name || "Envío"; 
 
-  const sanityProducts = lineItemsWithProduct.data.map((item) => ({
-    _key: crypto.randomUUID(),
-    product: {
-      _type: "reference",
-      _ref: (item.price?.product as Stripe.Product)?.metadata?.id,
-    },
-    quantity: item?.quantity || 0,
-  }));
+  // 2. Preparar Productos
+  const lineItems = session.line_items?.data || [];
+  const sanityProducts = lineItems.map((item) => {
+    const product = item.price?.product as Stripe.Product;
+    return {
+      _key: crypto.randomUUID(),
+      product: {
+        _type: "reference",
+        _ref: product?.metadata?.id,
+      },
+      name: product.name,
+      quantity: item?.quantity || 0,
+      price: (item.price?.unit_amount || 0) / 100,
+      image: product.images?.[0] || null,
+    };
+  });
 
-  // 2. CREAMOS LA ORDEN
+  // 3. Preparar Dirección
+  const shippingAddress = shippingDetails?.address ? {
+    line1: shippingDetails.address.line1,
+    line2: shippingDetails.address.line2 || "",
+    city: shippingDetails.address.city,
+    state: shippingDetails.address.state,
+    postal_code: shippingDetails.address.postal_code,
+    country: shippingDetails.address.country,
+  } : null;
+
+  // 4. CREAR LA ORDEN
   const order = await backendClient.create({
     _type: "order",
     orderNumber,
     stripeCheckoutSessionId: id,
-    stripePaymentIntentId: payment_intent as string,
+    stripePaymentIntentId: typeof payment_intent === 'string' ? payment_intent : payment_intent?.id,
     customerName,
     stripeCustomerId: customerEmail,
     clerkUserId: clerkUserId,
     email: customerEmail,
     currency,
-    amountDiscount: total_details?.amount_discount
-      ? total_details.amount_discount / 100
-      : 0,
+    amountDiscount: total_details?.amount_discount ? total_details.amount_discount / 100 : 0,
     
-    // --- 3. GUARDAMOS EL COSTO DE ENVÍO ---
-    shippingCost: total_details?.amount_shipping 
-      ? total_details.amount_shipping / 100 
-      : 0,
+    shippingCost: total_details?.amount_shipping ? total_details.amount_shipping / 100 : 0,
+    shippingMethodName: shippingMethodName,
+    shippingAddress: shippingAddress, 
 
     products: sanityProducts,
     totalPrice: amount_total ? amount_total / 100 : 0,
     status: "pagado",
     orderDate: new Date().toISOString(),
-    invoice: invoice
-      ? {
-          id: invoice.id,
-          number: invoice.number,
-          hosted_invoice_url: invoice.hosted_invoice_url,
-        }
-      : null,
+    invoice: invoice ? {
+        id: invoice.id,
+        number: invoice.number,
+        hosted_invoice_url: invoice.hosted_invoice_url,
+    } : null,
   });
   
-  // 4. GESTIÓN DE STOCK Y ALERTAS
-  console.log("Iniciando gestión de stock y alertas...");
-
-  for (const item of lineItemsWithProduct.data) {
-    const stripeProduct = item.price?.product as Stripe.Product;
-    const sanityId = stripeProduct?.metadata?.id; 
-    const quantityBought = item.quantity || 1;
-
-    if (sanityId) {
-      try {
-        const productDoc = await backendClient.fetch(
-            `*[_type == "product" && _id == $id][0]{name, stock}`, 
-            { id: sanityId }
-        );
-
-        if (productDoc) {
-            const currentStock = productDoc.stock || 0;
-            const newStock = currentStock - quantityBought;
-
-            await backendClient
-              .patch(sanityId)
-              .dec({ stock: quantityBought })
-              .commit();
-            
-            console.log(`Stock descontado (-${quantityBought}). Nuevo stock: ${newStock}`);
-
-            if (newStock <= 5) {
-                console.log("⚠️ ALERTA: Stock bajo. Enviando email al admin...");
-                await resend.emails.send({
-                    from: 'onboarding@resend.dev',
-                    to: ['francoignacio.crovetto@gmail.com'], 
-                    subject: `⚠️ Alerta de Stock Bajo: ${productDoc.name}`,
-                    react: LowStockAlertEmail({
-                        productName: productDoc.name,
-                        remainingStock: newStock,
-                        productId: sanityId
-                    }),
-                });
-            }
-        }
-      } catch (err) {
-        console.error(`Error gestionando stock para ${sanityId}:`, err);
-      }
-    }
-  }
-
-  // 5. ENVIAR RECIBO AL CLIENTE
+  // 5. ENVIAR EMAIL
   if (customerEmail) {
       try {
         await resend.emails.send({
-            from: 'onboarding@resend.dev',
+            from: 'onboarding@resend.dev', 
             to: [customerEmail], 
             subject: `Recibo de compra #${orderNumber}`,
             react: ReceiptEmail({
@@ -190,9 +177,8 @@ async function createOrderInSanity(
                 invoiceUrl: invoice?.hosted_invoice_url || null
             }),
         });
-        console.log(`Recibo enviado a ${customerEmail}`);
       } catch (error) {
-          console.error("Error enviando recibo al cliente:", error);
+          console.error("Error enviando recibo:", error);
       }
   }
 
