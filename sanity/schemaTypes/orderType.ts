@@ -15,6 +15,7 @@ export const orderType = defineType({
     }),
     defineField({
       name: "invoice",
+      title: "Invoice Info",
       type: "object",
       fields: [
         { name: "id", type: "string" },
@@ -57,6 +58,23 @@ export const orderType = defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
+    
+    // --- NUEVO: Dirección de envío guardada desde Stripe ---
+    defineField({
+      name: "shippingAddress",
+      title: "Shipping Address",
+      type: "object",
+      fields: [
+        { name: "line1", type: "string" },
+        { name: "line2", type: "string" },
+        { name: "city", type: "string" },
+        { name: "state", type: "string" },
+        { name: "postal_code", type: "string" },
+        { name: "country", type: "string" },
+      ],
+      description: "Si está vacío, se considera Retiro en el Local",
+    }),
+
     defineField({
       name: "products",
       title: "Products",
@@ -67,30 +85,55 @@ export const orderType = defineType({
           fields: [
             defineField({
               name: "product",
-              title: "Product Bought",
+              title: "Product Reference",
               type: "reference",
               to: [{ type: "product" }],
               weak: true, 
+            }),
+            defineField({
+              name: "name",
+              title: "Product Name (Snapshot)",
+              type: "string",
             }),
             defineField({
               name: "quantity",
               title: "Quantity Purchased",
               type: "number",
             }),
+            defineField({
+              name: "price",
+              title: "Price per Unit",
+              type: "number",
+            }),
+            // --- NUEVO: Guardamos la URL de la imagen aquí ---
+            defineField({
+              name: "image",
+              title: "Product Image URL",
+              type: "string", 
+            }),
+            defineField({
+              name: "shippingMethodName",
+              title: "Shipping Method Name",
+              type: "string",
+    }),
           ],
+          // En schemaTypes/orderType.ts
+
           preview: {
             select: {
               product: "product.name",
+              snapshotName: "name",
               quantity: "quantity",
-              image: "product.image",
-              price: "product.price",
-              currency: "product.currency",
+              image: "image",
+              price: "price",
             },
             prepare(select) {
               return {
-                title: `${select.product || 'Producto eliminado'} x ${select.quantity}`,
-                subtitle: select.price ? `${select.price * select.quantity}` : 'Precio no disponible',
-                media: select.image,
+                title: `${select.snapshotName || select.product} x ${select.quantity}`,
+                subtitle: select.price ? `$${select.price * select.quantity}` : 'Precio no disponible',
+                // SOLUCIÓN: Agregamos 'as any' al final para evitar el error de tipo estricto
+                // O simplemente pon 'media: BasketIcon' si esto sigue molestando.
+                media: select.image ? { asset: { url: select.image } } as any : BasketIcon, 
               };
             },
           },
@@ -132,7 +175,6 @@ export const orderType = defineType({
           { title: "Entregado", value: "entregado" },
           { title: "Cancelado", value: "cancelado" },
           { title: "Devuelto", value: "devuelto" },
-
         ],
       },
     }),

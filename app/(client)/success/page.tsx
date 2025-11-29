@@ -40,7 +40,7 @@ const SuccessPage = () => {
       }
 
       try {
-        const ordersData = await client.fetch(query, { userId });
+        const ordersData = await client.fetch<MY_ORDERS_QUERYResult>(query, { userId });
         setOrders(ordersData);
         console.log("Fetched orders:", ordersData);
       } catch (error) {
@@ -86,7 +86,6 @@ const SuccessPage = () => {
             Que sigue?
           </h2>
           <ul className="text-gray-700 text-sm space-y-1">
-            <li>Chequea las notificaciones para la confirmacion del pedido</li>
             <li>Te vamos a avisar cuando llegue el pedido</li>
             <li>Mira el estado de tu pedido en cualquier momento</li>
           </ul>
@@ -127,7 +126,7 @@ const SuccessPage = () => {
             Pedidos
           </Link>
           <Link
-            href="/"
+            href="/shop"
             className="flex items-center justify-center px-4 py-3 font-semibold bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md"
           >
             <ShoppingBag className="w-5 h-5 mr-2" />

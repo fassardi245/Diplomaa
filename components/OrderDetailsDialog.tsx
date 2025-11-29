@@ -21,6 +21,19 @@ interface OrderDetailsDialogProps {
   onClose: () => void;
 }
 
+// Interfaz extendida para evitar errores de TypeScript
+interface OrderWithExtras extends Omit<MY_ORDERS_QUERYResult[number], 'shippingAddress' | 'shippingMethodName'> {
+    shippingMethodName?: string | null;
+    shippingAddress?: {
+        line1?: string;
+        line2?: string;
+        city?: string;
+        state?: string;
+        postal_code?: string;
+        country?: string;
+    } | null;
+}
+
 const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   order,
   isOpen,
@@ -28,56 +41,83 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 }) => {
   if (!order) return null;
 
+  // Casting seguro
+  const safeOrder = order as unknown as OrderWithExtras;
+
+  const isPickup = 
+      safeOrder.shippingMethodName?.toLowerCase().includes("retiro") || 
+      safeOrder.shippingMethodName?.toLowerCase().includes("local") ||
+      safeOrder.shippingCost === 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-scroll bg-white">
         <DialogHeader>
-          <DialogTitle>Detalles del pedido - {order.orderNumber}</DialogTitle>
+          <DialogTitle>Detalles del pedido - {safeOrder.orderNumber}</DialogTitle>
         </DialogHeader>
         <div className="mt-4">
           <p>
-            <strong>Cliente:</strong> {order.customerName}
+            <strong>Cliente:</strong> {safeOrder.customerName}
           </p>
           <p>
-            <strong>Email:</strong> {order.email}
+            <strong>Email:</strong> {safeOrder.email}
           </p>
           <p>
             <strong>Fecha:</strong>{" "}
-            {order.orderDate && new Date(order.orderDate).toLocaleDateString()}
+            {safeOrder.orderDate && new Date(safeOrder.orderDate).toLocaleDateString()}
           </p>
           <p>
             <strong>Estado:</strong>{" "}
             <span className="capitalize text-green-600 font-medium">
-              {order.status}
+              {safeOrder.status}
             </span>
           </p>
           <p>
-            <strong>Numero de factura:</strong> {order?.invoice?.number || "N/A"}
+            <strong>Numero de factura:</strong> {safeOrder?.invoice?.number || "N/A"}
           </p>
 
-          {/* --- ZONA DE BOTONES (Factura y Seguimiento) --- */}
+          {/* --- Dirección de Envío --- */}
+          <div className="mt-1">
+            <strong>Dirección: </strong>
+            {isPickup ? (
+                <span className="text-blue-700 font-medium bg-blue-50 px-2 py-0.5 rounded text-sm">
+                    📍 Retiro en el Local
+                </span>
+            ) : (
+                <span>
+                    {safeOrder.shippingAddress ? (
+                        <>
+                            {safeOrder.shippingAddress.line1}
+                            {safeOrder.shippingAddress.line1 && safeOrder.shippingAddress.city ? ", " : ""}
+                            {safeOrder.shippingAddress.city}
+                        </>
+                    ) : (
+                        <span className="text-gray-400 italic text-sm">No especificada</span>
+                    )}
+                </span>
+            )}
+          </div>
+
+          {/* --- BOTONES --- */}
           <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
-            {/* Botón Descargar Factura (Existente) */}
-            {order?.invoice?.hosted_invoice_url && (
+            {safeOrder?.invoice?.hosted_invoice_url && (
               <Button 
                 variant="outline" 
                 asChild
                 className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect"
               >
-                <Link href={order.invoice.hosted_invoice_url} target="_blank">
+                <Link href={safeOrder.invoice.hosted_invoice_url} target="_blank">
                   Descargar factura
                 </Link>
               </Button>
             )}
 
-            {/* Botón Ver Seguimiento (NUEVO) */}
             <Button asChild className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect">
-              <Link href={`/orders/${order.orderNumber}`}>
+              <Link href={`/orders/${safeOrder.orderNumber}`}>
                 Ver Seguimiento
               </Link>
             </Button>
           </div>
-          {/* ----------------------------------------------- */}
 
         </div>
         <Table>
@@ -89,7 +129,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {order.products?.map((product, index) => (
+            {safeOrder.products?.map((product, index) => (
               <TableRow key={index}>
                 <TableCell className="flex items-center gap-2">
                   {product?.product?.images && (
@@ -117,16 +157,17 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         </Table>
 
         <div className="mt-4 text-right flex items-center justify-end">
-          <div className="w-44 flex flex-col gap-1">
+          <div className="w-64 flex flex-col gap-1">
+            
             {/* SUBTOTAL */}
-            {order?.amountDiscount !== 0 && (
+            {safeOrder?.amountDiscount !== 0 && (
               <div className="w-full flex items-center justify-between">
                 <strong>Subtotal: </strong>
                 <PriceFormatter
                   amount={
-                    (order?.totalPrice as number) +
-                    (order?.amountDiscount as number) -
-                    (order?.shippingCost || 0) 
+                    (safeOrder?.totalPrice as number) +
+                    (safeOrder?.amountDiscount as number) -
+                    (safeOrder?.shippingCost || 0) 
                   }
                   className="text-black font-bold"
                 />
@@ -134,25 +175,29 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             )}
 
             {/* DESCUENTO */}
-            {order?.amountDiscount !== 0 && (
+            {safeOrder?.amountDiscount !== 0 && (
               <div className="w-full flex items-center justify-between text-green-600">
                 <strong>Discount: </strong>
                 <PriceFormatter
-                  amount={order?.amountDiscount}
+                  amount={safeOrder?.amountDiscount}
                   className="font-bold"
                 />
               </div>
             )}
 
-            {/* ENVÍO */}
-            {order?.shippingCost !== undefined && (
+            {/* ENVÍO (CORREGIDO: Menos peso visual) */}
+            {safeOrder?.shippingCost !== undefined && (
                 <div className="w-full flex items-center justify-between">
-                    <strong>Envío: </strong>
-                    {order.shippingCost === 0 ? (
+                    {/* Cambié 'strong' por un span con font-medium para que no se vea tan grande/negrita */}
+                    <span className="font-medium text-black">
+                        {safeOrder.shippingMethodName || "Envío"}:
+                    </span>
+                    
+                    {safeOrder.shippingCost === 0 ? (
                         <span className="text-green-600 font-bold">Gratis</span>
                     ) : (
                         <PriceFormatter
-                          amount={order.shippingCost ?? 0}
+                          amount={safeOrder.shippingCost ?? 0}
                           className="text-black font-bold"
                         />
                     )}
@@ -165,7 +210,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <div className="w-full flex items-center justify-between">
               <strong>Total: </strong>
               <PriceFormatter
-                amount={order?.totalPrice}
+                amount={safeOrder?.totalPrice}
                 className="text-black font-bold text-lg"
               />
             </div>
