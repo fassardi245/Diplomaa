@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 export default function ResolveClaimButtons({ claimId, orderId }: { claimId: string, orderId: string }) {
   
   const handleResolve = async (resolution: "approved" | "rejected") => {
-    if(!confirm(`¿Estás seguro de ${resolution === 'approved' ? 'APROBAR (Devolver dinero)' : 'RECHAZAR'} este reclamo?`)) return;
+    if(!confirm(`¿Estás seguro de ${resolution === 'approved' ? 'APROBAR' : 'RECHAZAR'} este reclamo?`)) return;
     
     try {
       await resolveClaim(claimId, orderId, resolution);

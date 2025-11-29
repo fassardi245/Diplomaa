@@ -41,7 +41,7 @@ export const claimType = defineType({
       options: {
         list: [
           { title: "Pendiente de Revisión", value: "pending" },
-          { title: "Aprobado (Devolución)", value: "approved" },
+          { title: "Aprobado", value: "approved" },
           { title: "Rechazado", value: "rejected" },
           { title: "Resuelto", value: "resolved" },
         ],
