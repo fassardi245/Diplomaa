@@ -20,8 +20,32 @@ interface ProductFormProps {
 export default function ProductForm({ categories, product, initialCategoryId }: ProductFormProps) {
   const isEditing = !!product;
   
+  // 1. Estado para la categoría seleccionada
+  const [selectedCatId, setSelectedCatId] = useState(
+    product?.categories?.[0]?._ref || initialCategoryId || ""
+  );
+
+  // 2. Lógica Automática: Mapea Título de Categoría -> Valor de Variante
+  const getAutoVariant = (catId: string) => {
+    const category = categories.find(c => c._id === catId);
+    if (!category) return "otros";
+
+    const title = category.title.toLowerCase();
+    
+    // Reglas de negocio (Personaliza según tus categorías reales)
+    if (title.includes("remera")) return "remera";
+    if (title.includes("campera")) return "campera";
+    if (title.includes("pantal")) return "pantalon"; 
+    if (title.includes("buzo")) return "buzo";
+    if (title.includes("short")) return "short";
+    
+    return "otros";
+  };
+
+  const autoVariant = getAutoVariant(selectedCatId);
+
+  // --- Imagen ---
   const initialImage = product?.images && product.images[0] ? product.imageUrl : null;
-  
   const [preview, setPreview] = useState<string | null>(initialImage || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,9 +59,12 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
       <form action={isEditing ? updateProduct : createProduct}>
         {isEditing && <input type="hidden" name="id" value={product._id} />}
         
+        {/* INPUT OCULTO: Envía la variante calculada automáticamente */}
+        <input type="hidden" name="variant" value={autoVariant} />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* --- FOTO --- */}
+          {/* FOTO */}
           <div className="lg:col-span-1 space-y-4">
             <label className="block text-xs font-bold text-gray-500 uppercase">Imagen Principal</label>
             <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center relative bg-gray-50 h-64 overflow-hidden">
@@ -59,7 +86,7 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
             </button>
           </div>
 
-          {/* --- DATOS --- */}
+          {/* DATOS */}
           <div className="lg:col-span-2 space-y-5">
              <div className="grid grid-cols-1 gap-4">
                 <div>
@@ -67,10 +94,16 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                     <input name="name" type="text" required defaultValue={product?.name} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: Remera Básica" />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Intro (Subtítulo)</label>
-                    <input name="intro" type="text" defaultValue={product?.intro} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: 100% Algodón" />
-                </div>
-             </div>
+                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Materiales</label>
+                     <input 
+                           name="intro" 
+                           type="text" 
+                           defaultValue={product?.intro} 
+                           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" 
+                           placeholder="Ej: 100% Algodón, Poliéster reciclado..." 
+                     />
+                  </div>
+               </div>
 
              <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -78,7 +111,7 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                    <input name="price" type="number" step="0.01" required defaultValue={product?.price} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" />
                 </div>
                 <div>
-                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descuento (%)</label>
+                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descuento ($)</label>
                    <input name="discount" type="number" step="0.01" defaultValue={product?.discount || 0} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" />
                 </div>
                 <div>
@@ -87,15 +120,22 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                 </div>
              </div>
 
-             {/* CAMBIO AQUÍ: Grid de 2 columnas en vez de 3, eliminada variante */}
+             {/* SELECTOR DE CATEGORÍA Y ETIQUETA (Variante está oculta y automática) */}
              <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Categoría</label>
-                    <select name="categoryId" defaultValue={product?.categories?.[0]?._ref || initialCategoryId} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white">
-                    {categories.map((c) => (
-                        <option key={c._id} value={c._id}>{c.title}</option>
-                    ))}
+                    <select 
+                      name="categoryId" 
+                      value={selectedCatId}
+                      onChange={(e) => setSelectedCatId(e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white"
+                    >
+                      {categories.map((c) => (
+                          <option key={c._id} value={c._id}>{c.title}</option>
+                      ))}
                     </select>
+                    {/* Mensaje para que sepas qué variante se asignó */}
+                    <p className="text-[10px] text-gray-400 mt-1">Variante interna: <strong>{autoVariant}</strong></p>
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Etiqueta</label>

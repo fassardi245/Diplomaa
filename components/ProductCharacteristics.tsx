@@ -17,18 +17,19 @@ const ProductCharacteristics = ({ product }: { product: Product }) => {
         <AccordionContent className="flex flex-col gap-1">
           <p className="flex items-center justify-between">
             Tipo:{" "}
-            <span className="font-semibold tracking-wide">
-              {product?.variant}
+            <span className="font-semibold tracking-wide capitalize">
+              {product?.variant || "N/A"} 
             </span>
           </p>
           <p className="flex items-center justify-between">
             Stock:{" "}
             <span className="font-semibold tracking-wide">
-              {product?.stock ? "Disponible" : "Sin stock"}
+              {product?.stock && product.stock > 0 ? "Disponible" : "Sin stock"}
             </span>
           </p>
+          {/* CAMBIO AQUÍ: Ahora mostramos la etiqueta correcta */}
           <p className="flex items-center justify-between">
-            Variante:{" "}
+            Materiales:{" "}
             <span className="font-semibold tracking-wide">
               {product?.intro}
             </span>
