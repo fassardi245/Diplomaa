@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { createProduct } from "@/actions/createProduct";
-import { updateProduct } from "@/actions/updateProduct";
+import { updateProduct } from "@/actions/updateProduct"; 
 import { Save, Upload, X, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
@@ -20,10 +20,9 @@ interface ProductFormProps {
 export default function ProductForm({ categories, product, initialCategoryId }: ProductFormProps) {
   const isEditing = !!product;
   
-  // OJO: Adaptamos para leer la primera imagen del array 'images' si existe
   const initialImage = product?.images && product.images[0] ? product.imageUrl : null;
   
-  const [preview, setPreview] = useState<string | null>(initialImage);
+  const [preview, setPreview] = useState<string | null>(initialImage || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,10 +37,10 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* FOTO (Solo manejamos 1 foto principal por ahora) */}
+          {/* --- FOTO --- */}
           <div className="lg:col-span-1 space-y-4">
             <label className="block text-xs font-bold text-gray-500 uppercase">Imagen Principal</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center relative bg-gray-50 hover:bg-gray-100 transition h-64 overflow-hidden">
+            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center relative bg-gray-50 h-64 overflow-hidden">
                {preview ? (
                  <Image src={preview} alt="Preview" fill className="object-contain p-2" />
                ) : (
@@ -60,29 +59,27 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
             </button>
           </div>
 
-          {/* DATOS */}
+          {/* --- DATOS --- */}
           <div className="lg:col-span-2 space-y-5">
-             {/* Nombre e Intro */}
              <div className="grid grid-cols-1 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre</label>
-                    <input name="name" type="text" required defaultValue={product?.name} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: Remera Oversize Black" />
+                    <input name="name" type="text" required defaultValue={product?.name} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: Remera Básica" />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Intro (Breve)</label>
-                    <input name="intro" type="text" defaultValue={product?.intro} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: Colección Verano 2025" />
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Intro (Subtítulo)</label>
+                    <input name="intro" type="text" defaultValue={product?.intro} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: 100% Algodón" />
                 </div>
              </div>
 
-             {/* Precios y Stock */}
              <div className="grid grid-cols-3 gap-4">
                 <div>
                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Precio ($)</label>
                    <input name="price" type="number" step="0.01" required defaultValue={product?.price} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" />
                 </div>
                 <div>
-                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descuento ($)</label>
-                   <input name="discount" type="number" step="0.01" required defaultValue={product?.discount || 0} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" />
+                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descuento (%)</label>
+                   <input name="discount" type="number" step="0.01" defaultValue={product?.discount || 0} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" />
                 </div>
                 <div>
                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Stock</label>
@@ -90,8 +87,8 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                 </div>
              </div>
 
-             {/* Categoría, Variante y Estado */}
-             <div className="grid grid-cols-3 gap-4">
+             {/* CAMBIO AQUÍ: Grid de 2 columnas en vez de 3, eliminada variante */}
+             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Categoría</label>
                     <select name="categoryId" defaultValue={product?.categories?.[0]?._ref || initialCategoryId} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white">
@@ -101,29 +98,16 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Variante (Tipo)</label>
-                    <select name="variant" defaultValue={product?.variant} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white">
-                        <option value="">-- Seleccionar --</option>
-                        <option value="remera">Remera</option>
-                        <option value="campera">Campera</option>
-                        <option value="pantalon">Pantalón</option>
-                        <option value="buzo">Buzo</option>
-                        <option value="short">Short</option>
-                        <option value="otros">Otros</option>
-                    </select>
-                </div>
-                <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Etiqueta</label>
                     <select name="status" defaultValue={product?.status} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black bg-white">
                         <option value="">Ninguna</option>
-                        <option value="nuevo">Nuevo</option>
-                        <option value="destacado">Destacado</option>
-                        <option value="oferta">En Oferta</option>
+                        <option value="new">Nuevo</option>
+                        <option value="hot">Destacado</option>
+                        <option value="sale">Oferta</option>
                     </select>
                 </div>
              </div>
 
-             {/* Descripción */}
              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descripción Detallada</label>
                 <textarea name="description" rows={4} defaultValue={product?.description} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none"></textarea>

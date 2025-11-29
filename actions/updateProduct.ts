@@ -14,12 +14,11 @@ export async function updateProduct(formData: FormData) {
   const description = formData.get("description") as string;
   const intro = formData.get("intro") as string;
   const status = formData.get("status") as string;
-  const variant = formData.get("variant") as string;
+  // variant ELIMINADO
   
   const imageFile = formData.get("image") as File;
 
-  // Lógica de Imagen: Si suben una nueva, reemplazamos todo el array (simplificación)
-  // Si quisieras agregar fotos sin borrar, la lógica sería más compleja.
+  // Lógica de Imagen
   let imageOperation = {};
   
   if (imageFile && imageFile.size > 0) {
@@ -45,9 +44,9 @@ export async function updateProduct(formData: FormData) {
     description,
     intro,
     status,
-    variant,
+    // variant ELIMINADO
     categories: [{ _type: 'reference', _ref: categoryId, _key: crypto.randomUUID() }],
-    ...imageOperation, // Solo actualiza imágenes si hubo cambio
+    ...imageOperation, 
   }).commit();
 
   revalidatePath("/admin/products");
