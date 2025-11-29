@@ -6,36 +6,29 @@ import Container from "./Container";
 import { getAllCategories, getMyOrders } from "@/sanity/helpers";
 import HeaderMenu from "./new/HeaderMenu";
 import Logo from "./new/Logo";
-import { ListOrdered, ShieldCheck } from "lucide-react"; 
+import { ListOrdered, ShieldCheck, Heart } from "lucide-react"; 
 import CartIcon from "./new/CartIcon";
 import MobileMenu from "./new/MobileMenu";
 import SearchBar from "./new/SearchBar";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
-import { Heart } from "lucide-react"; 
 
 const Header = async () => {
   const user = await currentUser();
   const { userId } = await auth();
 
-  // 1. Lógica de Órdenes
   let orders = null;
   if (userId) {
     orders = await getMyOrders(userId);
   }
 
-  // ⚠️ CORRECCIÓN AQUÍ: Quitamos el (3) para traer TODAS las categorías
   const categories = await getAllCategories();
 
-  // 2. Lógica de Seguridad (Admin Visual)
   let esAdmin = false;
-  
   if (user) {
     const seguridad = await obtenerUsuarioSeguridad(
       user.id,
       user.emailAddresses[0]?.emailAddress
     );
-    
-    // Verificamos si es Admin para mostrar el escudo
     const roles = seguridad.nombreRol.split(",").map(r => r.trim());
     esAdmin = roles.includes("Admin");
   }
@@ -43,18 +36,30 @@ const Header = async () => {
   return (
     <header className="bg-white sticky top-0 z-50 border-b border-b-gray-200 py-5">
       <Container className="flex items-center justify-between gap-7 text-lightColor">
-        {/* Pasamos todas las categorías al menú */}
-        <HeaderMenu categories={categories} />
         
-        <div className="w-auto md:w-1/3 flex items-center justify-center gap-2.5">
-          <MobileMenu categories={categories} />
+        {/* --- IZQUIERDA: Aquí ocurre el cambio --- */}
+        <div className="w-auto md:w-1/3 flex items-center justify-start gap-4">
+           
+           {/* 1. Categorías (Texto): Se ocultan solas con su propia clase (hidden xl:flex) */}
+           <HeaderMenu categories={categories} />
+
+           {/* 2. Menú Hamburguesa (Líneas): Lo movemos AQUÍ.
+               xl:hidden = Se ve en móvil/laptop, se oculta en pantallas gigantes.
+               Al estar en este div, aparecerá a la izquierda. */}
+           <div className="xl:hidden">
+              <MobileMenu categories={categories} />
+           </div>
+        </div>
+        
+        {/* --- CENTRO: Solo el Logo --- */}
+        <div className="w-auto md:w-1/3 flex items-center justify-center">
           <Logo>SMARTCLOTH</Logo>
         </div>
 
+        {/* --- DERECHA: Iconos (Sin cambios) --- */}
         <div className="w-auto md:w-1/3 flex items-center justify-end gap-5">
           <SearchBar />
           
-          {/* --- ETIQUETA ADMIN --- */}
           {esAdmin && (
             <div 
               title="Modo Administrador Activo"
@@ -65,13 +70,9 @@ const Header = async () => {
             </div>
           )}
 
-                    <Link href="/wishlist" className="group relative">
-                    <Heart className="w-6 h-6 group-hover:text-darkColor hoverEffect text-gray-600" />
-                    {/* Opcional: Contador si quisieras implementarlo con Zustand */}
-                    {/* <span className="absolute -top-1 -right-1 bg-darkColor text-white h-3.5 w-3.5 rounded-full text-xs font-semibold flex items-center justify-center">
-                        {wishlistCount}
-                    </span> */}
-                  </Link>
+          <Link href="/wishlist" className="group relative">
+            <Heart className="w-6 h-6 group-hover:text-darkColor hoverEffect text-gray-600" />
+          </Link>
 
           <CartIcon />
           

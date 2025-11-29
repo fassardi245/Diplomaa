@@ -5,13 +5,23 @@ import { motion } from "motion/react";
 import Logo from "./Logo";
 import Link from "next/link";
 import { useOutsideClick } from "@/hooks";
-import SocialMedia from "./SocialMedia";
-import { CATEGORIES_QUERYResult } from "@/sanity.types";
+// 1. Eliminé la importación de SocialMedia que ya no usaremos
+// 2. Eliminé la importación de CATEGORIES_QUERYResult que daba error
+
+// 3. Creamos una interfaz local para definir qué datos tiene una categoría
+// Esto soluciona los dos errores de TypeScript a la vez.
+interface CategoryProps {
+  title?: string;
+  slug?: {
+    current?: string;
+  };
+}
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  categories: CATEGORIES_QUERYResult;
+  // Usamos nuestra interfaz personalizada (Array de CategoryProps)
+  categories: CategoryProps[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, categories }) => {
@@ -40,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, categories }) => {
             <X />
           </button>
         </div>
+        
         <div className="flex flex-col gap-3.5 text-base font-semibold tracking-wide text-zinc-400">
           <Link
             onClick={onClose}
@@ -50,10 +61,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, categories }) => {
           >
             Home
           </Link>
+          
+          {/* Aquí se mapean las categorías sin errores de TS */}
           {categories?.map((item) => (
             <Link
               onClick={onClose}
               key={item?.title}
+              // El operador ?. asegura que no rompa si falta algún dato
               href={`/category/${item?.slug?.current}`}
               className={`hover:text-white hoverEffect ${
                 pathname === `/category/${item?.slug?.current}` && "text-white"
@@ -63,7 +77,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, categories }) => {
             </Link>
           ))}
         </div>
-        <SocialMedia />
+
+        {/* Aquí solía estar <SocialMedia />. 
+           Al no incluirlo en el return y borrar el import arriba,
+           las redes sociales desaparecerán del menú lateral.
+        */}
+
       </motion.div>
     </div>
   );

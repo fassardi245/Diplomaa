@@ -32,7 +32,7 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
 
     const title = category.title.toLowerCase();
     
-    // Reglas de negocio (Personaliza según tus categorías reales)
+    // Reglas de negocio
     if (title.includes("remera")) return "remera";
     if (title.includes("campera")) return "campera";
     if (title.includes("pantal")) return "pantalon"; 
@@ -94,16 +94,10 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                     <input name="name" type="text" required defaultValue={product?.name} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: Remera Básica" />
                 </div>
                 <div>
-                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Materiales</label>
-                     <input 
-                           name="intro" 
-                           type="text" 
-                           defaultValue={product?.intro} 
-                           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" 
-                           placeholder="Ej: 100% Algodón, Poliéster reciclado..." 
-                     />
-                  </div>
-               </div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Materiales</label>
+                    <input name="intro" type="text" defaultValue={product?.intro} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none" placeholder="Ej: 100% Algodón" />
+                </div>
+             </div>
 
              <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -120,7 +114,7 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                 </div>
              </div>
 
-             {/* SELECTOR DE CATEGORÍA Y ETIQUETA (Variante está oculta y automática) */}
+             {/* SELECTOR DE CATEGORÍA Y ETIQUETA (Variante automática y oculta) */}
              <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Categoría</label>
@@ -134,7 +128,7 @@ export default function ProductForm({ categories, product, initialCategoryId }: 
                           <option key={c._id} value={c._id}>{c.title}</option>
                       ))}
                     </select>
-                    {/* Mensaje para que sepas qué variante se asignó */}
+                    {/* Mensaje visual pequeño */}
                     <p className="text-[10px] text-gray-400 mt-1">Variante interna: <strong>{autoVariant}</strong></p>
                 </div>
                 <div>

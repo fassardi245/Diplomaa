@@ -24,16 +24,6 @@ export const quickLinksData = [
   { title: "Preguntas frecuentes", href: "/faqs" },
 ];
 
-export const categoriesData = [
-  { title: "Moda masculina", href: "/hombre" },
-  { title: "Moda femenina", href: "/mujer" },
-  { title: "Chicos", href: "/chicos" },
-  { title: "Remeras", href: "/remeras" },
-  { title: "Accesorios", href: "/accesorios" },
-  { title: "Hogar", href: "/hogar" },
-  { title: "Otros", href: "/otros" },
-];
-
 export const faqsData = [
   {
     question: "¿Qué servicios ofrece Smartcloth?",
