@@ -128,12 +128,6 @@ const CartPage = () => {
                                     {product?.variant}
                                   </span>
                                 </p>
-                                <p className="text-sm capitalize">
-                                  Estado:{" "}
-                                  <span className="font-semibold">
-                                    {product?.status}
-                                  </span>
-                                </p>
                               </div>
                               <div className="flex items-center gap-2">
                                 <TooltipProvider>

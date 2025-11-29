@@ -31,7 +31,7 @@ export const productType = defineType({
     }),
     defineField({
       name: "intro",
-      title: "Introducción del producto",
+      title: "Materiales", 
       type: "string",
     }),
     defineField({
@@ -72,6 +72,22 @@ export const productType = defineType({
           { title: "Nuevo", value: "new" },
           { title: "Destacado", value: "hot" },
           { title: "En oferta", value: "sale" },
+        ],
+      },
+    }),
+    // MANTENEMOS ESTE CAMPO (Se llenará automáticamente)
+    defineField({
+      name: "variant",
+      title: "Tipo de producto",
+      type: "string",
+      options: {
+        list: [
+          { title: "Remera", value: "remera" },
+          { title: "Campera", value: "campera" },
+          { title: "Pantalón", value: "pantalon" },
+          { title: "Buzo", value: "buzo" },
+          { title: "Short", value: "short" },
+          { title: "Otros", value: "otros" },
         ],
       },
     }),
