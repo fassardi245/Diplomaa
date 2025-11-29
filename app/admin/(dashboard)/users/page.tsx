@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 import { client } from "@/sanity/lib/client";
 import { syncUsers } from "@/actions/syncUsers";
+import DeleteUserButton from "@/components/admin/DeleteUserButton";
 import Link from "next/link";
 import { 
   RefreshCw, 
@@ -10,42 +11,45 @@ import {
   UserCog, 
   Search,
   CheckCircle2,
-  Users,
-  Zap // Icono para las Acciones (Permisos Extra)
+  Users
 } from "lucide-react";
 
-// --- INTERFACES ---
-interface UsuarioSanity {
+// --- INTERFACES CORREGIDAS ---
+// Usamos un nombre único para evitar conflictos con el tipo 'User' de Clerk
+interface SystemUser {
   _id: string;
   email: string;
+  name?: string; // Agregamos name como opcional
   clerkId: string;
-  // CAMBIO: Ahora roles es un objeto con nombre y tipo
   roles: { name: string; type: "grupo" | "accion" }[] | null; 
 }
 
 // --- DATA FETCHING ---
 async function getUsuarios() {
-  // CORRECCIÓN GROQ: Traemos el objeto completo con nombre y tipo
+  // Query corregida para traer también el nombre si existe
   const query = `*[_type == "usuario"] | order(_createdAt desc) {
     _id,
     email,
+    name, 
     clerkId,
     "roles": rolesAsignados[]->{
       "name": coalesce(nombre, titulo),
       "type": _type
     }
   }`;
-  return await client.fetch(query, {}, { cache: 'no-store' });
+  
+  // Especificamos el tipo SystemUser[] en el fetch
+  return await client.fetch<SystemUser[]>(query, {}, { cache: 'no-store' });
 }
 
 export default async function UsuariosPage() {
   // 1. SEGURIDAD
-  const user = await currentUser();
-  if (!user) return <div>Inicia sesión por favor.</div>;
+  const authUser = await currentUser();
+  if (!authUser) return <div>Inicia sesión por favor.</div>;
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(
-    user.id, 
-    user.emailAddresses[0].emailAddress
+    authUser.id, 
+    authUser.emailAddresses[0].emailAddress
   );
 
   if (!usuarioSeguridad.puedo("ver_usuarios")) {
@@ -59,7 +63,7 @@ export default async function UsuariosPage() {
   }
 
   // 2. DATOS
-  const usuarios: UsuarioSanity[] = await getUsuarios();
+  const usuarios = await getUsuarios();
 
   // 3. SERVER ACTION WRAPPER
   async function handleSync() {
@@ -120,8 +124,10 @@ export default async function UsuariosPage() {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
-                            {u.email}
+                            {/* Mostramos nombre si existe, sino email */}
+                            {u.name || u.email}
                         </span>
+                        {u.name && <span className="text-xs text-gray-400">{u.email}</span>}
                         <span className="text-[10px] text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Verificado
                         </span>
@@ -129,44 +135,31 @@ export default async function UsuariosPage() {
                     </div>
                   </td>
 
-                  {/* ROLES (LÓGICA DE COLORES MEJORADA) */}
+                  {/* ROLES */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
                       {u.roles && u.roles.length > 0 ? (
                         u.roles.map((rol, index) => {
                           if (!rol.name) return null;
 
-                          // 1. SI ES ACCIÓN (Permiso Extra) -> Violeta Suave
+                          // Lógica de colores según tipo de rol
                           if (rol.type === 'accion') {
                             return (
-                              <span 
-                                key={index} 
-                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-purple-50 text-purple-700 border-purple-200"
-                              >
+                              <span key={index} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-purple-50 text-purple-700 border-purple-200">
                                 {rol.name}
                               </span>
                             );
                           }
-
-                          // 2. SI ES ADMIN -> Violeta Oscuro Intenso
                           if (rol.name === 'Admin') {
                             return (
-                              <span 
-                                key={index} 
-                                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-violet-900 text-white border-violet-950"
-                              >
+                              <span key={index} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-violet-900 text-white border-violet-950">
                                 <Shield className="w-3 h-3 mr-1" />
                                 {rol.name}
                               </span>
                             );
                           }
-
-                          // 3. OTROS GRUPOS -> Azul/Indigo Estándar
                           return (
-                            <span 
-                              key={index} 
-                              className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-white text-indigo-700 border-indigo-100"
-                            >
+                            <span key={index} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm bg-white text-indigo-700 border-indigo-100">
                               {rol.name}
                             </span>
                           );
@@ -188,13 +181,22 @@ export default async function UsuariosPage() {
 
                   {/* ACCIONES */}
                   <td className="px-6 py-4 text-right">
-                    <Link 
-                      href={`/admin/users/${u._id}`} 
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm"
-                    >
-                      <UserCog className="w-3.5 h-3.5" />
-                      Editar
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                        <Link 
+                          href={`/admin/users/${u._id}`} 
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm"
+                        >
+                          <UserCog className="w-3.5 h-3.5" />
+                          Editar
+                        </Link>
+                        
+                        {/* BOTÓN DE ELIMINAR */}
+                        <DeleteUserButton 
+                          userId={u._id} 
+                          clerkId={u.clerkId} // <--- AGREGAR ESTA LÍNEA
+                          userEmail={u.email} 
+                        />
+                    </div>
                   </td>
                 </tr>
               ))}
