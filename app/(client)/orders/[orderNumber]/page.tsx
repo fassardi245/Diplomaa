@@ -60,6 +60,8 @@ export default async function OrderTrackingPage({
       "pendiente": "pendiente", "pagado": "pagado",
       "en camino": "en camino", "entregado": "entregado"
   };
+  
+  // Normalizamos a minúsculas para evitar errores de comparación
   const currentStatusNormalized = statusMap[order.status?.toLowerCase()] || "pendiente";
   const currentStepIndex = steps.findIndex((s) => s.id === currentStatusNormalized);
 
@@ -129,6 +131,15 @@ export default async function OrderTrackingPage({
               ))}
             </div>
           </div>
+
+          {/* FORMULARIO DE RECLAMO (CORREGIDO) */}
+          {/* Se mostrará si el estado es 'entregado' (insensible a mayúsculas) */}
+          {order.status?.toLowerCase() === "entregado" && (
+            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
+               <ClaimForm orderId={order._id} orderNumber={order.orderNumber} />
+            </div>
+          )}
+
         </div>
 
         {/* COLUMNA DERECHA: Dirección y Resumen */}
@@ -217,7 +228,7 @@ export default async function OrderTrackingPage({
               <span className="font-bold text-lg text-gray-900">Total</span>
               <div className="text-right">
                  <PriceFormatter amount={order.totalPrice} className="text-xl font-bold text-black block"/>
-                 {/* Moneda eliminada como pediste */}
+                 {/* Moneda eliminada */}
               </div>
             </div>
           </div>

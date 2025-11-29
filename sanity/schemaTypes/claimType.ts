@@ -22,7 +22,6 @@ export const claimType = defineType({
         list: [
           { title: "Producto Dañado", value: "damaged" },
           { title: "Producto Incorrecto", value: "wrong_item" },
-          { title: "Talle Incorrecto", value: "wrong_size" },
           { title: "Arrepentimiento de Compra", value: "regret" },
           { title: "Otro", value: "other" },
         ],

@@ -5,23 +5,28 @@ import {
   Package, 
   CalendarClock, 
   AlertCircle,
-  Ship
+  Ship,
+  User // <--- Importamos el icono de usuario
 } from "lucide-react";
 import StartShipmentButton from "@/components/admin/StartShipmentButton";
-import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton"; // <--- IMPORTANTE
+import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
 
 // --- INTERFACES ---
 interface Shipment {
   _id: string;
   status: string;
   departureDate: string;
-  destinationAddress: string;
-  driverName: string;
+  destinationAddress: {
+    line1: string;
+    city: string;
+    state: string;
+  } | null;
+  driverName: string; // Nombre del chofer
   orderNumber: string;
   customerName: string;
   vehicleModel: string;
   vehiclePlate: string;
-  vehicleImage: string;
+  vehicleImage: string | null;
 }
 
 interface PendingOrder {
@@ -34,22 +39,19 @@ interface PendingOrder {
 
 // --- FETCHING ---
 async function getData() {
-  // 1. Envíos (Historial y Activos)
   const shipmentsQuery = `*[_type == "shipment"] | order(departureDate desc) {
     _id,
     status,
     departureDate,
-    destinationAddress,
+    "destinationAddress": order->shippingAddress, 
     "orderNumber": order->orderNumber,
     "customerName": order->customerName,
     "vehicleModel": vehicle->model,
     "vehiclePlate": vehicle->plate,
-    // Nuevos campos de chofer
-    "driverName": driver->name, 
-    "driverPhoto": driver->photo.asset->url 
+    "vehicleImage": vehicle->image.asset->url,
+    "driverName": driver->name // <--- Traemos el nombre del chofer
   }`;
 
-  // 2. Pedidos Pendientes de Asignación (Pagados)
   const pendingQuery = `*[_type == "order" && status == "pagado"] {
     _id, orderNumber, customerName, totalPrice, status
   }`;
@@ -78,7 +80,7 @@ export default async function ShipmentsPage() {
         <p className="text-gray-500 mt-2">Gestiona los despachos y asignaciones automáticas.</p>
       </div>
 
-      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES (PARA INICIAR) --- */}
+      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES --- */}
       {pendingOrders.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">
@@ -95,10 +97,6 @@ export default async function ShipmentsPage() {
                        </div>
                        <div>
                           <p className="font-bold text-gray-900">Pedido #{order.orderNumber?.slice(-6) || "???"}</p>
-                          <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                           {/* Si hay foto del chofer, podrías mostrarla aquí en chiquito */}
-                           Chofer: <span className="font-semibold text-gray-600">{Ship.displayName || "Sin asignar"}</span>
-                        </p>
                           <p className="text-xs text-gray-500">{order.customerName} • Pago Confirmado</p>
                        </div>
                     </div>
@@ -116,7 +114,7 @@ export default async function ShipmentsPage() {
         </div>
       )}
 
-      {/* --- SECCIÓN 2: ENVÍOS (EN TRÁNSITO E HISTORIAL) --- */}
+      {/* --- SECCIÓN 2: ENVÍOS --- */}
       <h2 className="text-lg font-bold text-gray-800 mb-4">Envíos Activos e Historial</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,53 +141,88 @@ export default async function ShipmentsPage() {
                <p className="text-sm text-gray-500">{ship.customerName}</p>
             </div>
 
-            {/* Ruta Visual */}
-            <div className="flex items-center justify-between mb-6 relative">
-               <div className="z-10 bg-white">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                     <MapPin className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p className="text-[10px] text-center mt-1 text-gray-400 font-bold">SALIDA</p>
-               </div>
-               
-               <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-100 -z-0">
+            {/* Ruta Visual MEJORADA */}
+            <div className="flex items-start justify-between mb-6 relative w-full px-2"> 
+               <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-100 -z-0">
                   <div className={`h-full bg-blue-500 transition-all duration-1000 ${ship.status === 'delivered' ? 'w-full' : 'w-1/2'}`}></div>
                </div>
 
-               <div className="z-10 bg-white text-right">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100 ml-auto">
-                     <MapPin className="w-5 h-5 text-blue-600" />
+               {/* SALIDA */}
+               <div className="z-10 flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mb-2">
+                     <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
                   </div>
-                  <p className="text-[10px] text-center mt-1 text-blue-600 font-bold">DESTINO</p>
+                  <p className="text-[10px] text-gray-400 font-bold tracking-wider">SALIDA</p>
+               </div>
+
+               {/* DESTINO */}
+               <div className="z-10 flex flex-col items-end">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 border-4 border-white shadow-sm flex items-center justify-center mb-2">
+                     <MapPin className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <p className="text-[10px] text-blue-600 font-bold tracking-wider mb-1">DESTINO</p>
+                  
+                  <div className="text-right">
+                     {ship.destinationAddress ? (
+                        <div className="flex flex-col items-end">
+                           <span className="text-sm font-bold text-gray-900 leading-tight">
+                              {ship.destinationAddress.line1}
+                           </span>
+                           <span className="text-xs text-gray-500 font-medium">
+                              {ship.destinationAddress.city}
+                           </span>
+                        </div>
+                     ) : (
+                        <span className="text-xs text-gray-400 italic bg-gray-50 px-2 py-1 rounded">
+                           Retiro en local
+                        </span>
+                     )}
+                  </div>
                </div>
             </div>
 
-            {/* Info Vehículo */}
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4 mb-auto">
-               <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-2xl shadow-sm overflow-hidden relative shrink-0">
-                  {ship.vehicleImage ? (
-                    // Si usas <Image>, asegúrate de importar Image de next/image y configurar el dominio
-                    <img src={ship.vehicleImage} alt="Vehículo" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xl">🚛</span>
-                  )}
+            {/* --- RECURSOS (VEHÍCULO + CHOFER) --- */}
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-auto">
+               
+               {/* 1. Vehículo */}
+               <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden relative shrink-0">
+                      {ship.vehicleImage ? (
+                        <img src={ship.vehicleImage} alt="Vehículo" className="w-full h-full object-contain p-1" />
+                      ) : (
+                        <span className="text-xl">🚛</span>
+                      )}
+                  </div>
+                  <div className="overflow-hidden">
+                      <p className="text-sm font-bold text-gray-900 truncate">{ship.vehicleModel || "Modelo desc."}</p>
+                      <p className="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 w-fit mt-0.5">
+                         {ship.vehiclePlate || "S/P"}
+                      </p>
+                  </div>
                </div>
-               <div>
-                  <p className="text-sm font-bold text-gray-900">{ship.vehicleModel}</p>
-                  <p className="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 w-fit mt-0.5">
-                     {ship.vehiclePlate}
-                  </p>
+
+               {/* Línea divisoria */}
+               <div className="h-px bg-gray-200 w-full mb-2"></div>
+
+               {/* 2. Chofer (AQUÍ APARECE EL NOMBRE) */}
+               <div className="flex items-center gap-2">
+                   <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
+                      <User className="w-3 h-3 text-gray-500"/>
+                   </div>
+                   <p className="text-xs text-gray-500">
+                      Chofer: <span className="font-bold text-gray-900">{ship.driverName || "No asignado"}</span>
+                   </p>
                </div>
+
             </div>
 
-            {/* PIE DE TARJETA (ACCIONES) */}
+            {/* PIE DE TARJETA */}
             <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                <div className="flex items-center gap-1 text-xs text-gray-500">
                   <CalendarClock className="w-3.5 h-3.5" />
                   {ship.departureDate ? new Date(ship.departureDate).toLocaleDateString() : "Hoy"}
                </div>
                
-               {/* BOTÓN DE FINALIZAR ENTREGA (Solo si está en tránsito) */}
                {ship.status === 'in_transit' ? (
                   <CompleteShipmentButton shipmentId={ship._id} />
                ) : (

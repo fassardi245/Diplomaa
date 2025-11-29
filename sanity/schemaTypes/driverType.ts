@@ -1,42 +1,47 @@
-import { UserIcon } from "@sanity/icons";
+import { UserIcon } from "lucide-react";
 import { defineField, defineType } from "sanity";
 
 export const driverType = defineType({
   name: "driver",
-  title: "Chofer",
+  title: "Driver",
   type: "document",
   icon: UserIcon,
   fields: [
     defineField({
       name: "name",
-      title: "Nombre Completo",
+      title: "Full Name",
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "license",
-      title: "Licencia de Conducir",
+      name: "licenseNumber",
+      title: "License Number",
       type: "string",
-    }),
-    defineField({
-      name: "status",
-      title: "Estado",
-      type: "string",
-      options: {
-        list: [
-          { title: "🟢 Disponible", value: "available" },
-          { title: "🚚 En Viaje", value: "busy" },
-          { title: "🏖️ De Licencia", value: "off_duty" },
-        ],
-        layout: "radio",
-      },
-      initialValue: "available",
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "photo",
-      title: "Foto del Chofer",
+      title: "Profile Photo",
       type: "image",
-      options: { hotspot: true },
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
+      name: "status",
+      title: "Status",
+      type: "string",
+      initialValue: "available", // <--- Valor por defecto
+      options: {
+        list: [
+          // Solo dejamos estos dos estados. "De licencia" se elimina.
+          { title: "Disponible", value: "available" },
+          { title: "En Viaje", value: "busy" }, 
+        ],
+        layout: "radio", // Opcional: se ve mejor en el Studio
+      },
+      // Opcional: readOnly true si quieres que NADIE lo toque a mano desde el Studio
+      // readOnly: true, 
     }),
   ],
   preview: {
@@ -44,6 +49,18 @@ export const driverType = defineType({
       title: "name",
       subtitle: "status",
       media: "photo",
+    },
+    prepare(selection) {
+      const { title, subtitle, media } = selection;
+      const statusMap: Record<string, string> = {
+        available: "🟢 Disponible",
+        busy: "🚚 En Viaje",
+      };
+      return {
+        title: title,
+        subtitle: statusMap[subtitle] || subtitle,
+        media: media,
+      };
     },
   },
 });
