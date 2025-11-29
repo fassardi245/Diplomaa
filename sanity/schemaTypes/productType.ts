@@ -69,24 +69,9 @@ export const productType = defineType({
       type: "string",
       options: {
         list: [
-          { title: "Nuevo", value: "nuevo" },
-          { title: "Destacado", value: "destacado" },
-          { title: "En oferta", value: "oferta" },
-        ],
-      },
-    }),
-    defineField({
-      name: "variant",
-      title: "Tipo de producto",
-      type: "string",
-      options: {
-        list: [
-          { title: "Remera", value: "remera" },
-          { title: "Campera", value: "campera" },
-          { title: "Pantalón", value: "pantalon" },
-          { title: "Buzo", value: "buzo" },
-          { title: "Short", value: "short" },
-          { title: "Otros", value: "otros" },
+          { title: "Nuevo", value: "new" },
+          { title: "Destacado", value: "hot" },
+          { title: "En oferta", value: "sale" },
         ],
       },
     }),
