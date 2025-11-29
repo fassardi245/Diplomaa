@@ -10,7 +10,10 @@ import {
   Package,
   Wrench,
   Map,
-  Tag// <--- Importamos Map para la sección de Envíos
+  Tag,
+  // 👇 Nuevos iconos importados
+  UserSquare2, 
+  MessageSquareWarning 
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -32,16 +35,25 @@ export default async function AdminLayout({
   }
 
   const menuItems = [
+    // --- GENERAL ---
     { 
       name: "Dashboard", 
       href: "/admin", 
       icon: <LayoutDashboard className="w-5 h-5" />, 
       permission: "acceso_panel_admin" 
     },
+
+    // --- LOGÍSTICA Y FLOTA ---
     { 
       name: "Flota de Vehículos", 
       href: "/admin/flota", 
       icon: <Truck className="w-5 h-5" />, 
+      permission: "ver_flota" 
+    },
+    { 
+      name: "Choferes", // <--- NUEVO
+      href: "/admin/choferes", 
+      icon: <UserSquare2 className="w-5 h-5" />, 
       permission: "ver_flota" 
     },
     { 
@@ -56,12 +68,8 @@ export default async function AdminLayout({
       icon: <Wrench className="w-5 h-5" />, 
       permission: "ver_flota" 
     },
-    { 
-      name: "Gestión Usuarios", 
-      href: "/admin/users", 
-      icon: <Users className="w-5 h-5" />, 
-      permission: "gestionar_seguridad" 
-    },
+
+    // --- GESTIÓN COMERCIAL ---
     { 
       name: "Pedidos", 
       href: "/admin/orders", 
@@ -69,17 +77,31 @@ export default async function AdminLayout({
       permission: "ver_pedidos" 
     },
     { 
+      name: "Reclamos", // <--- NUEVO
+      href: "/admin/reclamos", 
+      icon: <MessageSquareWarning className="w-5 h-5" />, 
+      permission: "ver_pedidos" 
+    },
+    
+    // --- ADMINISTRACIÓN ---
+    { 
+      name: "Productos", 
+      href: "/admin/products", 
+      icon: <Tag className="w-5 h-5" />, 
+      permission: "gestionar_productos" 
+    },
+    { 
+      name: "Gestión Usuarios", 
+      href: "/admin/users", 
+      icon: <Users className="w-5 h-5" />, 
+      permission: "gestionar_seguridad" 
+    },
+    { 
       name: "Base de Datos", 
       href: "/admin/studio", 
       icon: <Database className="w-5 h-5" />, 
       permission: "acceso_studio", 
       external: true 
-    },
-    { 
-      name: "Productos", 
-      href: "/admin/products", 
-      icon: <Tag className="w-5 h-5" />, 
-      permission: "gestionar_productos" // Asegúrate de tener este permiso o usa 'ver_flota' si eres el único admin
     },
   ];
 
