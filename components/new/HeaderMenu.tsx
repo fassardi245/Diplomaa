@@ -1,13 +1,24 @@
 "use client";
-import { CATEGORIES_QUERYResult, Category } from "@/sanity.types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const HeaderMenu = ({ categories }: { categories: CATEGORIES_QUERYResult }) => {
+// Definimos la interfaz localmente para evitar el error de importación de sanity.types
+interface CategoryProps {
+  _id: string;
+  title?: string;
+  slug?: {
+    current: string;
+  };
+}
+
+const HeaderMenu = ({ categories }: { categories: CategoryProps[] }) => {
   const pathname = usePathname();
 
   return (
-    <div className="hidden md:inline-flex w-1/3 items-center gap-5 text-sm capitalize font-semibold text-lightColor">
+    // hidden xl:inline-flex -> Esto asegura que este menú de texto
+    // SOLO aparezca cuando la pantalla es lo suficientemente grande (XL),
+    // evitando que se superponga con el logo en laptops.
+    <div className="hidden xl:inline-flex w-full items-center gap-5 text-sm capitalize font-semibold text-lightColor">
       
       {/* HOME */}
       <Link
@@ -19,8 +30,8 @@ const HeaderMenu = ({ categories }: { categories: CATEGORIES_QUERYResult }) => {
         <span className={`absolute -bottom-0.5 right-1/2 w-0 h-0.5 bg-darkColor transition-all duration-300 group-hover:w-1/2 group-hover:right-0 ${pathname === "/" && "w-1/2"}`} />
       </Link>
 
-      {/* CATEGORÍAS (Dinámicas) */}
-      {categories?.map((category: Category) => (
+      {/* CATEGORÍAS */}
+      {categories?.map((category) => (
         <Link
           key={category?._id}
           href={`/category/${category?.slug?.current}`}
@@ -40,10 +51,9 @@ const HeaderMenu = ({ categories }: { categories: CATEGORIES_QUERYResult }) => {
         </Link>
       ))}
 
-      {/* SHOP (Corregido) */}
+      {/* SHOP */}
       <Link
         href={"/shop"}
-        // CORRECCIÓN AQUÍ: Antes decía pathname === "/"
         className={`hover:text-darkColor hoverEffect relative group ${pathname === "/shop" && "text-darkColor"}`}
       >
         Shop

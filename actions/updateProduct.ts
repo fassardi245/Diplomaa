@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
-  const categoryId = formData.get("categoryId") as string;
+  const categoryId = formData.get("categoryId") as string; // IMPORTANTE
   
   const price = Number(formData.get("price"));
   const discount = Number(formData.get("discount")) || 0;
@@ -16,7 +16,7 @@ export async function updateProduct(formData: FormData) {
   const intro = formData.get("intro") as string;
   const status = formData.get("status") as string;
   
-  // RECIBIMOS LA VARIANTE AUTOMÁTICA
+  // Recibimos la variante automática
   const variant = formData.get("variant") as string;
   
   const imageFile = formData.get("image") as File;
@@ -45,18 +45,22 @@ export async function updateProduct(formData: FormData) {
       description,
       intro,
       status,
-      variant, // SE ACTUALIZA AQUÍ
+      variant, // Se actualiza
       categories: [{ _type: 'reference', _ref: categoryId, _key: crypto.randomUUID() }],
       ...imageOperation,
     }).commit();
 
     console.log("✅ Producto actualizado");
+    
+    // Revalidamos
     revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${categoryId}`);
 
   } catch (error) {
     console.error("❌ Error actualizando:", error);
     throw new Error("Error al actualizar");
   }
 
-  redirect("/admin/products");
+  // REDIRECCIÓN ESPECÍFICA A LA CATEGORÍA
+  redirect(`/admin/products/${categoryId}`);
 }

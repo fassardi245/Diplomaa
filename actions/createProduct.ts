@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createProduct(formData: FormData) {
+  // 1. Extraer datos
   const name = formData.get("name") as string;
-  const categoryId = formData.get("categoryId") as string;
+  const categoryId = formData.get("categoryId") as string; // IMPORTANTE: Lo necesitamos para el redirect
   
   const price = Number(formData.get("price"));
   const discount = Number(formData.get("discount")) || 0;
@@ -18,7 +19,7 @@ export async function createProduct(formData: FormData) {
   const statusRaw = formData.get("status") as string;
   const status = statusRaw && statusRaw !== "" ? statusRaw : undefined;
   
-  // RECIBIMOS LA VARIANTE AUTOMÁTICA
+  // Recibimos la variante automática desde el input oculto
   const variantRaw = formData.get("variant") as string;
   const variant = variantRaw && variantRaw !== "" ? variantRaw : undefined;
   
@@ -59,7 +60,7 @@ export async function createProduct(formData: FormData) {
       description,
       intro,
       status,
-      variant, // SE GUARDA AQUÍ
+      variant, // Se guarda la variante automática
       categories: [{ 
         _type: 'reference', 
         _ref: categoryId, 
@@ -69,12 +70,16 @@ export async function createProduct(formData: FormData) {
     });
 
     console.log("✅ Producto creado exitosamente");
+    
+    // Revalidamos las rutas para actualizar las listas
     revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${categoryId}`);
 
   } catch (error) {
     console.error("❌ Error creando producto:", error);
     throw new Error("Error al guardar el producto");
   }
 
-  redirect("/admin/products");
+  // 6. REDIRECCIÓN ESPECÍFICA A LA CATEGORÍA
+  redirect(`/admin/products/${categoryId}`);
 }
