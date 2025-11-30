@@ -15,7 +15,8 @@ import {
   CarFront,
   AlertTriangle,
   XCircle,
-  CornerUpLeft // <--- Nuevo icono para devuelto
+  CornerUpLeft,
+  Store // <--- Agregué este icono para la tarjeta de retiro
 } from "lucide-react";
 import ClaimForm from "@/components/ClaimForm";
 import { notFound } from "next/navigation";
@@ -75,6 +76,12 @@ export default async function OrderTrackingPage({
 
   if (!order) return notFound();
 
+  // --- DETECCIÓN DE RETIRO (Movido arriba para usarlo en lógica) ---
+  const isPickup = 
+      order.shippingMethodName?.toLowerCase().includes("retiro") || 
+      order.shippingMethodName?.toLowerCase().includes("local") ||
+      order.shippingCost === 0;
+
   const driver = order.envioSeparado?.chofer || order.driverDirect;
   const vehicle = order.envioSeparado?.vehiculo || order.vehicleDirect;
 
@@ -105,10 +112,12 @@ export default async function OrderTrackingPage({
   // Si está devuelto, ya no mostramos info de chofer de entrega
   const showDriverInfo = currentStatusId === "en camino" && !isReturned;
 
-  const isPickup = 
-      order.shippingMethodName?.toLowerCase().includes("retiro") || 
-      order.shippingMethodName?.toLowerCase().includes("local") ||
-      order.shippingCost === 0;
+  // --- NUEVA LÓGICA PARA HABILITAR RECLAMO ---
+  // Se habilita si: (No hay reclamo previo) Y (Es 'entregado' O (Es Retiro y ya está 'pagado'))
+  const canFileClaim = !order.existingClaim && (
+    currentStatusId === "entregado" || 
+    (isPickup && currentStatusId === "pagado")
+  );
 
   return (
     <Container className="py-10">
@@ -122,18 +131,32 @@ export default async function OrderTrackingPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-           <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+           
+           {/* --- SECCIÓN PRINCIPAL: CAMBIA SEGÚN SI ES RETIRO O ENVÍO --- */}
+           {isPickup ? (
+             // CASO RETIRO EN LOCAL: Tarjeta estática simple
+             <div className="bg-sky-50 border border-sky-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-16 h-16 bg-white border border-sky-100 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                   <Store className="w-8 h-8 text-sky-600" />
+                </div>
+                <h2 className="text-xl font-bold text-sky-900">Retiro en Local</h2>
+                <div className="mt-4 px-4 py-1 bg-white rounded-full text-xs font-bold text-sky-600 border border-sky-100 uppercase tracking-wide">
+                   Estado: {order.status}
+                </div>
+             </div>
+           ) : (
+             // CASO ENVÍO NORMAL: Timeline original
+             <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
               <div className="relative mt-8 mb-12">
                 <div className="absolute top-5 left-0 w-full h-1 bg-gray-100 rounded-full"></div>
                 <div 
-                    className="absolute top-5 left-0 h-1 bg-black rounded-full transition-all duration-1000" 
-                    style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
+                   className="absolute top-5 left-0 h-1 bg-black rounded-full transition-all duration-1000" 
+                   style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
                 ></div>
                 <div className="flex justify-between relative z-10">
                   {steps.map((step, index) => {
                     const isActive = index <= currentStepIndex;
                     const Icon = step.icon;
-                    // Color especial si es el paso de "Devuelto"
                     const isReturnedStep = step.id === 'devuelto';
                     const activeColor = isReturnedStep ? "bg-purple-600 border-purple-600 text-white" : "bg-black border-black text-white";
 
@@ -148,9 +171,11 @@ export default async function OrderTrackingPage({
                   })}
                 </div>
               </div>
-           </div>
+             </div>
+           )}
 
-           {showDriverInfo && (driver || vehicle) ? (
+           {/* INFO DEL CHOFER (Solo si NO es retiro y corresponde) */}
+           {!isPickup && showDriverInfo && (driver || vehicle) ? (
              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-3">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="p-2 bg-blue-100 rounded-full text-blue-600">
@@ -181,7 +206,7 @@ export default async function OrderTrackingPage({
                     <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-blue-100 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden relative shrink-0">
                          {vehicle.image ? (
-                            <Image src={vehicle.image} alt="Vehiculo" fill className="object-cover" sizes="48px" />
+                           <Image src={vehicle.image} alt="Vehiculo" fill className="object-cover" sizes="48px" />
                          ) : (<CarFront className="w-6 h-6" />)}
                       </div>
                       <div>
@@ -197,6 +222,7 @@ export default async function OrderTrackingPage({
              </div>
            ) : null}
 
+           {/* LISTA DE PRODUCTOS */}
            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 font-bold text-gray-700 text-sm flex items-center gap-2">
               <Package className="w-4 h-4"/> Productos
@@ -218,7 +244,7 @@ export default async function OrderTrackingPage({
             </div>
           </div>
 
-          {/* ESTADO DEL RECLAMO */}
+          {/* ESTADO DEL RECLAMO (VISUALIZACIÓN) */}
           {order.existingClaim && (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-2">
                {order.existingClaim.status === 'rejected' && (
@@ -240,7 +266,6 @@ export default async function OrderTrackingPage({
                   </div>
                )}
                {order.existingClaim.status === 'approved' && (
-                  // --- VIOLETA ---
                   <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-3">
                      <CornerUpLeft className="w-6 h-6 text-purple-600 shrink-0 mt-0.5" />
                      <div>
@@ -252,7 +277,8 @@ export default async function OrderTrackingPage({
             </div>
           )}
 
-          {currentStatusId === "entregado" && !order.existingClaim && (
+          {/* FORMULARIO DE RECLAMO (CONDICIONAL MODIFICADO) */}
+          {canFileClaim && (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
                <ClaimForm orderId={order._id} orderNumber={order.orderNumber} />
             </div>
@@ -263,7 +289,6 @@ export default async function OrderTrackingPage({
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h3 className="font-bold text-gray-900 mb-4">Detalles de Entrega</h3>
             <div className="space-y-4 text-sm">
-               {/* ... (resto del código de detalles igual) ... */}
                <div className="flex items-start gap-3">
                 <User className="w-4 h-4 text-gray-400 mt-0.5" />
                 <div><p className="font-medium text-gray-900">{order.customerName}</p><p className="text-gray-500 break-all">{order.email}</p></div>
