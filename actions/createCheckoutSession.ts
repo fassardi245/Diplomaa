@@ -66,7 +66,7 @@ export async function createCheckoutSession(
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 1500, currency: "USD" }, // $15.00
+            fixed_amount: { amount: 900, currency: "USD" }, // $9.00
             display_name: "Envío Estándar",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 3 },
@@ -77,7 +77,7 @@ export async function createCheckoutSession(
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 3500, currency: "USD" }, // $35.00
+            fixed_amount: { amount: 1500, currency: "USD" }, // $15.00
             display_name: "Envío Express (Prioritario)",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 1 },

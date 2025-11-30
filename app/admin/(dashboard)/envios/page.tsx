@@ -6,7 +6,7 @@ import {
   CalendarClock, 
   AlertCircle,
   Ship,
-  User // <--- Importamos el icono de usuario
+  User 
 } from "lucide-react";
 import StartShipmentButton from "@/components/admin/StartShipmentButton";
 import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
@@ -21,7 +21,7 @@ interface Shipment {
     city: string;
     state: string;
   } | null;
-  driverName: string; // Nombre del chofer
+  driverName: string;
   orderNumber: string;
   customerName: string;
   vehicleModel: string;
@@ -35,6 +35,7 @@ interface PendingOrder {
   customerName: string;
   totalPrice: number;
   status: string;
+  shippingMethodName?: string; // <--- AGREGADO: Necesario para el filtro
 }
 
 // --- FETCHING ---
@@ -49,11 +50,12 @@ async function getData() {
     "vehicleModel": vehicle->model,
     "vehiclePlate": vehicle->plate,
     "vehicleImage": vehicle->image.asset->url,
-    "driverName": driver->name // <--- Traemos el nombre del chofer
+    "driverName": driver->name
   }`;
 
+  // <--- MODIFICADO: Agregamos shippingMethodName a la consulta
   const pendingQuery = `*[_type == "order" && status == "pagado"] {
-    _id, orderNumber, customerName, totalPrice, status
+    _id, orderNumber, customerName, totalPrice, status, shippingMethodName
   }`;
 
   const [shipments, pendingOrders] = await Promise.all([
@@ -66,6 +68,14 @@ async function getData() {
 
 export default async function ShipmentsPage() {
   const { shipments, pendingOrders } = await getData();
+
+  // --- FILTRO LÓGICO ---
+  // Creamos una nueva lista excluyendo los Retiros en Local
+  const ordersToShip = pendingOrders.filter((order) => {
+    const method = order.shippingMethodName?.toLowerCase() || "";
+    // Si dice "retiro" o "local", lo ignoramos (devuelve false)
+    return !method.includes("retiro") && !method.includes("local");
+  });
 
   return (
     <div className="max-w-7xl mx-auto p-8">
@@ -80,16 +90,17 @@ export default async function ShipmentsPage() {
         <p className="text-gray-500 mt-2">Gestiona los despachos y asignaciones automáticas.</p>
       </div>
 
-      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES --- */}
-      {pendingOrders.length > 0 && (
+      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES (FILTRADOS) --- */}
+      {/* Usamos ordersToShip en lugar de pendingOrders */}
+      {ordersToShip.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-5 h-5 text-orange-500" />
-              <h2 className="text-lg font-bold text-gray-800">Pendientes de Asignación ({pendingOrders.length})</h2>
+              <h2 className="text-lg font-bold text-gray-800">Pendientes de Asignación ({ordersToShip.length})</h2>
            </div>
            
            <div className="bg-white border border-orange-200 rounded-xl shadow-sm overflow-hidden divide-y divide-orange-100">
-              {pendingOrders.map((order) => (
+              {ordersToShip.map((order) => (
                  <div key={order._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-orange-50/30">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
@@ -97,7 +108,7 @@ export default async function ShipmentsPage() {
                        </div>
                        <div>
                           <p className="font-bold text-gray-900">Pedido #{order.orderNumber?.slice(-6) || "???"}</p>
-                          <p className="text-xs text-gray-500">{order.customerName} • Pago Confirmado</p>
+                          <p className="text-xs text-gray-500">{order.customerName} • {order.shippingMethodName || "Envío"}</p>
                        </div>
                     </div>
                     
@@ -141,7 +152,7 @@ export default async function ShipmentsPage() {
                <p className="text-sm text-gray-500">{ship.customerName}</p>
             </div>
 
-            {/* Ruta Visual MEJORADA */}
+            {/* Ruta Visual */}
             <div className="flex items-start justify-between mb-6 relative w-full px-2"> 
                <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-100 -z-0">
                   <div className={`h-full bg-blue-500 transition-all duration-1000 ${ship.status === 'delivered' ? 'w-full' : 'w-1/2'}`}></div>
@@ -187,31 +198,31 @@ export default async function ShipmentsPage() {
                {/* 1. Vehículo */}
                <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden relative shrink-0">
-                      {ship.vehicleImage ? (
+                     {ship.vehicleImage ? (
                         <img src={ship.vehicleImage} alt="Vehículo" className="w-full h-full object-contain p-1" />
-                      ) : (
+                     ) : (
                         <span className="text-xl">🚛</span>
-                      )}
+                     )}
                   </div>
                   <div className="overflow-hidden">
-                      <p className="text-sm font-bold text-gray-900 truncate">{ship.vehicleModel || "Modelo desc."}</p>
-                      <p className="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 w-fit mt-0.5">
-                         {ship.vehiclePlate || "S/P"}
-                      </p>
+                     <p className="text-sm font-bold text-gray-900 truncate">{ship.vehicleModel || "Modelo desc."}</p>
+                     <p className="text-xs text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 w-fit mt-0.5">
+                        {ship.vehiclePlate || "S/P"}
+                     </p>
                   </div>
                </div>
 
                {/* Línea divisoria */}
                <div className="h-px bg-gray-200 w-full mb-2"></div>
 
-               {/* 2. Chofer (AQUÍ APARECE EL NOMBRE) */}
+               {/* 2. Chofer */}
                <div className="flex items-center gap-2">
-                   <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
-                      <User className="w-3 h-3 text-gray-500"/>
-                   </div>
-                   <p className="text-xs text-gray-500">
-                      Chofer: <span className="font-bold text-gray-900">{ship.driverName || "No asignado"}</span>
-                   </p>
+                  <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
+                     <User className="w-3 h-3 text-gray-500"/>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                     Chofer: <span className="font-bold text-gray-900">{ship.driverName || "No asignado"}</span>
+                  </p>
                </div>
 
             </div>
@@ -235,7 +246,7 @@ export default async function ShipmentsPage() {
           </div>
         ))}
 
-        {shipments.length === 0 && pendingOrders.length === 0 && (
+        {shipments.length === 0 && ordersToShip.length === 0 && (
            <div className="col-span-full py-20 text-center text-gray-400">
               No hay actividad logística reciente.
            </div>
