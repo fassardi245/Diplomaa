@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
 import { Tag, ArrowRight, Plus, PackageSearch } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 // 1. Traemos las categorías con su imagen
 async function getCategories() {
@@ -13,6 +15,19 @@ async function getCategories() {
 }
 
 export default async function ProductsDashboardPage() {
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_productos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
+
   const categories = await getCategories();
 
   return (
@@ -30,14 +45,16 @@ export default async function ProductsDashboardPage() {
             <p className="text-gray-500 mt-2">Selecciona una categoría para gestionar su inventario.</p>
          </div>
          
-         {/* Botón Global para agregar (sin categoría predefinida) */}
-         <Link 
-            href="/admin/products/nuevo" 
-            className="group flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-purple-600 hover:shadow-purple-200 transition-all active:scale-95"
-         >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> 
-            Nuevo Producto
-         </Link>
+         {/* Botón Global para agregar (sin categoría predefinida) - Protegido visualmente */}
+         {usuarioSeguridad.puedo("gestionar_productos") && (
+             <Link 
+               href="/admin/products/nuevo" 
+               className="group flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-purple-600 hover:shadow-purple-200 transition-all active:scale-95"
+             >
+               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> 
+               Nuevo Producto
+             </Link>
+         )}
       </div>
 
       {/* GRID DE CATEGORÍAS */}

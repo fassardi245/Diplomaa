@@ -11,7 +11,6 @@ import {
   Wrench,
   Map,
   Tag,
-  // 👇 Nuevos iconos importados
   UserSquare2, 
   MessageSquareWarning 
 } from "lucide-react";
@@ -30,6 +29,7 @@ export default async function AdminLayout({
     user.emailAddresses[0]?.emailAddress
   );
 
+  // Verificación básica de entrada
   if (!usuarioSeguridad.puedo("acceso_panel_admin")) {
     return redirect("/"); 
   }
@@ -51,22 +51,22 @@ export default async function AdminLayout({
       permission: "ver_flota" 
     },
     { 
-      name: "Choferes", // <--- NUEVO
+      name: "Choferes", 
       href: "/admin/choferes", 
       icon: <UserSquare2 className="w-5 h-5" />, 
-      permission: "ver_flota" 
+      permission: "ver_choferes" // <--- CAMBIO: Antes decía 'ver_flota'
     },
     { 
       name: "Envíos y Logística", 
       href: "/admin/envios", 
       icon: <Map className="w-5 h-5" />, 
-      permission: "ver_flota" 
+      permission: "ver_envios" // <--- CAMBIO: Antes decía 'ver_flota'
     },
     { 
       name: "Mantenimiento", 
       href: "/admin/mantenimiento", 
       icon: <Wrench className="w-5 h-5" />, 
-      permission: "ver_flota" 
+      permission: "ver_mantenimiento" // <--- CAMBIO: Antes decía 'ver_flota'
     },
 
     // --- GESTIÓN COMERCIAL ---
@@ -77,10 +77,10 @@ export default async function AdminLayout({
       permission: "ver_pedidos" 
     },
     { 
-      name: "Reclamos", // <--- NUEVO
+      name: "Reclamos", 
       href: "/admin/reclamos", 
       icon: <MessageSquareWarning className="w-5 h-5" />, 
-      permission: "ver_pedidos" 
+      permission: "ver_reclamos" // <--- CAMBIO: Antes decía 'ver_pedidos'
     },
     
     // --- ADMINISTRACIÓN ---

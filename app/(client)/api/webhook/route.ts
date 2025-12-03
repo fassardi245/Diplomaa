@@ -34,13 +34,12 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const sessionRaw = event.data.object as Stripe.Checkout.Session;
 
-    // --- 1. RECUPERAR DATOS EXPANDIDOS (AQUÍ ESTÁ LA SOLUCIÓN) ---
-    // Agregamos 'payment_intent' para buscar la dirección ahí si falta en la sesión
+    // --- 1. RECUPERAR DATOS EXPANDIDOS ---
     const session = await stripe.checkout.sessions.retrieve(sessionRaw.id, {
       expand: [
         'line_items.data.price.product', 
         'shipping_cost.shipping_rate',
-        'payment_intent' // <--- ¡ESTO ES LO QUE FALTABA!
+        'payment_intent' 
       ]
     });
 
@@ -62,13 +61,42 @@ export async function POST(req: NextRequest) {
       : null;
 
     try {
+      // Paso 1: Crear la orden
       await createOrderInSanity(session, invoice);
+      
+      // Paso 2: Actualizar el Stock (NUEVO)
+      await updateProductStock(session);
+
     } catch (error) {
       console.error("Error creating order in sanity:", error);
       return NextResponse.json({ error: `Error creating order: ${error}` }, { status: 400 });
     }
   }
   return NextResponse.json({ received: true });
+}
+
+// --- FUNCIÓN PARA RESTAR STOCK (NUEVA) ---
+async function updateProductStock(session: Stripe.Checkout.Session) {
+  const lineItems = session.line_items?.data || [];
+  
+  for (const item of lineItems) {
+    const product = item.price?.product as Stripe.Product;
+    // Recuperamos el ID que guardamos en createCheckoutSession
+    const sanityProductId = product?.metadata?.id;
+    const quantity = item.quantity || 1;
+
+    if (sanityProductId) {
+      try {
+        await backendClient
+          .patch(sanityProductId)
+          .dec({ stock: quantity }) // Restamos la cantidad comprada
+          .commit();
+        console.log(`✅ Stock actualizado para ${sanityProductId}: -${quantity}`);
+      } catch (error) {
+        console.error(`❌ Error actualizando stock para ${sanityProductId}:`, error);
+      }
+    }
+  }
 }
 
 async function createOrderInSanity(
@@ -82,9 +110,6 @@ async function createOrderInSanity(
   const paymentIntent = sessionData.payment_intent as Stripe.PaymentIntent;
 
   // --- LÓGICA DE DIRECCIÓN "A PRUEBA DE BALAS" ---
-  // 1. Buscamos en shipping_details de la sesión.
-  // 2. SI NO ESTÁ (tu caso): Buscamos en el payment_intent.shipping.
-  // 3. SI NO ESTÁ: Buscamos en customer_details (último recurso).
   const shippingDetails = 
       sessionData.shipping_details || 
       paymentIntent?.shipping || 

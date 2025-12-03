@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import PriceFormatter from "@/components/PriceFormatter";
 import { CreditCard, MapPin, Store } from "lucide-react";
 import OrderActions from "@/components/admin/OrderActions";
-// 1. IMPORTACIONES NUEVAS
 import OrderSearch from "@/components/admin/OrderSearch";
 import { Suspense } from "react";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 // --- INTERFACE ---
 interface Order {
@@ -66,6 +68,19 @@ interface Props {
 }
 
 export default async function OrdersPage({ searchParams }: Props) {
+  const user = await currentUser();
+  if (!user) return redirect("/sign-in");
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("ver_pedidos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
+
   const orders = await getData();
 
   // 3. LÓGICA DE FILTRADO

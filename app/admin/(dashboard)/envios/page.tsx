@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import StartShipmentButton from "@/components/admin/StartShipmentButton";
 import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 // --- INTERFACES ---
 interface Shipment {
@@ -35,7 +38,7 @@ interface PendingOrder {
   customerName: string;
   totalPrice: number;
   status: string;
-  shippingMethodName?: string; // <--- AGREGADO: Necesario para el filtro
+  shippingMethodName?: string;
 }
 
 // --- FETCHING ---
@@ -53,7 +56,6 @@ async function getData() {
     "driverName": driver->name
   }`;
 
-  // <--- MODIFICADO: Agregamos shippingMethodName a la consulta
   const pendingQuery = `*[_type == "order" && status == "pagado"] {
     _id, orderNumber, customerName, totalPrice, status, shippingMethodName
   }`;
@@ -67,13 +69,24 @@ async function getData() {
 }
 
 export default async function ShipmentsPage() {
+  const user = await currentUser();
+  if (!user) return redirect("/sign-in");
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("ver_envios")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
+
   const { shipments, pendingOrders } = await getData();
 
   // --- FILTRO LÓGICO ---
-  // Creamos una nueva lista excluyendo los Retiros en Local
   const ordersToShip = pendingOrders.filter((order) => {
     const method = order.shippingMethodName?.toLowerCase() || "";
-    // Si dice "retiro" o "local", lo ignoramos (devuelve false)
     return !method.includes("retiro") && !method.includes("local");
   });
 
@@ -91,7 +104,6 @@ export default async function ShipmentsPage() {
       </div>
 
       {/* --- SECCIÓN 1: PEDIDOS PENDIENTES (FILTRADOS) --- */}
-      {/* Usamos ordersToShip en lugar de pendingOrders */}
       {ordersToShip.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">

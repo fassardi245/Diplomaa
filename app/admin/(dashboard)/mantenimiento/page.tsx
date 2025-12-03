@@ -1,6 +1,8 @@
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import { Plus, Wrench, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 // Interfaces
 interface Maintenance {
@@ -26,6 +28,13 @@ async function getMaintenances() {
 }
 
 export default async function MaintenancePage() {
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+
   const mantenimientos: Maintenance[] = await getMaintenances();
 
   return (
@@ -41,10 +50,13 @@ export default async function MaintenancePage() {
           <p className="text-gray-500 mt-2">Historial de reparaciones y servicios de la flota.</p>
         </div>
         
-        <Link href="/admin/mantenimiento/nuevo" className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">
-          <Plus className="w-5 h-5" />
-          Nuevo Servicio
-        </Link>
+        {/* Solo mostramos el botón si tiene permiso (opcional, pero recomendado) */}
+        {usuarioSeguridad.puedo("ver_mantenimiento") && (
+          <Link href="/admin/mantenimiento/nuevo" className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">
+            <Plus className="w-5 h-5" />
+            Nuevo Servicio
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -56,6 +68,7 @@ export default async function MaintenancePage() {
               <th className="px-6 py-4">Fecha</th>
               <th className="px-6 py-4">Costo</th>
               <th className="px-6 py-4">Estado</th>
+              <th className="px-6 py-4"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

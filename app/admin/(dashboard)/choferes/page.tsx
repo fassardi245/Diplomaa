@@ -2,13 +2,15 @@ import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, User } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
-// Definimos la interfaz para evitar el uso de 'any'
 interface Driver {
   _id: string;
   name: string;
   licenseNumber: string;
-  status: 'available' | 'busy'; // Ajustado a tu Schema
+  status: 'available' | 'busy'; 
   photoUrl?: string;
 }
 
@@ -19,6 +21,18 @@ async function getDrivers() {
 }
 
 export default async function DriversPage() {
+  const user = await currentUser();
+  if (!user) return redirect("/sign-in");
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  if (!usuarioSeguridad.puedo("ver_choferes")) {
+    return redirect("/admin");
+  }
+
   const drivers: Driver[] = await getDrivers();
 
   return (
@@ -63,13 +77,11 @@ export default async function DriversPage() {
                 {driver.name}
               </h3>
               
-              {/* --- CAMBIO AQUÍ: LICENCIA LIMPIA --- */}
-              {/* Eliminé las clases de fondo gris (bg-gray-100) y bordes */}
               <p className="text-sm text-gray-500 mb-1">
                  {driver.licenseNumber}
               </p>
               
-              {/* ESTADO (Ajustado a tu Schema: solo available o busy) */}
+              {/* ESTADO */}
               <span className={`text-xs font-bold flex items-center gap-1 ${
                  driver.status === 'available' ? 'text-green-600' : 'text-orange-600'
               }`}>

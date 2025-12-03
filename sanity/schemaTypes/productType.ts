@@ -63,19 +63,9 @@ export const productType = defineType({
       type: "number",
       validation: (Rule) => Rule.min(0),
     }),
-    defineField({
-      name: "status",
-      title: "Estado del producto",
-      type: "string",
-      options: {
-        list: [
-          { title: "Nuevo", value: "nuevo" },
-          { title: "Destacado", value: "destacado" },
-          { title: "En oferta", value: "oferta" },
-        ],
-      },
-    }),
-    // MANTENEMOS ESTE CAMPO (Se llenará automáticamente)
+    // HE ELIMINADO EL CAMPO "STATUS" QUE ESTABA AQUÍ
+    
+    // MANTENEMOS ESTE CAMPO (Se llenará automáticamente o manual según tu lógica)
     defineField({
       name: "variant",
       title: "Tipo de producto",

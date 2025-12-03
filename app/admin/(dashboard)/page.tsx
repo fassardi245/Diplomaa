@@ -52,53 +52,66 @@ export default async function AdminDashboard() {
       {/* Usamos grid-cols-4 para que entren todos ordenados */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* --- GRUPO 1: LOGÍSTICA (Flota) --- */}
-        {/* Asumo que comparten permiso de 'ver_flota', si no, puedes quitar la condición */}
+        {/* --- GRUPO 1: LOGÍSTICA (Separados individualmente) --- */}
+        
         {usuarioSeguridad.puedo("ver_flota") && (
-            <>
-                <DashboardLink 
-                    href="/admin/flota" 
-                    title="Flota" 
-                    desc="Vehículos y estados." 
-                    icon="🚛" 
-                />
-                <DashboardLink 
-                    href="/admin/choferes" 
-                    title="Choferes" 
-                    desc="Conductores asignados." 
-                    icon="👤" 
-                />
-                 <DashboardLink 
-                    href="/admin/envios" 
-                    title="Envíos y Logística" 
-                    desc="Logística y despachos." 
-                    icon="🗺️" 
-                />
-                 <DashboardLink 
-                    href="/admin/mantenimiento" 
-                    title="Mantenimiento" 
-                    desc="Taller y reparaciones." 
-                    icon="🔧" 
-                />
-            </>
+            <DashboardLink 
+                href="/admin/flota" 
+                title="Flota" 
+                desc="Vehículos y estados." 
+                icon="🚛" 
+            />
         )}
 
-        {/* --- GRUPO 2: COMERCIO (Pedidos, Reclamos) --- */}
-        <DashboardLink 
-            href="/admin/orders" 
-            title="Pedidos" 
-            desc="Órdenes de compra." 
-            icon="📦" 
-        />
-        
-        <DashboardLink 
-            href="/admin/reclamos" 
-            title="Reclamos" 
-            desc="Atención al cliente." 
-            icon="🚨" 
-        />
+        {usuarioSeguridad.puedo("ver_choferes") && (
+            <DashboardLink 
+                href="/admin/choferes" 
+                title="Choferes" 
+                desc="Conductores asignados." 
+                icon="👤" 
+            />
+        )}
 
-        {/* --- GRUPO 3: PRODUCTOS (Ahora interno) --- */}
+        {usuarioSeguridad.puedo("ver_envios") && (
+             <DashboardLink 
+                href="/admin/envios" 
+                title="Envíos y Logística" 
+                desc="Logística y despachos." 
+                icon="🗺️" 
+            />
+        )}
+
+        {usuarioSeguridad.puedo("ver_mantenimiento") && (
+             <DashboardLink 
+                href="/admin/mantenimiento" 
+                title="Mantenimiento" 
+                desc="Taller y reparaciones." 
+                icon="🔧" 
+            />
+        )}
+
+        {/* --- GRUPO 2: COMERCIO --- */}
+        
+        {usuarioSeguridad.puedo("ver_pedidos") && (
+            <DashboardLink 
+                href="/admin/orders" 
+                title="Pedidos" 
+                desc="Órdenes de compra." 
+                icon="📦" 
+            />
+        )}
+        
+        {usuarioSeguridad.puedo("ver_reclamos") && (
+            <DashboardLink 
+                href="/admin/reclamos" 
+                title="Reclamos" 
+                desc="Atención al cliente." 
+                icon="🚨" 
+            />
+        )}
+
+        {/* --- GRUPO 3: PRODUCTOS --- */}
+        
         {usuarioSeguridad.puedo("gestionar_productos") && (
             <DashboardLink 
                 href="/admin/products" 
@@ -109,6 +122,7 @@ export default async function AdminDashboard() {
         )}
 
         {/* --- GRUPO 4: ADMINISTRACIÓN --- */}
+        
         {usuarioSeguridad.puedo("gestionar_seguridad") && (
             <DashboardLink 
                 href="/admin/users" 

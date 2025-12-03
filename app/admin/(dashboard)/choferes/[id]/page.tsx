@@ -2,10 +2,12 @@ import { client } from "@/sanity/lib/client";
 import DriverForm from "@/components/admin/DriverForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 async function getDriver(id: string) {
   return await client.fetch(
-    // CORRECCIÓN: Pedimos 'licenseNumber' (como está en el schema)
     `*[_type == "driver" && _id == $id][0]{
       _id, 
       name, 
@@ -19,6 +21,18 @@ async function getDriver(id: string) {
 }
 
 export default async function EditDriverPage({ params }: { params: Promise<{ id: string }> }) {
+  const user = await currentUser();
+  if (!user) return redirect("/sign-in");
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  if (!usuarioSeguridad.puedo("ver_choferes")) {
+    return redirect("/admin");
+  }
+
   const { id } = await params;
   const driver = await getDriver(id);
 
