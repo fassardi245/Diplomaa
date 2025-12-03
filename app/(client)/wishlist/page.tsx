@@ -45,11 +45,11 @@ export default function WishlistPage() {
               <Link href={`/product/${product.slug?.current}`} className="block h-64 overflow-hidden bg-gray-100 relative">
                 {product.images && (
                   <Image
-                    src={urlFor(product.images[0]).url()}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  src={urlFor(product.images[0]).url()}
+                  alt={product.name || "Imagen del producto"} 
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
                 )}
               </Link>
 
