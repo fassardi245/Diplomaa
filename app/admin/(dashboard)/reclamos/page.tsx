@@ -1,6 +1,9 @@
 import { client } from "@/sanity/lib/client";
 import { AlertTriangle } from "lucide-react";
 import ResolveClaimButtons from "../../../../components/admin/ResolveClaimButtons"; 
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +11,7 @@ async function getClaims() {
   return await client.fetch(`*[_type == "claim"] | order(date desc) {
     _id, reason, description, status, date, adminResponse,
     "orderNumber": order->orderNumber,
-    "orderId": order->_id, // IMPORTANTE: Traemos el ID real de la orden
+    "orderId": order->_id, 
     "customer": order->customerName
   }`, {}, { cache: "no-store" });
 }
@@ -23,6 +26,19 @@ const reasonLabels: Record<string, string> = {
 };
 
 export default async function ClaimsPage() {
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("ver_reclamos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
+
   const claims = await getClaims();
 
   return (

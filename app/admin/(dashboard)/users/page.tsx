@@ -15,18 +15,16 @@ import {
 } from "lucide-react";
 
 // --- INTERFACES CORREGIDAS ---
-// Usamos un nombre único para evitar conflictos con el tipo 'User' de Clerk
 interface SystemUser {
   _id: string;
   email: string;
-  name?: string; // Agregamos name como opcional
+  name?: string; 
   clerkId: string;
   roles: { name: string; type: "grupo" | "accion" }[] | null; 
 }
 
 // --- DATA FETCHING ---
 async function getUsuarios() {
-  // Query corregida para traer también el nombre si existe
   const query = `*[_type == "usuario"] | order(_createdAt desc) {
     _id,
     email,
@@ -38,7 +36,6 @@ async function getUsuarios() {
     }
   }`;
   
-  // Especificamos el tipo SystemUser[] en el fetch
   return await client.fetch<SystemUser[]>(query, {}, { cache: 'no-store' });
 }
 
@@ -52,7 +49,8 @@ export default async function UsuariosPage() {
     authUser.emailAddresses[0].emailAddress
   );
 
-  if (!usuarioSeguridad.puedo("ver_usuarios")) {
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_seguridad")) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 animate-in fade-in duration-700">
         <ShieldAlert className="w-16 h-16 text-red-500 mb-4 opacity-80" />
@@ -193,7 +191,7 @@ export default async function UsuariosPage() {
                         {/* BOTÓN DE ELIMINAR */}
                         <DeleteUserButton 
                           userId={u._id} 
-                          clerkId={u.clerkId} // <--- AGREGAR ESTA LÍNEA
+                          clerkId={u.clerkId} 
                           userEmail={u.email} 
                         />
                     </div>
