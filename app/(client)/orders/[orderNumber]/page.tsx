@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   XCircle,
   CornerUpLeft,
-  Store // <--- Agregué este icono para la tarjeta de retiro
+  Store 
 } from "lucide-react";
 import ClaimForm from "@/components/ClaimForm";
 import { notFound } from "next/navigation";
@@ -54,7 +54,7 @@ async function getData(orderNumber: string) {
       },
 
       "existingClaim": *[_type == "claim" && order._ref == ^._id][0] {
-         _id, status, date, reason
+         _id, status, date, reason, adminResponse
       },
       
       products[]{
@@ -76,7 +76,7 @@ export default async function OrderTrackingPage({
 
   if (!order) return notFound();
 
-  // --- DETECCIÓN DE RETIRO (Movido arriba para usarlo en lógica) ---
+  // --- DETECCIÓN DE RETIRO ---
   const isPickup = 
       order.shippingMethodName?.toLowerCase().includes("retiro") || 
       order.shippingMethodName?.toLowerCase().includes("local") ||
@@ -109,11 +109,9 @@ export default async function OrderTrackingPage({
   if (isReturned) currentStatusId = "devuelto";
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStatusId);
-  // Si está devuelto, ya no mostramos info de chofer de entrega
   const showDriverInfo = currentStatusId === "en camino" && !isReturned;
 
   // --- NUEVA LÓGICA PARA HABILITAR RECLAMO ---
-  // Se habilita si: (No hay reclamo previo) Y (Es 'entregado' O (Es Retiro y ya está 'pagado'))
   const canFileClaim = !order.existingClaim && (
     currentStatusId === "entregado" || 
     (isPickup && currentStatusId === "pagado")
@@ -134,7 +132,6 @@ export default async function OrderTrackingPage({
            
            {/* --- SECCIÓN PRINCIPAL: CAMBIA SEGÚN SI ES RETIRO O ENVÍO --- */}
            {isPickup ? (
-             // CASO RETIRO EN LOCAL: Tarjeta estática simple
              <div className="bg-sky-50 border border-sky-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
                 <div className="w-16 h-16 bg-white border border-sky-100 rounded-full flex items-center justify-center mb-4 shadow-sm">
                    <Store className="w-8 h-8 text-sky-600" />
@@ -145,7 +142,6 @@ export default async function OrderTrackingPage({
                 </div>
              </div>
            ) : (
-             // CASO ENVÍO NORMAL: Timeline original
              <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
               <div className="relative mt-8 mb-12">
                 <div className="absolute top-5 left-0 w-full h-1 bg-gray-100 rounded-full"></div>
@@ -187,11 +183,11 @@ export default async function OrderTrackingPage({
                   {driver && (
                     <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-blue-100 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden relative border border-gray-200 shrink-0">
-                         {driver.avatar ? (
-                           <Image src={driver.avatar} alt="Chofer" fill className="object-cover" sizes="48px" />
-                         ) : (
-                           <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-400"><User className="w-6 h-6"/></div>
-                         )}
+                          {driver.avatar ? (
+                            <Image src={driver.avatar} alt="Chofer" fill className="object-cover" sizes="48px" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-400"><User className="w-6 h-6"/></div>
+                          )}
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Conductor</p>
@@ -205,9 +201,9 @@ export default async function OrderTrackingPage({
                   {vehicle && (
                     <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-blue-100 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden relative shrink-0">
-                         {vehicle.image ? (
-                           <Image src={vehicle.image} alt="Vehiculo" fill className="object-cover" sizes="48px" />
-                         ) : (<CarFront className="w-6 h-6" />)}
+                          {vehicle.image ? (
+                            <Image src={vehicle.image} alt="Vehiculo" fill className="object-cover" sizes="48px" />
+                          ) : (<CarFront className="w-6 h-6" />)}
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Vehículo</p>
@@ -250,9 +246,16 @@ export default async function OrderTrackingPage({
                {order.existingClaim.status === 'rejected' && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
                      <XCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
-                     <div>
+                     <div className="w-full">
                         <h4 className="font-bold text-red-800">Solicitud de devolución rechazada</h4>
                         <p className="text-sm text-red-700 mt-1">Tu solicitud ha sido revisada y no pudimos aprobarla.</p>
+                        {/* Muestra respuesta del admin si existe */}
+                        {order.existingClaim.adminResponse && (
+                          <div className="mt-3 text-sm bg-white/60 p-3 rounded border-l-4 border-red-400 italic text-red-900">
+                             <span className="font-bold not-italic">Respuesta: </span>
+                             "{order.existingClaim.adminResponse}"
+                          </div>
+                        )}
                      </div>
                   </div>
                )}
@@ -268,16 +271,23 @@ export default async function OrderTrackingPage({
                {order.existingClaim.status === 'approved' && (
                   <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-3">
                      <CornerUpLeft className="w-6 h-6 text-purple-600 shrink-0 mt-0.5" />
-                     <div>
+                     <div className="w-full">
                         <h4 className="font-bold text-purple-800">Devolución Aprobada</h4>
                         <p className="text-sm text-purple-700 mt-1">Tu solicitud ha sido aceptada.</p>
+                        {/* Muestra respuesta del admin si existe */}
+                        {order.existingClaim.adminResponse && (
+                          <div className="mt-3 text-sm bg-white/60 p-3 rounded border-l-4 border-purple-400 italic text-purple-900">
+                             <span className="font-bold not-italic">Respuesta: </span>
+                             "{order.existingClaim.adminResponse}"
+                          </div>
+                        )}
                      </div>
                   </div>
                )}
             </div>
           )}
 
-          {/* FORMULARIO DE RECLAMO (CONDICIONAL MODIFICADO) */}
+          {/* FORMULARIO DE RECLAMO */}
           {canFileClaim && (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
                <ClaimForm orderId={order._id} orderNumber={order.orderNumber} />

@@ -1,17 +1,18 @@
 import { client } from "@/sanity/lib/client";
 import { AlertTriangle } from "lucide-react";
-import ResolveClaimButtons from "../../../../components/admin/ResolveClaimButtons"; // Componente cliente
+import ResolveClaimButtons from "../../../../components/admin/ResolveClaimButtons"; 
+
+export const dynamic = "force-dynamic";
 
 async function getClaims() {
   return await client.fetch(`*[_type == "claim"] | order(date desc) {
-    _id, reason, description, status, date,
+    _id, reason, description, status, date, adminResponse,
     "orderNumber": order->orderNumber,
-    "orderId": order->_id,
+    "orderId": order->_id, // IMPORTANTE: Traemos el ID real de la orden
     "customer": order->customerName
   }`, {}, { cache: "no-store" });
 }
 
-// Diccionario de traducciones
 const reasonLabels: Record<string, string> = {
   "regret": "Arrepentimiento de compra",
   "damaged": "Producto dañado",
@@ -37,7 +38,6 @@ export default async function ClaimsPage() {
             
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                {/* Badge de Estado */}
                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                   claim.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                   claim.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -51,8 +51,6 @@ export default async function ClaimsPage() {
                 Orden #{claim.orderNumber?.slice(-6) || "---"} - {claim.customer || "Cliente"}
               </h3>
               
-              {/* --- CORRECCIÓN AQUÍ --- */}
-              {/* Ahora buscamos la traducción en reasonLabels. Si no existe, mostramos el original como respaldo */}
               <p className="font-semibold text-red-600 capitalize">
                 {reasonLabels[claim.reason] || claim.reason}
               </p>
@@ -60,11 +58,17 @@ export default async function ClaimsPage() {
               <p className="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm border border-gray-100">
                 "{claim.description}"
               </p>
+
+              {claim.status !== 'pending' && claim.adminResponse && (
+                 <p className="text-sm text-gray-500 italic mt-2 border-l-2 border-gray-300 pl-2">
+                    Tu respuesta: "{claim.adminResponse}"
+                 </p>
+              )}
             </div>
 
-            {/* BOTONES DE ACCIÓN (Solo si está pendiente) */}
             {claim.status === 'pending' && (
               <div className="flex flex-col gap-3 min-w-[200px]">
+                {/* AQUI PASAMOS EL ORDER ID AL BOTON */}
                 <ResolveClaimButtons claimId={claim._id} orderId={claim.orderId} />
               </div>
             )}
