@@ -309,7 +309,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                        <Store className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                        <div>
                           <p className="text-sm font-bold text-blue-800">Retiro en Local</p>
-                          <p className="text-xs text-blue-600 mt-0.5">El cliente pasará a buscar el pedido.</p>
+                          <p className="text-xs text-blue-600 mt-0.5">El cliente buscará el pedido.</p>
                        </div>
                     </div>
                  ) : (

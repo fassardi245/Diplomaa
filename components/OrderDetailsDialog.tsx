@@ -14,7 +14,7 @@ import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { AlertCircle, XCircle } from "lucide-react"; // Importamos íconos para el estado
+import { AlertCircle, XCircle } from "lucide-react";
 
 interface OrderDetailsDialogProps {
   order: MY_ORDERS_QUERYResult[number] | null;
@@ -22,10 +22,11 @@ interface OrderDetailsDialogProps {
   onClose: () => void;
 }
 
-// Interfaz extendida para incluir claimStatus
+// Agregamos refundReceiptUrl a la interfaz
 interface OrderWithExtras extends Omit<MY_ORDERS_QUERYResult[number], 'shippingAddress' | 'shippingMethodName'> {
     shippingMethodName?: string | null;
-    claimStatus?: string | null; // <--- Agregamos esto
+    claimStatus?: string | null;
+    refundReceiptUrl?: string | null; // <--- DATO NECESARIO
     shippingAddress?: {
         line1?: string;
         line2?: string;
@@ -68,7 +69,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             {safeOrder.orderDate && new Date(safeOrder.orderDate).toLocaleDateString()}
           </p>
           
-          {/* --- AQUÍ ESTÁ EL CAMBIO CLAVE --- */}
           <div className="flex items-center gap-2 my-1">
             <strong>Estado:</strong>{" "}
             {safeOrder.claimStatus === 'rejected' ? (
@@ -85,7 +85,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                 </span>
             )}
           </div>
-          {/* -------------------------------- */}
 
           <p>
             <strong>Numero de factura:</strong> {safeOrder?.invoice?.number || "N/A"}
@@ -95,7 +94,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <strong>Dirección: </strong>
             {isPickup ? (
                 <span className="text-blue-700 font-medium bg-blue-50 px-2 py-0.5 rounded text-sm">
-                    📍 Retiro en el Local
+                   📍 Retiro en el Local
                 </span>
             ) : (
                 <span>
@@ -113,16 +112,31 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
-            {safeOrder?.invoice?.hosted_invoice_url && (
+            {/* --- LÓGICA DEL BOTÓN CAMBIADA AQUÍ --- */}
+            {safeOrder.refundReceiptUrl ? (
+              // CASO 1: YA TIENE REEMBOLSO (Mostramos comprobante de Stripe)
               <Button 
                 variant="outline" 
                 asChild
                 className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect"
               >
-                <Link href={safeOrder.invoice.hosted_invoice_url} target="_blank">
-                  Descargar factura
+                <Link href={safeOrder.refundReceiptUrl} target="_blank">
+                  Comprobante de Reembolso
                 </Link>
               </Button>
+            ) : (
+              // CASO 2: NORMAL (Mostramos factura)
+              safeOrder?.invoice?.hosted_invoice_url && (
+                <Button 
+                  variant="outline" 
+                  asChild
+                  className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect"
+                >
+                  <Link href={safeOrder.invoice.hosted_invoice_url} target="_blank">
+                    Descargar factura
+                  </Link>
+                </Button>
+              )
             )}
 
             <Button asChild className="bg-transparent border text-darkColor/80 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect">
