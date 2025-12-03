@@ -2,12 +2,13 @@ import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Edit, Plus } from "lucide-react";
-import DeleteProductButton from "@/components/admin/DeleteProductButton"; // <--- Importante
+import DeleteProductButton from "@/components/admin/DeleteProductButton";
 
+// Función para traer datos de Sanity
 async function getData(categoryId: string) {
   const category = await client.fetch(`*[_type == "category" && _id == $id][0]{title}`, { id: categoryId });
   
-  // CORRECCIÓN GROQ: Usamos una proyección segura para la imagen
+  // Traemos los productos de esa categoría
   const products = await client.fetch(`*[_type == "product" && references($id)] | order(_createdAt desc) { 
     _id, 
     name, 
@@ -19,8 +20,18 @@ async function getData(categoryId: string) {
   return { category, products };
 }
 
-export default async function ProductListPage({ params }: { params: { categoryId: string } }) {
-  const { category, products } = await getData(params.categoryId);
+// --- AQUÍ ESTÁ EL ARREGLO ---
+// 1. Cambiamos el tipo de params a Promise
+export default async function ProductListPage({ 
+  params 
+}: { 
+  params: Promise<{ categoryId: string }> 
+}) {
+  // 2. Esperamos a que los params estén listos (Next.js 15 Requirement)
+  const { categoryId } = await params;
+
+  // 3. Usamos el ID ya procesado
+  const { category, products } = await getData(categoryId);
 
   return (
     <div className="max-w-7xl mx-auto p-8">
@@ -34,7 +45,7 @@ export default async function ProductListPage({ params }: { params: { categoryId
             <h1 className="text-3xl font-extrabold text-gray-900">{category?.title || "Productos"}</h1>
          </div>
          <Link 
-            href={`/admin/products/nuevo?cat=${params.categoryId}`} 
+            href={`/admin/products/nuevo?cat=${categoryId}`} 
             className="group flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-purple-600 hover:shadow-purple-200 transition-all active:scale-95"
          >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" /> 
@@ -106,7 +117,7 @@ export default async function ProductListPage({ params }: { params: { categoryId
          {products.length === 0 && (
             <div className="py-20 text-center text-gray-400 flex flex-col items-center">
                 <p>No hay productos en esta categoría.</p>
-                <Link href={`/admin/products/nuevo?cat=${params.categoryId}`} className="text-purple-600 font-bold hover:underline mt-2">
+                <Link href={`/admin/products/nuevo?cat=${categoryId}`} className="text-purple-600 font-bold hover:underline mt-2">
                     ¡Crea el primero ahora!
                 </Link>
             </div>

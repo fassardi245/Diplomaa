@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import { backendClient } from "@/sanity/lib/backendClient";
 import Link from "next/link";
 import { redirect } from "next/navigation";

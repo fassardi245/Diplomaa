@@ -11,7 +11,7 @@ import CartIcon from "./new/CartIcon";
 import WishlistIcon from "./WishlistIcon"; // <--- 1. IMPÓRTALO AQUÍ
 import MobileMenu from "./new/MobileMenu";
 import SearchBar from "./new/SearchBar";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 const Header = async () => {
   const user = await currentUser();

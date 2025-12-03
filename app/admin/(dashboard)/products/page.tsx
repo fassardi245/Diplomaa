@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Tag, ArrowRight, Plus, PackageSearch } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // 1. Traemos las categorías con su imagen
 async function getCategories() {

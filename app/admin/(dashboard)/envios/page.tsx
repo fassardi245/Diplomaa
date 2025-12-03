@@ -12,7 +12,7 @@ import StartShipmentButton from "@/components/admin/StartShipmentButton";
 import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // --- INTERFACES ---
 interface Shipment {

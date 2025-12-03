@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 async function getDriver(id: string) {
   return await client.fetch(

@@ -15,7 +15,7 @@ import OrderSearch from "@/components/admin/OrderSearch";
 import { Suspense } from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Asegúrate de que la ruta sea correcta
 
 // --- INTERFACE ---
 interface Order {
@@ -60,11 +60,11 @@ async function getData() {
   return orders;
 }
 
-// 2. DEFINIMOS PROPS PARA RECIBIR PARÁMETROS DE BÚSQUEDA
+// 2. DEFINIMOS PROPS (CAMBIO AQUÍ: Es una Promesa)
 interface Props {
-  searchParams: {
+  searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 }
 
 export default async function OrdersPage({ searchParams }: Props) {
@@ -83,8 +83,9 @@ export default async function OrdersPage({ searchParams }: Props) {
 
   const orders = await getData();
 
-  // 3. LÓGICA DE FILTRADO
-  const query = (searchParams?.query as string) || "";
+  // 3. LÓGICA DE FILTRADO (CAMBIO AQUÍ: Await antes de usar)
+  const resolvedSearchParams = await searchParams;
+  const query = (resolvedSearchParams?.query as string) || "";
   
   // Filtramos las órdenes si hay una búsqueda activa
   const filteredOrders = query

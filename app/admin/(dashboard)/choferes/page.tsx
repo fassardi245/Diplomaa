@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Plus, User } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 interface Driver {
   _id: string;

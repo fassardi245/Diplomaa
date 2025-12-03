@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 export default async function AdminAccessButton() {
   // 1. Obtenemos usuario de Clerk

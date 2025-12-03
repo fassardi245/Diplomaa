@@ -4,180 +4,116 @@ import { backendClient } from "@/sanity/lib/backendClient";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { Resend } from 'resend';
-import ReceiptEmail from '@/components/emails/ReceiptEmail';
+import { OrderFacade } from "@/lib/patterns/OrderFacade"; // <--- Importamos la Fachada
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
 
-  if (!sig) {
-    return NextResponse.json({ error: "No signature" }, { status: 400 });
-  }
+  if (!sig) return NextResponse.json({ error: "No signature" }, { status: 400 });
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    console.log("Stripe webhook secret is not set");
-    return NextResponse.json({ error: "Stripe webhook secret is not set" }, { status: 400 });
-  }
+  if (!webhookSecret) return NextResponse.json({ error: "No secret" }, { status: 400 });
 
   let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (error) {
-    console.error("Webhook signature verification failed:", error);
     return NextResponse.json({ error: `Webhook Error: ${error}` }, { status: 400 });
   }
 
   if (event.type === "checkout.session.completed") {
     const sessionRaw = event.data.object as Stripe.Checkout.Session;
 
-    // --- 1. RECUPERAR DATOS EXPANDIDOS ---
+    // 1. Expandimos datos necesarios
     const session = await stripe.checkout.sessions.retrieve(sessionRaw.id, {
-      expand: [
-        'line_items.data.price.product', 
-        'shipping_cost.shipping_rate',
-        'payment_intent' 
-      ]
+      expand: ['line_items.data.price.product', 'payment_intent']
     });
-
-    // --- Check de Idempotencia ---
-    try {
-        const existingOrder = await backendClient.fetch(
-            `*[_type == "order" && stripeCheckoutSessionId == $sessionId][0]`,
-            { sessionId: session.id }
-        );
-        if (existingOrder) {
-            return NextResponse.json({ message: "Order already processed" });
-        }
-    } catch (err) {
-        console.error("Error checking idempotency", err);
-    }
 
     const invoice = session.invoice
       ? await stripe.invoices.retrieve(session.invoice as string)
       : null;
 
     try {
-      // Paso 1: Crear la orden
-      await createOrderInSanity(session, invoice);
+      // 2. CREAMOS LA ORDEN (Lógica Crítica)
+      const order = await createOrderInSanity(session, invoice);
       
-      // Paso 2: Actualizar el Stock (NUEVO)
-      await updateProductStock(session);
+      // 3. LLAMAMOS A LA FACHADA (Lógica Pesada en Paralelo)
+      // Extraemos los datos necesarios para no pasar el objeto session entero
+      const orderData = {
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          email: order.email,
+          invoiceUrl: invoice?.hosted_invoice_url || null
+      };
+      
+      // ¡Esto ejecuta Stock + Email + Vehículo a la vez!
+      await OrderFacade.handlePostSaleProcesses(
+          session.id, 
+          orderData, 
+          session.line_items?.data || []
+      );
 
-    } catch (error) {
-      console.error("Error creating order in sanity:", error);
-      return NextResponse.json({ error: `Error creating order: ${error}` }, { status: 400 });
+    } catch (error: any) {
+      console.error("Error en proceso de orden:", error);
+      return NextResponse.json({ error: `Error: ${error.message}` }, { status: 500 });
     }
   }
   return NextResponse.json({ received: true });
-}
-
-// --- FUNCIÓN PARA RESTAR STOCK (NUEVA) ---
-async function updateProductStock(session: Stripe.Checkout.Session) {
-  const lineItems = session.line_items?.data || [];
-  
-  for (const item of lineItems) {
-    const product = item.price?.product as Stripe.Product;
-    // Recuperamos el ID que guardamos en createCheckoutSession
-    const sanityProductId = product?.metadata?.id;
-    const quantity = item.quantity || 1;
-
-    if (sanityProductId) {
-      try {
-        await backendClient
-          .patch(sanityProductId)
-          .dec({ stock: quantity }) // Restamos la cantidad comprada
-          .commit();
-        console.log(`✅ Stock actualizado para ${sanityProductId}: -${quantity}`);
-      } catch (error) {
-        console.error(`❌ Error actualizando stock para ${sanityProductId}:`, error);
-      }
-    }
-  }
 }
 
 async function createOrderInSanity(
   session: Stripe.Checkout.Session,
   invoice: Stripe.Invoice | null
 ) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const sessionData = session as any;
+  const { id, amount_total, currency, metadata, payment_intent, total_details, shipping_cost, shipping_details, customer_details } = session as any;
+  const { orderNumber, customerName, customerEmail, clerkUserId } = metadata as unknown as Metadata;
 
-  // Extraemos el Payment Intent expandido
-  const paymentIntent = sessionData.payment_intent as Stripe.PaymentIntent;
-
-  // --- LÓGICA DE DIRECCIÓN "A PRUEBA DE BALAS" ---
-  const shippingDetails = 
-      sessionData.shipping_details || 
-      paymentIntent?.shipping || 
-      sessionData.customer_details;
-
-  console.log("📍 Dirección encontrada en:", sessionData.shipping_details ? "Session" : (paymentIntent?.shipping ? "PaymentIntent" : "CustomerDetails"));
-  
-  const {
-    id,
-    amount_total,
-    currency,
-    metadata,
-    payment_intent,
-    total_details,
-    shipping_cost,   
-  } = sessionData;
-  
-  const { orderNumber, customerName, customerEmail, clerkUserId } =
-    metadata as unknown as Metadata;
-
-  // 1. Obtener NOMBRE del envío
-  const shippingRate = shipping_cost?.shipping_rate as Stripe.ShippingRate;
-  const shippingMethodName = shippingRate?.display_name || "Envío"; 
-
-  // 2. Preparar Productos
-  const lineItems = session.line_items?.data || [];
-  const sanityProducts = lineItems.map((item) => {
-    const product = item.price?.product as Stripe.Product;
-    return {
-      _key: crypto.randomUUID(),
-      product: {
-        _type: "reference",
-        _ref: product?.metadata?.id,
-      },
-      name: product.name,
-      quantity: item?.quantity || 0,
-      price: (item.price?.unit_amount || 0) / 100,
-      image: product.images?.[0] || null,
-    };
-  });
-
-  // 3. Preparar Dirección
-  const shippingAddress = shippingDetails?.address ? {
-    line1: shippingDetails.address.line1,
-    line2: shippingDetails.address.line2 || "",
-    city: shippingDetails.address.city,
-    state: shippingDetails.address.state,
-    postal_code: shippingDetails.address.postal_code,
-    country: shippingDetails.address.country,
+  // Lógica de dirección (Tu lógica "A prueba de balas")
+  const shippingInfo = shipping_details || (payment_intent as any)?.shipping || customer_details;
+  const shippingAddress = shippingInfo?.address ? {
+    line1: shippingInfo.address.line1,
+    line2: shippingInfo.address.line2 || "",
+    city: shippingInfo.address.city,
+    state: shippingInfo.address.state,
+    postal_code: shippingInfo.address.postal_code,
+    country: shippingInfo.address.country,
   } : null;
 
-  // 4. CREAR LA ORDEN
-  const order = await backendClient.create({
+  // Preparar productos para guardar en la orden
+  const lineItems = session.line_items?.data || [];
+  const sanityProducts = lineItems.map((item) => ({
+    _key: crypto.randomUUID(),
+    product: {
+      _type: "reference",
+      _ref: (item.price?.product as Stripe.Product)?.metadata?.id,
+    },
+    quantity: item?.quantity || 0,
+    price: (item.price?.unit_amount || 0) / 100
+  }));
+
+  // ID de Payment Intent
+  const paymentIntentId = typeof payment_intent === 'string' ? payment_intent : payment_intent?.id;
+
+  // --- CREACIÓN SEGURA (IDEMPOTENCIA) ---
+  // Usamos createIfNotExists para evitar duplicados si Stripe reintenta
+  const order = await backendClient.createIfNotExists({
+    _id: id, // Usamos ID de Stripe como llave
     _type: "order",
     orderNumber,
     stripeCheckoutSessionId: id,
-    stripePaymentIntentId: typeof payment_intent === 'string' ? payment_intent : payment_intent?.id,
+    stripePaymentIntentId: paymentIntentId,
     customerName,
     stripeCustomerId: customerEmail,
-    clerkUserId: clerkUserId,
+    clerkUserId,
     email: customerEmail,
     currency,
     amountDiscount: total_details?.amount_discount ? total_details.amount_discount / 100 : 0,
-    
     shippingCost: total_details?.amount_shipping ? total_details.amount_shipping / 100 : 0,
-    shippingMethodName: shippingMethodName,
-    shippingAddress: shippingAddress, 
-
+    shippingMethodName: shipping_cost?.shipping_rate?.display_name || "Envío",
+    shippingAddress,
     products: sanityProducts,
     totalPrice: amount_total ? amount_total / 100 : 0,
     status: "pagado",
@@ -188,24 +124,6 @@ async function createOrderInSanity(
         hosted_invoice_url: invoice.hosted_invoice_url,
     } : null,
   });
-  
-  // 5. ENVIAR EMAIL
-  if (customerEmail) {
-      try {
-        await resend.emails.send({
-            from: 'onboarding@resend.dev', 
-            to: [customerEmail], 
-            subject: `Recibo de compra #${orderNumber}`,
-            react: ReceiptEmail({
-                orderNumber: orderNumber,
-                customerName: customerName,
-                invoiceUrl: invoice?.hosted_invoice_url || null
-            }),
-        });
-      } catch (error) {
-          console.error("Error enviando recibo:", error);
-      }
-  }
 
   return order;
 }

@@ -2,7 +2,7 @@ import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import { Plus, Wrench, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/sanity/lib/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // Interfaces
 interface Maintenance {
