@@ -54,6 +54,13 @@ export const claimType = defineType({
       type: "datetime",
       initialValue: () => new Date().toISOString(),
     }),
+    defineField({
+      name: "adminResponse",
+      title: "Respuesta del Administrador",
+      type: "text",
+      rows: 3,
+      description: "Mensaje visible para el cliente explicando la resolución.",
+    }),
   ],
   preview: {
     select: {
