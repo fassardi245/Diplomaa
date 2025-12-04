@@ -147,7 +147,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const statusColor = statusColors[order.status?.toLowerCase()] || "bg-gray-100 text-gray-600";
 
   // Cálculo del Subtotal Matemático (Total - Envío + Descuento)
-  const subtotal = order.totalPrice - (order.shippingCost || 0) + (order.amountDiscount || 0);
+  // NOTA: Esto se calcula con los valores RAW (centavos) para precisión, luego se divide al mostrar.
+  const subtotalRaw = order.totalPrice - (order.shippingCost || 0) + (order.amountDiscount || 0);
 
   return (
     <div className="max-w-5xl mx-auto p-8 pb-20">
@@ -210,9 +211,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </div>
 
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
+                      {/* CORRECCIÓN: Precio Total Línea / 100 */}
+                      <p className="font-bold text-gray-900">{formatCurrency((item.price * item.quantity) / 100)}</p>
                       <p className="text-[10px] text-gray-400">
-                        {formatCurrency(item.price)} c/u
+                        {/* CORRECCIÓN: Precio Unitario / 100 */}
+                        {formatCurrency(item.price / 100)} c/u
                       </p>
                     </div>
                   </div>
@@ -225,15 +228,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                
                {/* Subtotal */}
                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Subtotal</span>
-                  <span className="font-medium">{formatCurrency(subtotal)}</span>
+                 <span>Subtotal</span>
+                 {/* CORRECCIÓN: Subtotal / 100 */}
+                 <span className="font-medium">{formatCurrency(subtotalRaw / 100)}</span>
                </div>
 
                {/* Descuento (Si existe) */}
                {order.amountDiscount > 0 && (
                  <div className="flex justify-between text-sm text-green-600">
                    <span>Descuento aplicado</span>
-                   <span>- {formatCurrency(order.amountDiscount)}</span>
+                   {/* CORRECCIÓN: Descuento / 100 */}
+                   <span>- {formatCurrency(order.amountDiscount / 100)}</span>
                  </div>
                )}
 
@@ -243,7 +248,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   {order.shippingCost === 0 ? (
                       <span className="text-green-600 font-bold">Gratis</span>
                   ) : (
-                      <span className="font-medium">{formatCurrency(order.shippingCost)}</span>
+                      /* CORRECCIÓN: Envío / 100 */
+                      <span className="font-medium">{formatCurrency(order.shippingCost / 100)}</span>
                   )}
                </div>
 
@@ -252,8 +258,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
                {/* Total Final */}
                <div className="flex justify-between text-lg font-extrabold text-gray-900">
-                  <span>Total Pagado</span>
-                  <span>{formatCurrency(order.totalPrice)}</span>
+                 <span>Total Pagado</span>
+                 {/* CORRECCIÓN: Total / 100 */}
+                 <span>{formatCurrency(order.totalPrice / 100)}</span>
                </div>
             </div>
           </div>

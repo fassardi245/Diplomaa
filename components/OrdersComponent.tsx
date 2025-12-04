@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { format } from "date-fns";
-import { Trash, AlertCircle, Clock, CornerUpLeft } from "lucide-react"; // Importamos CornerUpLeft
+import { Trash, AlertCircle, Clock, CornerUpLeft } from "lucide-react"; 
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { cancelOrder } from "@/actions/cancelOrder";
@@ -59,11 +59,12 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                   <TableCell className="hidden md:table-cell">{order?.orderDate && format(new Date(order.orderDate), "dd/MM/yyyy")}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell className="hidden sm:table-cell">{order.email}</TableCell>
-                  <TableCell><PriceFormatter amount={order?.totalPrice} className="text-black font-medium"/></TableCell>
+                  
+                  {/* CORRECCIÓN: Dividimos el total por 100 para que aparezca bien en la lista (ej: 24.99) */}
+                  <TableCell><PriceFormatter amount={(order?.totalPrice || 0) / 100} className="text-black font-medium"/></TableCell>
                   
                   <TableCell>
                     <div className="flex flex-col items-start gap-1">
-                        {/* Si está devuelto, ocultamos el estado "Entregado" para que no sea redundante */}
                         {order.claimStatus !== 'approved' && order?.status && (
                             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                 order.status === "pagado" ? "bg-green-100 text-green-800" :
@@ -85,7 +86,6 @@ const OrdersComponent = ({ orders }: { orders: MY_ORDERS_QUERYResult }) => {
                                 <Clock className="w-3 h-3" /> Reclamo Pendiente
                             </span>
                         )}
-                        {/* --- CAMBIO AQUÍ: VIOLETA Y TEXTO "DEVUELTO" --- */}
                         {order.claimStatus === 'approved' && (
                             <span className="flex items-center gap-1 text-[10px] uppercase font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded border border-purple-100 w-max mt-1">
                                 <CornerUpLeft className="w-3 h-3" /> Devuelto

@@ -13,6 +13,7 @@ import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
+import PriceFormatter from "@/components/PriceFormatter"; // <--- AGREGADO
 
 // --- INTERFACES ---
 interface Shipment {
@@ -126,8 +127,12 @@ export default async function ShipmentsPage() {
                     
                     <div className="flex items-center gap-4">
                        <div className="text-right mr-4 hidden md:block">
-                          <p className="text-sm font-bold text-gray-900">${order.totalPrice}</p>
-                          <p className="text-[10px] text-green-600 font-bold bg-green-100 px-2 rounded-full">PAGADO</p>
+                          {/* CORRECCIÓN: Usamos PriceFormatter y dividimos por 100 */}
+                          <PriceFormatter 
+                            amount={order.totalPrice / 100} 
+                            className="text-sm font-bold text-gray-900 block"
+                          />
+                          <p className="text-[10px] text-green-600 font-bold bg-green-100 px-2 rounded-full inline-block">PAGADO</p>
                        </div>
                        <StartShipmentButton orderId={order._id} />
                     </div>
@@ -186,7 +191,7 @@ export default async function ShipmentsPage() {
                   <p className="text-[10px] text-blue-600 font-bold tracking-wider mb-1">DESTINO</p>
                   
                   <div className="text-right">
-                     {ship.destinationAddress ? (
+                      {ship.destinationAddress ? (
                         <div className="flex flex-col items-end">
                            <span className="text-sm font-bold text-gray-900 leading-tight">
                               {ship.destinationAddress.line1}
@@ -195,11 +200,11 @@ export default async function ShipmentsPage() {
                               {ship.destinationAddress.city}
                            </span>
                         </div>
-                     ) : (
+                      ) : (
                         <span className="text-xs text-gray-400 italic bg-gray-50 px-2 py-1 rounded">
                            Retiro en local
                         </span>
-                     )}
+                      )}
                   </div>
                </div>
             </div>

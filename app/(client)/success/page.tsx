@@ -19,12 +19,18 @@ const SuccessPage = () => {
   const { user } = useUser();
   const userId = user?.id;
 
-  const query =
-    defineQuery(`*[_type == 'order' && clerkUserId == $userId] | order(orderData desc){
-  ...,products[]{
-    ...,product->
-  }
-}`);
+  // CORRECCIÓN: 
+  // 1. Cambiado 'orderData' por 'orderDate' para ordenar por fecha real.
+  // 2. Agregado '[0...3]' para limitar la respuesta a solo los últimos 3 pedidos.
+  const query = defineQuery(`
+    *[_type == 'order' && clerkUserId == $userId] | order(orderDate desc)[0...3]{
+      ...,
+      products[]{
+        ...,
+        product->
+      }
+    }
+  `);
 
   useEffect(() => {
     if (orderNumber) {
@@ -73,11 +79,13 @@ const SuccessPage = () => {
         </h1>
         <div className="space-y-4 mb-8 text-left">
           <p className="text-gray-700">
-            Gracias por su compra. Estamos procesando su pedido y lo enviaremos pronto. En breve recibirá una notificación de confirmación con los detalles de su pedido.
+            Gracias por su compra. <br />
+            Estamos procesando su pedido y lo enviaremos pronto. <br />
+            Muchas gracias por confiar en nosotros!!!
           </p>
           <p className="text-gray-700">
             Numero de pedido:{" "}
-            <span className="text-black font-semibold">{orderNumber}</span>
+            <span className="text-black font-semibold break-all">{orderNumber}</span>
           </p>
         </div>
 
@@ -97,12 +105,17 @@ const SuccessPage = () => {
             {orders.map((order) => (
               <div
                 key={order?._id}
-                className="flex justify-between items-center bg-gray-50 p-2 rounded"
+                className="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100 gap-4"
               >
-                <span className="text-gray-700 text-sm font-medium">
+                <span className="text-gray-600 text-xs font-mono break-all text-left">
                   {order?._id}
                 </span>
-                <span className="text-sm font-medium px-2 py-1 bg-gray-200 rounded-full">
+                
+                <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase shrink-0 ${
+                  order.status === 'pagado' ? 'bg-green-100 text-green-700' : 
+                  order.status === 'en camino' ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-200 text-gray-700'
+                }`}>
                   {order.status}
                 </span>
               </div>

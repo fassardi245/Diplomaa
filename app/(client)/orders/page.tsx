@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getMyOrders } from "@/sanity/helpers";
-import { client } from "@/sanity/lib/client"; // Importamos el cliente para buscar reclamos
+// import { getMyOrders } from "@/sanity/helpers"; <--- NO LO USAMOS PARA ASEGURAR EL PRECIO
+import { client } from "@/sanity/lib/client"; 
 import { auth } from "@clerk/nextjs/server";
 import { FileX } from "lucide-react";
 import Link from "next/link";
@@ -18,28 +18,42 @@ const OrdersPage = async () => {
     return redirect("/");
   }
 
-  // 1. Traemos las órdenes como siempre
-  const orders = await getMyOrders(userId);
+  // 1. QUERY EXPLÍCITA (REEMPLAZA A getMyOrders)
+  // Esto asegura que el campo 'price' venga dentro de products[]
+  // para que el modal de detalles calcule bien los montos.
+  const query = `*[_type == "order" && clerkUserId == $userId] | order(orderDate desc) {
+      ...,
+      products[]{
+        ...,
+        price, // <--- ESTO ES CRÍTICO PARA QUE NO SALGA $0.30
+        product->{
+          _id,
+          name,
+          price,
+          images
+        }
+      }
+  }`;
 
-  // 2. Lógica nueva: Buscamos si esas órdenes tienen reclamos
+  const orders = await client.fetch(query, { userId });
+
+  // 2. Lógica de Reclamos (Manteniendo tu lógica original)
   let ordersWithClaims = orders;
 
   if (orders && orders.length > 0) {
     const orderIds = orders.map((order: any) => order._id);
     
-    // Consultamos a Sanity solo por los reclamos de estas órdenes
     const claims = await client.fetch(
       `*[_type == "claim" && order._ref in $orderIds]{ "orderId": order._ref, status }`,
       { orderIds },
       { cache: "no-store" }
     );
 
-    // Unimos la info: Orden + Estado del Reclamo
     ordersWithClaims = orders.map((order: any) => {
       const claim = claims.find((c: any) => c.orderId === order._id);
       return {
         ...order,
-        claimStatus: claim?.status // Esto pasa el estado (pending, rejected, approved)
+        claimStatus: claim?.status 
       };
     });
   }
@@ -75,7 +89,7 @@ const OrdersPage = async () => {
                       <TableHead>Acción</TableHead>
                     </TableRow>
                   </TableHeader>
-                  {/* Pasamos las órdenes enriquecidas con el estado del reclamo */}
+                  {/* Pasamos las órdenes enriquecidas */}
                   <OrdersComponent orders={ordersWithClaims} />
                 </Table>
                 <ScrollBar orientation="horizontal" />
