@@ -59,7 +59,7 @@ export const orderType = defineType({
       validation: (Rule) => Rule.required(),
     }),
     
-    // --- NUEVO: Dirección de envío guardada desde Stripe ---
+    // --- Dirección de envío ---
     defineField({
       name: "shippingAddress",
       title: "Shipping Address",
@@ -105,20 +105,12 @@ export const orderType = defineType({
               title: "Price per Unit",
               type: "number",
             }),
-            // --- NUEVO: Guardamos la URL de la imagen aquí ---
             defineField({
               name: "image",
               title: "Product Image URL",
               type: "string", 
             }),
-            defineField({
-              name: "shippingMethodName",
-              title: "Shipping Method Name",
-              type: "string",
-    }),
           ],
-          // En schemaTypes/orderType.ts
-
           preview: {
             select: {
               product: "product.name",
@@ -131,8 +123,6 @@ export const orderType = defineType({
               return {
                 title: `${select.snapshotName || select.product} x ${select.quantity}`,
                 subtitle: select.price ? `$${select.price * select.quantity}` : 'Precio no disponible',
-                // SOLUCIÓN: Agregamos 'as any' al final para evitar el error de tipo estricto
-                // O simplemente pon 'media: BasketIcon' si esto sigue molestando.
                 media: select.image ? { asset: { url: select.image } } as any : BasketIcon, 
               };
             },
@@ -163,6 +153,13 @@ export const orderType = defineType({
       title: "Costo de Envío",
       type: "number",
     }),
+    // --- CAMPO AGREGADO AQUÍ (Solución al error de Sanity) ---
+    defineField({
+      name: "shippingMethodName",
+      title: "Método de Envío",
+      type: "string",
+    }),
+    // ---------------------------------------------------------
     defineField({
       name: "status",
       title: "Order Status",

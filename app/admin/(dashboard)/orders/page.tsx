@@ -15,7 +15,7 @@ import OrderSearch from "@/components/admin/OrderSearch";
 import { Suspense } from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Asegúrate de que la ruta sea correcta
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // --- INTERFACE ---
 interface Order {
@@ -221,7 +221,8 @@ export default async function OrdersPage({ searchParams }: Props) {
                     {/* Columna Total */}
                     <TableCell>
                         <div className="font-bold text-gray-900">
-                            <PriceFormatter amount={order.totalPrice} className="" />
+                            {/* CORRECCIÓN: Dividimos por 100 aquí */}
+                            <PriceFormatter amount={order.totalPrice / 100} className="" />
                         </div>
                         <p className="text-[10px] text-gray-400">{order.productsCount} productos</p>
                     </TableCell>

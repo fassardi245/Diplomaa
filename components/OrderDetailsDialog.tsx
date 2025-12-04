@@ -22,11 +22,13 @@ interface OrderDetailsDialogProps {
   onClose: () => void;
 }
 
-// Agregamos refundReceiptUrl a la interfaz
-interface OrderWithExtras extends Omit<MY_ORDERS_QUERYResult[number], 'shippingAddress' | 'shippingMethodName'> {
+// SOLUCIÓN AL ERROR DE TYPESCRIPT:
+// Extendemos la interfaz omitiendo 'products' original y redefiniéndolo
+// para incluir explícitamente el campo 'price' que agregamos en la query.
+interface OrderWithExtras extends Omit<MY_ORDERS_QUERYResult[number], 'shippingAddress' | 'shippingMethodName' | 'products'> {
     shippingMethodName?: string | null;
     claimStatus?: string | null;
-    refundReceiptUrl?: string | null; // <--- DATO NECESARIO
+    refundReceiptUrl?: string | null;
     shippingAddress?: {
         line1?: string;
         line2?: string;
@@ -35,6 +37,16 @@ interface OrderWithExtras extends Omit<MY_ORDERS_QUERYResult[number], 'shippingA
         postal_code?: string;
         country?: string;
     } | null;
+    // Aquí definimos manualmente la estructura del producto para evitar el error TS2339
+    products: Array<{
+        quantity?: number;
+        price?: number; // <--- ESTO ES LO QUE FALTABA
+        product?: {
+            price?: number;
+            name?: string;
+            images?: any[];
+        } | null;
+    }> | null;
 }
 
 const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
@@ -44,12 +56,22 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 }) => {
   if (!order) return null;
 
+  // Casteamos la orden al tipo extendido que acabamos de crear
   const safeOrder = order as unknown as OrderWithExtras;
 
   const isPickup = 
       safeOrder.shippingMethodName?.toLowerCase().includes("retiro") || 
       safeOrder.shippingMethodName?.toLowerCase().includes("local") ||
       safeOrder.shippingCost === 0;
+
+  // --- CÁLCULO DE SUBTOTAL ---
+  // Ahora 'item.price' ya no dará error porque lo definimos en la interfaz arriba
+  const subtotalCents = safeOrder.products?.reduce((acc, item) => {
+    // Prioridad: Precio snapshot (item.price) > Precio catálogo (item.product.price)
+    const price = item.price ?? item.product?.price ?? 0;
+    const qty = item.quantity || 0;
+    return acc + (price * qty);
+  }, 0) || 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -112,9 +134,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
-            {/* --- LÓGICA DEL BOTÓN CAMBIADA AQUÍ --- */}
             {safeOrder.refundReceiptUrl ? (
-              // CASO 1: YA TIENE REEMBOLSO (Mostramos comprobante de Stripe)
               <Button 
                 variant="outline" 
                 asChild
@@ -125,7 +145,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                 </Link>
               </Button>
             ) : (
-              // CASO 2: NORMAL (Mostramos factura)
               safeOrder?.invoice?.hosted_invoice_url && (
                 <Button 
                   variant="outline" 
@@ -151,62 +170,67 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead>
-              <TableHead>Calidad</TableHead>
+              <TableHead>Cantidad</TableHead>
               <TableHead>Precio</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {safeOrder.products?.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell className="flex items-center gap-2">
-                  {product?.product?.images && (
-                    <Image
-                      src={urlFor(product?.product?.images[0]).url()}
-                      alt="productImage"
-                      width={50}
-                      height={50}
-                      className="border rounded-sm"
-                    />
-                  )}
+            {safeOrder.products?.map((item, index) => {
+              // Calculamos precio unitario priorizando el snapshot
+              const unitPrice = item.price ?? item.product?.price ?? 0;
+              
+              return (
+                <TableRow key={index}>
+                    <TableCell className="flex items-center gap-2">
+                    {item?.product?.images && item.product.images[0] && (
+                        <Image
+                        src={urlFor(item.product.images[0]).url()}
+                        alt="productImage"
+                        width={50}
+                        height={50}
+                        className="border rounded-sm object-cover"
+                        />
+                    )}
 
-                  {product?.product && product?.product?.name}
-                </TableCell>
-                <TableCell>{product?.quantity}</TableCell>
-                <TableCell>
-                  <PriceFormatter
-                    amount={product?.product?.price}
-                    className="text-black font-medium"
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+                    {item?.product && item?.product?.name}
+                    </TableCell>
+                    <TableCell>{item?.quantity}</TableCell>
+                    <TableCell>
+                    {/* DIVISIÓN POR 100 */}
+                    <PriceFormatter
+                        amount={unitPrice / 100}
+                        className="text-black font-medium"
+                    />
+                    </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
 
         <div className="mt-4 text-right flex items-center justify-end">
           <div className="w-64 flex flex-col gap-1">
-            {safeOrder?.amountDiscount !== 0 && (
-              <div className="w-full flex items-center justify-between">
-                <strong>Subtotal: </strong>
-                <PriceFormatter
-                  amount={
-                    (safeOrder?.totalPrice as number) +
-                    (safeOrder?.amountDiscount as number) -
-                    (safeOrder?.shippingCost || 0) 
-                  }
-                  className="text-black font-bold"
-                />
-              </div>
-            )}
+            
+            <div className="w-full flex items-center justify-between">
+              <strong>Subtotal: </strong>
+              {/* DIVISIÓN POR 100 */}
+              <PriceFormatter
+                amount={subtotalCents / 100}
+                className="text-black font-bold"
+              />
+            </div>
+
             {safeOrder?.amountDiscount !== 0 && (
               <div className="w-full flex items-center justify-between text-green-600">
                 <strong>Discount: </strong>
+                {/* DIVISIÓN POR 100 */}
                 <PriceFormatter
-                  amount={safeOrder?.amountDiscount}
+                  amount={(safeOrder?.amountDiscount || 0) / 100}
                   className="font-bold"
                 />
               </div>
             )}
+
             {safeOrder?.shippingCost !== undefined && (
                 <div className="w-full flex items-center justify-between">
                     <span className="font-medium text-black">
@@ -215,18 +239,22 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                     {safeOrder.shippingCost === 0 ? (
                         <span className="text-green-600 font-bold">Gratis</span>
                     ) : (
+                        // DIVISIÓN POR 100
                         <PriceFormatter
-                          amount={safeOrder.shippingCost ?? 0}
+                          amount={(safeOrder.shippingCost || 0) / 100}
                           className="text-black font-bold"
                         />
                     )}
                 </div>
             )}
+            
             <div className="border-t border-gray-200 my-1"></div>
+            
             <div className="w-full flex items-center justify-between">
               <strong>Total: </strong>
+              {/* DIVISIÓN POR 100 */}
               <PriceFormatter
-                amount={safeOrder?.totalPrice}
+                amount={(safeOrder?.totalPrice || 0) / 100}
                 className="text-black font-bold text-lg"
               />
             </div>

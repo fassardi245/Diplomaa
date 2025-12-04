@@ -23,6 +23,9 @@ import { notFound } from "next/navigation";
 import PriceFormatter from "@/components/PriceFormatter"; 
 
 async function getData(orderNumber: string) {
+  // CORRECCIÓN QUERY: 
+  // 1. Buscamos 'images[0].asset->url' en el producto referenciado.
+  // 2. Buscamos 'image' en el array de productos (que guarda el webhook).
   const query = `*[_type == "order" && orderNumber == $orderNumber][0]{
       _id, orderNumber, status, orderDate, totalPrice, currency, 
       customerName, email, shippingCost, estimatedDelivery,
@@ -58,8 +61,14 @@ async function getData(orderNumber: string) {
       },
       
       products[]{
-        quantity, name, price, image, 
-        product->{ name, price, "imageUrl": image.asset->url } 
+        quantity, name, price, 
+        // Prioridad: Imagen guardada en la orden, si no existe, imagen principal del producto
+        "image": coalesce(image, product->images[0].asset->url), 
+        product->{ 
+            name, 
+            price, 
+            "imageUrl": images[0].asset->url 
+        } 
       }
     }`;
 
@@ -93,7 +102,6 @@ export default async function OrderTrackingPage({
     { id: "entregado", label: "Entregado", icon: CheckCircle2 },
   ];
 
-  // Si está devuelto, agregamos el paso final
   const isReturned = order.existingClaim?.status === 'approved';
   if (isReturned) {
     steps.push({ id: "devuelto", label: "Devuelto", icon: CornerUpLeft });
@@ -105,13 +113,11 @@ export default async function OrderTrackingPage({
   if (statusRaw.includes("camino") || statusRaw.includes("shipped")) currentStatusId = "en camino";
   if (statusRaw.includes("entregado") || statusRaw.includes("delivered")) currentStatusId = "entregado";
   
-  // Forzamos el último paso si está devuelto
   if (isReturned) currentStatusId = "devuelto";
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStatusId);
   const showDriverInfo = currentStatusId === "en camino" && !isReturned;
 
-  // --- NUEVA LÓGICA PARA HABILITAR RECLAMO ---
   const canFileClaim = !order.existingClaim && (
     currentStatusId === "entregado" || 
     (isPickup && currentStatusId === "pagado")
@@ -129,8 +135,7 @@ export default async function OrderTrackingPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-           
-           {/* --- SECCIÓN PRINCIPAL: CAMBIA SEGÚN SI ES RETIRO O ENVÍO --- */}
+            
            {isPickup ? (
              <div className="bg-sky-50 border border-sky-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
                 <div className="w-16 h-16 bg-white border border-sky-100 rounded-full flex items-center justify-center mb-4 shadow-sm">
@@ -170,7 +175,6 @@ export default async function OrderTrackingPage({
              </div>
            )}
 
-           {/* INFO DEL CHOFER (Solo si NO es retiro y corresponde) */}
            {!isPickup && showDriverInfo && (driver || vehicle) ? (
              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-3">
                 <div className="flex items-center gap-2 mb-4">
@@ -233,14 +237,14 @@ export default async function OrderTrackingPage({
                     </div>
                     <div>
                       <p className="font-bold text-gray-900">{item.name || item.product?.name}</p>
-                      <p className="text-sm text-gray-500">{item.quantity} x <PriceFormatter amount={item.price || item.product?.price} className="inline font-medium text-gray-700"/></p>
+                      {/* CORRECCIÓN: Precio dividido por 100 */}
+                      <p className="text-sm text-gray-500">{item.quantity} x <PriceFormatter amount={(item.price || item.product?.price) / 100} className="inline font-medium text-gray-700"/></p>
                     </div>
                   </div>
               ))}
             </div>
           </div>
 
-          {/* ESTADO DEL RECLAMO (VISUALIZACIÓN) */}
           {order.existingClaim && (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-2">
                {order.existingClaim.status === 'rejected' && (
@@ -249,7 +253,6 @@ export default async function OrderTrackingPage({
                      <div className="w-full">
                         <h4 className="font-bold text-red-800">Solicitud de devolución rechazada</h4>
                         <p className="text-sm text-red-700 mt-1">Tu solicitud ha sido revisada y no pudimos aprobarla.</p>
-                        {/* Muestra respuesta del admin si existe */}
                         {order.existingClaim.adminResponse && (
                           <div className="mt-3 text-sm bg-white/60 p-3 rounded border-l-4 border-red-400 italic text-red-900">
                              <span className="font-bold not-italic">Respuesta: </span>
@@ -274,7 +277,6 @@ export default async function OrderTrackingPage({
                      <div className="w-full">
                         <h4 className="font-bold text-purple-800">Devolución Aprobada</h4>
                         <p className="text-sm text-purple-700 mt-1">Tu solicitud ha sido aceptada.</p>
-                        {/* Muestra respuesta del admin si existe */}
                         {order.existingClaim.adminResponse && (
                           <div className="mt-3 text-sm bg-white/60 p-3 rounded border-l-4 border-purple-400 italic text-purple-900">
                              <span className="font-bold not-italic">Respuesta: </span>
@@ -287,7 +289,6 @@ export default async function OrderTrackingPage({
             </div>
           )}
 
-          {/* FORMULARIO DE RECLAMO */}
           {canFileClaim && (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
                <ClaimForm orderId={order._id} orderNumber={order.orderNumber} />
@@ -331,18 +332,28 @@ export default async function OrderTrackingPage({
                {order.products?.map((item: any, idx: number) => (
                   <div key={idx} className="flex justify-between text-sm text-gray-600">
                         <span className="truncate pr-4">{item.name || "Producto"} <span className="text-xs text-gray-400">x{item.quantity}</span></span>
-                        <PriceFormatter amount={(item.price || 0) * item.quantity} className="font-medium shrink-0"/>
+                        {/* CORRECCIÓN: Precio unitario * cantidad / 100 */}
+                        <PriceFormatter amount={((item.price || 0) * item.quantity) / 100} className="font-medium shrink-0"/>
                   </div>
                ))}
                <div className="flex justify-between text-sm text-gray-600">
+                  {/* Nombre dinámico del envío */}
                   <span>{order.shippingMethodName || "Envío"}</span>
-                  {order.shippingCost === 0 ? <span className="text-green-600 font-bold">Gratis</span> : <PriceFormatter amount={order.shippingCost} className="font-medium"/>}
+                  {order.shippingCost === 0 ? (
+                    <span className="text-green-600 font-bold">Gratis</span> 
+                  ) : (
+                    /* CORRECCIÓN: Envío / 100 */
+                    <PriceFormatter amount={order.shippingCost / 100} className="font-medium"/>
+                  )}
                </div>
             </div>
             <hr className="border-gray-100 my-4" />
             <div className="flex justify-between items-end">
               <span className="font-bold text-lg text-gray-900">Total</span>
-              <div className="text-right"><PriceFormatter amount={order.totalPrice} className="text-xl font-bold text-black block"/></div>
+              <div className="text-right">
+                {/* CORRECCIÓN: Total / 100 */}
+                <PriceFormatter amount={order.totalPrice / 100} className="text-xl font-bold text-black block"/>
+              </div>
             </div>
           </div>
         </div>
