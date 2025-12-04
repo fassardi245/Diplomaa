@@ -40,24 +40,17 @@ async function getUsuarios() {
 }
 
 export default async function UsuariosPage() {
-  // 1. SEGURIDAD
-  const authUser = await currentUser();
-  if (!authUser) return <div>Inicia sesión por favor.</div>;
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(
-    authUser.id, 
-    authUser.emailAddresses[0].emailAddress
+    user.id,
+    user.emailAddresses[0]?.emailAddress
   );
 
   // 🔒 SEGURIDAD (Estilo Flota)
   if (!usuarioSeguridad.puedo("gestionar_seguridad")) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 animate-in fade-in duration-700">
-        <ShieldAlert className="w-16 h-16 text-red-500 mb-4 opacity-80" />
-        <h1 className="text-2xl font-bold text-gray-800">Acceso Restringido</h1>
-        <p>No tienes permisos suficientes para ver este módulo.</p>
-      </div>
-    );
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
   // 2. DATOS

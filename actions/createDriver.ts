@@ -1,45 +1,57 @@
 "use server";
 
-import { backendClient } from "@/sanity/lib/backendClient";
+import { createClient } from "next-sanity";
+import { apiVersion, dataset, projectId } from "@/sanity/env";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation"; <--- BORRA ESTA LÍNEA O COMENTALA
+
+const writeClient = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  useCdn: false,
+  token: process.env.SANITY_API_TOKEN,
+});
 
 export async function createDriver(formData: FormData) {
   const name = formData.get("name") as string;
-  // CAMBIO: Leemos 'licenseNumber'
-  const licenseNumber = formData.get("licenseNumber") as string; 
-  const status = formData.get("status") as string;
-  const photoFile = formData.get("photo") as File;
-
-  if (!name || !licenseNumber) {
-    throw new Error("Faltan datos obligatorios");
-  }
-
-  let photoAsset = undefined;
-  if (photoFile && photoFile.size > 0 && photoFile.name !== "undefined") {
-    try {
-      const buffer = Buffer.from(await photoFile.arrayBuffer());
-      const asset = await backendClient.assets.upload('image', buffer, {
-        contentType: photoFile.type, filename: photoFile.name
-      });
-      photoAsset = { _type: 'image', asset: { _type: "reference", _ref: asset._id } };
-    } catch (error) { console.error(error); }
-  }
+  const license = formData.get("license") as string;
+  const photo = formData.get("photo") as File | null;
 
   try {
-    await backendClient.create({
+    let photoAssetId = null;
+
+    if (photo && photo.size > 0) {
+      const arrayBuffer = await photo.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const asset = await writeClient.assets.upload("image", buffer, {
+        contentType: photo.type,
+        filename: photo.name,
+      });
+      photoAssetId = asset._id;
+    }
+
+    await writeClient.create({
       _type: "driver",
-      name,
-      licenseNumber, // <--- CAMBIO: Guardamos con el nombre correcto
-      status: status || "available",
-      photo: photoAsset,
+      name: name,
+      licenseNumber: license,
+      status: "available",
+      photo: photoAssetId
+        ? { _type: "image", asset: { _type: "reference", _ref: photoAssetId } }
+        : null,
     });
 
     revalidatePath("/admin/choferes");
+    
+    // RETORNAMOS ÉXITO EN LUGAR DE REDIRECCIONAR
+    return { success: true }; 
+    
   } catch (error) {
-    console.error("Error:", error);
-    throw new Error("No se pudo crear");
+    console.error("Error Sanity:", error);
+    throw new Error("Fallo al crear el chofer");
   }
 
-  redirect("/admin/choferes");
+  // ELIMINAMOS EL REDIRECT DEL FINAL
+  // redirect("/admin/choferes"); 
 }

@@ -3,8 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Plus, User } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Ojo con la ruta
 
 interface Driver {
   _id: string;
@@ -22,16 +21,12 @@ async function getDrivers() {
 
 export default async function DriversPage() {
   const user = await currentUser();
-  if (!user) return redirect("/sign-in");
+  if (!user) return <div>Inicia sesión.</div>;
 
-  const usuarioSeguridad = await obtenerUsuarioSeguridad(
-    user.id,
-    user.emailAddresses[0]?.emailAddress
-  );
-
-  if (!usuarioSeguridad.puedo("ver_choferes")) {
-    return redirect("/admin");
-  }
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  
+  // 1. Permiso para entrar
+  if (!usuarioSeguridad.puedo("ver_choferes")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const drivers: Driver[] = await getDrivers();
 
@@ -46,9 +41,13 @@ export default async function DriversPage() {
           </span>
           Choferes
         </h1>
-        <Link href="/admin/choferes/nuevo" className="bg-black text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
-          <Plus className="w-4 h-4" /> Nuevo Chofer
-        </Link>
+        
+        {/* CORRECCIÓN: Ahora usa "ver_choferes" para mostrar el botón */}
+        {usuarioSeguridad.puedo("ver_choferes") && (
+          <Link href="/admin/choferes/nuevo" className="bg-black text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
+            <Plus className="w-4 h-4" /> Nuevo Chofer
+          </Link>
+        )}
       </div>
 
       {/* LISTA DE TARJETAS */}
@@ -59,7 +58,6 @@ export default async function DriversPage() {
             href={`/admin/choferes/${driver._id}`}
             className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-gray-300 hover:-translate-y-1 transition-all cursor-pointer group"
           >
-            
             {/* FOTO */}
             <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden relative border border-gray-200 shrink-0">
               {driver.photoUrl ? (
@@ -70,17 +68,14 @@ export default async function DriversPage() {
                 </div>
               )}
             </div>
-            
             {/* DATOS */}
             <div className="overflow-hidden">
               <h3 className="font-bold text-lg truncate group-hover:text-indigo-600 transition-colors">
                 {driver.name}
               </h3>
-              
               <p className="text-sm text-gray-500 mb-1">
                  {driver.licenseNumber}
               </p>
-              
               {/* ESTADO */}
               <span className={`text-xs font-bold flex items-center gap-1 ${
                  driver.status === 'available' ? 'text-green-600' : 'text-orange-600'
@@ -88,7 +83,6 @@ export default async function DriversPage() {
                 {driver.status === 'available' ? "🟢 Disponible" : "🚚 En Viaje"}
               </span>
             </div>
-
           </Link>
         ))}
         

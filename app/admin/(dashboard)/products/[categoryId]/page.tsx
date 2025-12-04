@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Edit, Plus } from "lucide-react";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // Función para traer datos de Sanity
 async function getData(categoryId: string) {
@@ -27,6 +29,18 @@ export default async function ProductListPage({
 }: { 
   params: Promise<{ categoryId: string }> 
 }) {
+     const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_productos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   // 2. Esperamos a que los params estén listos (Next.js 15 Requirement)
   const { categoryId } = await params;
 

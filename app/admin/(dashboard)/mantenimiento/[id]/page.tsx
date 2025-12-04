@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import MaintenanceForm from "@/components/admin/MaintenanceForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 async function getData(id: string) {
   const maintenance = await client.fetch(`*[_type == "maintenance" && _id == $id][0]`, { id }, { cache: "no-store" });
@@ -10,6 +12,12 @@ async function getData(id: string) {
 }
 
 export default async function EditMaintenancePage({ params }: { params: { id: string } }) {
+  const user = await currentUser();
+    if (!user) return <div>Inicia sesión.</div>;
+  
+    const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+    // 🔒 SEGURIDAD (Estilo Flota)
+    if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   const { maintenance, vehicles } = await getData(params.id);
 
   if (!maintenance) return <div>No encontrado</div>;

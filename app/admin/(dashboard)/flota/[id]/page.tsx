@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import FleetForm from "@/components/admin/FleetForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // Función para obtener un vehículo específico
 async function getVehicleById(id: string) {
@@ -14,6 +16,14 @@ async function getVehicleById(id: string) {
 }
 
 export default async function EditarVehiculoPage({ params }: { params: { id: string } }) {
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  
+  if (!usuarioSeguridad.puedo("ver_flota")) {
+    return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   const { id } = params;
   const vehicle = await getVehicleById(id);
 
