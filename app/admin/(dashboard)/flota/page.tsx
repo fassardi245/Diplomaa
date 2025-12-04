@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Ojo con la ruta, usa la que te funcione (@/lib/patterns... o @/sanity/lib...)
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
@@ -40,6 +40,8 @@ export default async function FleetPage() {
   if (!user) return <div>Inicia sesión.</div>;
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  
+  // 1. Bloqueo de página
   if (!usuarioSeguridad.puedo("ver_flota")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const vehiculos: Vehicle[] = await getVehiculos();
@@ -60,7 +62,9 @@ export default async function FleetPage() {
           <h1 className="text-xl font-bold text-gray-900">Gestión de Flota</h1>
           <p className="text-xs text-gray-500 mt-0.5">Vista general de {vehiculos.length} unidades.</p>
         </div>
-        {usuarioSeguridad.puedo("editar_vehiculo") && (
+        
+        {/* BOTÓN NUEVO: Ahora usa "ver_flota" */}
+        {usuarioSeguridad.puedo("ver_flota") && (
           <Link href="/admin/flota/nuevo" className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition">
             <Plus className="w-3.5 h-3.5" />
             <span>Nuevo Vehículo</span>
@@ -84,7 +88,7 @@ export default async function FleetPage() {
             <tbody className="divide-y divide-gray-100">
               {vehiculos.map((v) => (
                 <tr key={v._id} className="hover:bg-gray-50/50 transition">
-                  {/* UNIDAD */}
+                  {/* ... CELDAS DE DATOS (IGUAL QUE ANTES) ... */}
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
@@ -100,8 +104,6 @@ export default async function FleetPage() {
                       </div>
                     </div>
                   </td>
-
-                  {/* ESTADO */}
                   <td className="px-4 py-2.5">
                     <div className="flex flex-col gap-1 items-start">
                       {getStatusBadge(v.status)}
@@ -113,41 +115,35 @@ export default async function FleetPage() {
                       )}
                     </div>
                   </td>
-
-                  {/* KILOMETRAJE */}
                   <td className="px-4 py-2.5 font-mono text-xs text-gray-600">
                     {(v.mileage !== undefined && v.mileage !== null) ? v.mileage.toLocaleString() + " km" : "-"}
                   </td>
-
-                  {/* FECHA (CAMBIO SOLICITADO) */}
                   <td className="px-4 py-2.5 text-xs text-gray-600">
                     {v.lastMaintenance ? (
-                       <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           <Calendar className="w-3 h-3 text-gray-400"/>
                           {v.lastMaintenance}
-                       </div>
+                        </div>
                     ) : (
-                       <span className="text-gray-400 font-mono pl-2">–</span>
+                        <span className="text-gray-400 font-mono pl-2">–</span>
                     )}
                   </td>
-
-                  {/* COMBUSTIBLE */}
                   <td className="px-4 py-2.5 w-32">
                     <div className="flex items-center gap-2">
-                       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div 
                             className={`h-full rounded-full ${v.fuelLevel < 20 ? 'bg-red-500' : 'bg-green-500'}`} 
                             style={{ width: `${v.fuelLevel}%` }}
                           />
-                       </div>
-                       <span className="text-[10px] font-bold w-6 text-right">{v.fuelLevel}%</span>
+                        </div>
+                        <span className="text-[10px] font-bold w-6 text-right">{v.fuelLevel}%</span>
                     </div>
                     {v.fuelLevel < 20 && <div className="text-[9px] text-red-500 font-bold flex items-center gap-0.5 mt-0.5"><AlertCircle className="w-2.5 h-2.5"/> Crítico</div>}
                   </td>
 
-                  {/* ACCIÓN */}
+                  {/* BOTÓN EDITAR: Ahora usa "ver_flota" */}
                   <td className="px-4 py-2.5 text-right">
-                    {usuarioSeguridad.puedo("editar_vehiculo") && (
+                    {usuarioSeguridad.puedo("ver_flota") && (
                       <Link 
                         href={`/admin/flota/${v._id}`} 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:border-black hover:bg-gray-50 transition shadow-sm"

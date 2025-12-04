@@ -22,16 +22,12 @@ async function getDriver(id: string) {
 
 export default async function EditDriverPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
-  if (!user) return redirect("/sign-in");
+  if (!user) return <div>Inicia sesión.</div>;
 
-  const usuarioSeguridad = await obtenerUsuarioSeguridad(
-    user.id,
-    user.emailAddresses[0]?.emailAddress
-  );
-
-  if (!usuarioSeguridad.puedo("ver_choferes")) {
-    return redirect("/admin");
-  }
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  
+  // 1. Permiso para entrar
+  if (!usuarioSeguridad.puedo("ver_choferes")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const { id } = await params;
   const driver = await getDriver(id);

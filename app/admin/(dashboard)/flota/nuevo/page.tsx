@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import FleetForm from "@/components/admin/FleetForm"; // Importamos el componente cliente
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Ojo con la ruta, usa la tuya
+export default async function NuevoVehiculoPage() {
+  const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
 
-export default function NuevoVehiculoPage() {
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+  
+  if (!usuarioSeguridad.puedo("ver_flota")) {
+    return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   return (
     <div className="max-w-4xl mx-auto p-8">
       {/* Header */}

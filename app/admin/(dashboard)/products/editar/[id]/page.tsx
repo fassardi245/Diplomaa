@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import ProductForm from "@/components/admin/ProductForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // Función para traer datos
 async function getData(id: string) {
@@ -26,6 +28,18 @@ async function getData(id: string) {
 }
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
+   const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_productos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   const { product, categories } = await getData(params.id);
 
   // Validación simple por si el ID no existe

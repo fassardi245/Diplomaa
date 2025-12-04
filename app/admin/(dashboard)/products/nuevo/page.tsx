@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import ProductForm from "@/components/admin/ProductForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // Traemos las categorías para que el usuario pueda elegir a cuál pertenece el producto
 async function getCategories() {
@@ -13,6 +15,18 @@ export default async function NewProductPage({
 }: {
   searchParams: { cat?: string };
 }) {
+   const user = await currentUser();
+  if (!user) return <div>Inicia sesión.</div>;
+
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_productos")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   const categories = await getCategories();
   
   // Si en la URL dice ?cat=123, lo guardamos para pre-seleccionar esa categoría

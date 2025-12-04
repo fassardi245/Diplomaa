@@ -2,6 +2,8 @@ import { client } from "@/sanity/lib/client";
 import MaintenanceForm from "@/components/admin/MaintenanceForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 // --- LÓGICA DE FILTRADO ---
 async function getAvailableVehicles() {
@@ -33,6 +35,12 @@ async function getAvailableVehicles() {
 }
 
 export default async function NewMaintenancePage() {
+  const user = await currentUser();
+    if (!user) return <div>Inicia sesión.</div>;
+  
+    const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
+    // 🔒 SEGURIDAD (Estilo Flota)
+    if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   // Usamos la nueva función filtrada
   const availableVehicles = await getAvailableVehicles();
 

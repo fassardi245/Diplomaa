@@ -3,6 +3,7 @@ import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import { client } from "@/sanity/lib/client";
 import { updateUserRoles } from "@/actions/updateUserRoles";
 import Link from "next/link";
+
 import { 
   ArrowLeft, 
   Save, 
@@ -43,14 +44,18 @@ async function getAllRoles() {
 export default async function EditUserPage({ params }: { params: { userId: string } }) {
   const { userId } = params;
 
-  const user = await currentUser();
+ const user = await currentUser();
   if (!user) return <div>Inicia sesión.</div>;
-  
-  const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
-  if (!usuarioSeguridad.puedo("ver_usuarios")) {
-    return <div className="p-10 text-red-600 font-bold">⛔ Acceso Denegado</div>;
-  }
 
+  const usuarioSeguridad = await obtenerUsuarioSeguridad(
+    user.id,
+    user.emailAddresses[0]?.emailAddress
+  );
+
+  // 🔒 SEGURIDAD (Estilo Flota)
+  if (!usuarioSeguridad.puedo("gestionar_seguridad")) {
+     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+  }
   const [usuarioEdit, allRoles] = await Promise.all([
     getUsuario(userId),
     getAllRoles()

@@ -16,6 +16,10 @@ import {
 import PriceFormatter from "@/components/PriceFormatter";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { currentUser } from "@clerk/nextjs/server";
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
+import { redirect } from "next/navigation";
+
 
 // --- INTERFACE ---
 interface OrderDetail {
@@ -85,6 +89,19 @@ async function getOrder(id: string) {
 }
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const user = await currentUser();
+    if (!user) return redirect("/sign-in");
+  
+    const usuarioSeguridad = await obtenerUsuarioSeguridad(
+      user.id,
+      user.emailAddresses[0]?.emailAddress
+    );
+  
+    // 🔒 SEGURIDAD (Estilo Flota)
+    if (!usuarioSeguridad.puedo("ver_pedidos")) {
+       return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+    }
+  
   const { id } = await params;
   const order = await getOrder(id);
 
