@@ -3,34 +3,128 @@ import { Resend } from "resend";
 import ReceiptEmail from "@/components/emails/ReceiptEmail";
 import LowStockAlertEmail from "@/components/emails/LowStockAlertEmail";
 import Stripe from "stripe";
+import stripe from "@/lib/stripe"; // Importamos la instancia de stripe
+import { Metadata } from "@/actions/createCheckoutSession"; // Asegúrate que esta ruta sea correcta
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export class OrderFacade {
+  
+  // --- NUEVO: MOVIDO DESDE EL WEBHOOK PARA ALIGERARLO ---
+  static async createOrder(session: Stripe.Checkout.Session, invoice: Stripe.Invoice | null) {
+    const { id, amount_total, currency, metadata, payment_intent, total_details, shipping_cost, shipping_details, customer_details } = session as any;
+    const { orderNumber, customerName, customerEmail, clerkUserId } = metadata as unknown as Metadata;
+
+    const shippingInfo = shipping_details || (payment_intent as any)?.shipping || customer_details;
+    const shippingAddress = shippingInfo?.address ? {
+      line1: shippingInfo.address.line1,
+      line2: shippingInfo.address.line2 || "",
+      city: shippingInfo.address.city,
+      state: shippingInfo.address.state,
+      postal_code: shippingInfo.address.postal_code,
+      country: shippingInfo.address.country,
+    } : null;
+
+    // Lógica de Envío (Nombre y Costo Real)
+    const realShippingCost = shipping_cost?.amount_total || 0;
+    let shippingMethodName = "Envío"; 
+    
+    if (shipping_cost?.shipping_rate) {
+      try {
+          const rateId = typeof shipping_cost.shipping_rate === 'string' 
+              ? shipping_cost.shipping_rate 
+              : shipping_cost.shipping_rate.id;
+              
+          const rate = await stripe.shippingRates.retrieve(rateId);
+          
+          if (rate.display_name) {
+              shippingMethodName = rate.display_name;
+          }
+      } catch (err) {
+          console.error("Error recuperando nombre del envío desde Stripe:", err);
+          if (typeof shipping_cost.shipping_rate !== 'string' && shipping_cost.shipping_rate?.display_name) {
+              shippingMethodName = shipping_cost.shipping_rate.display_name;
+          }
+      }
+    }
+
+    const lineItems = session.line_items?.data || [];
+    const sanityProducts = lineItems.map((item: any) => {
+      const product = item.price?.product as Stripe.Product;
+      return {
+        _key: crypto.randomUUID(),
+        product: {
+          _type: "reference",
+          _ref: product.metadata?.id,
+        },
+        name: product.name,
+        quantity: item?.quantity || 0,
+        price: item.price?.unit_amount || 0,
+        image: product.images?.[0] || ""
+      };
+    });
+
+    const paymentIntentId = typeof payment_intent === 'string' ? payment_intent : payment_intent?.id;
+
+    const order = await backendClient.createIfNotExists({
+      _id: id,
+      _type: "order",
+      orderNumber,
+      stripeCheckoutSessionId: id,
+      stripePaymentIntentId: paymentIntentId,
+      customerName,
+      stripeCustomerId: customerEmail,
+      clerkUserId,
+      email: customerEmail,
+      currency,
+      amountDiscount: total_details?.amount_discount || 0,
+      shippingCost: realShippingCost, 
+      shippingMethodName: shippingMethodName, 
+      shippingAddress,
+      products: sanityProducts,
+      totalPrice: amount_total || 0,
+      status: "pagado",
+      orderDate: new Date().toISOString(),
+      invoice: invoice ? {
+          id: invoice.id,
+          number: invoice.number,
+          hosted_invoice_url: invoice.hosted_invoice_url,
+      } : null,
+    });
+
+    return order;
+  }
+
   /**
-   * 🚀 MÉTODO MÁGICO: Ejecuta todo en paralelo
+   * 🚀 MÉTODO MÁGICO
+   * runLogistics: boolean -> Controla si asignamos vehículo o no.
    */
   static async handlePostSaleProcesses(
     orderId: string, 
     orderData: { orderNumber: string; customerName: string; email: string | null; invoiceUrl: string | null }, 
-    lineItems: Stripe.LineItem[]
+    lineItems: Stripe.LineItem[],
+    runLogistics: boolean = false // <--- POR DEFECTO FALSE PARA NO ROMPER TU LÓGICA
   ) {
-    console.time("Velocidad_Procesamiento"); // Para que veas la velocidad en consola
+    console.time("Velocidad_Procesamiento");
 
-    // Lanzamos las 3 tareas al mismo tiempo. No esperan a la anterior.
-    await Promise.allSettled([
+    const tasks: Promise<any>[] = [
       this.updateStockAndAlert(lineItems),
       this.sendCustomerReceipt(orderData),
-      this.assignLogistics(orderId) // Asignación automática de vehículo
-    ]);
+    ];
+
+    // Solo agregamos la logística si explícitamente se pide (true)
+    if (runLogistics) {
+      tasks.push(this.assignLogistics(orderId));
+    }
+
+    await Promise.allSettled(tasks);
 
     console.timeEnd("Velocidad_Procesamiento");
-    console.log("✅ [Facade] Todas las tareas post-venta finalizadas.");
+    console.log("✅ [Facade] Tareas post-venta finalizadas (Logística: " + (runLogistics ? "SI" : "NO") + ")");
   }
 
-  // --- TAREA 1: Stock y Alertas (Tu lógica anterior, pero optimizada) ---
+  // --- TAREA 1: Stock y Alertas ---
   private static async updateStockAndAlert(lineItems: Stripe.LineItem[]) {
-    // Procesamos todos los productos en paralelo también
     const updates = lineItems.map(async (item) => {
       const product = item.price?.product as Stripe.Product;
       const sanityId = product?.metadata?.id;
@@ -38,21 +132,17 @@ export class OrderFacade {
 
       if (sanityId) {
         try {
-          // Traemos info actual para chequear stock bajo
           const productDoc = await backendClient.fetch(`*[_id == $id][0]{name, stock}`, { id: sanityId });
           
           if (productDoc) {
             const newStock = (productDoc.stock || 0) - quantity;
-            
-            // Restamos stock en Sanity
             await backendClient.patch(sanityId).dec({ stock: quantity }).commit();
             
-            // Si hay stock bajo, mandamos alerta
             if (newStock <= 5) {
                console.log(`⚠️ [Stock] Alerta enviada para: ${productDoc.name}`);
                await resend.emails.send({
                   from: 'onboarding@resend.dev',
-                  to: ['francoignacio.crovetto@gmail.com'], // TU EMAIL ADMIN
+                  to: ['francoignacio.crovetto@gmail.com'], 
                   subject: `⚠️ Stock Bajo: ${productDoc.name}`,
                   react: LowStockAlertEmail({ 
                       productName: productDoc.name, 
@@ -67,18 +157,16 @@ export class OrderFacade {
         }
       }
     });
-    
     await Promise.all(updates);
   }
 
   // --- TAREA 2: Email al Cliente ---
   private static async sendCustomerReceipt(data: any) {
     if (!data.email) return;
-    
     try {
       await resend.emails.send({
           from: 'onboarding@resend.dev',
-          to: [data.email], // En modo test, solo a tu email registrado
+          to: [data.email], 
           subject: `Recibo de compra #${data.orderNumber}`,
           react: ReceiptEmail({
               orderNumber: data.orderNumber,
@@ -92,19 +180,16 @@ export class OrderFacade {
     }
   }
 
-  // --- TAREA 3: Logística Automática (Vehículo) ---
+  // --- TAREA 3: Logística Automática ---
   private static async assignLogistics(orderId: string) {
     try {
-      // Buscar vehículo libre
       const vehicle = await backendClient.fetch(`*[_type == "vehicle" && status == "available"][0]`);
-      
       if (vehicle) {
           console.log(`🚚 [Logística] Asignando vehículo: ${vehicle.plate}`);
-          // Actualizamos orden y vehículo en paralelo
           await Promise.all([
               backendClient.patch(orderId).set({ 
                   assignedVehicle: { _type: 'reference', _ref: vehicle._id },
-                  shippingCost: 1500 // Costo simulado
+                  // shippingCost: 1500 // OJO: Esto sobreescribiría el costo real de Stripe. Revisa si lo quieres aquí.
               }).commit(),
               backendClient.patch(vehicle._id).set({ status: 'in_transit' }).commit()
           ]);
