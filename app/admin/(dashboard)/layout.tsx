@@ -12,7 +12,8 @@ import {
   Map,
   Tag,
   UserSquare2, 
-  MessageSquareWarning 
+  MessageSquareWarning,
+  ClipboardList // <--- NUEVO ICONO
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -54,19 +55,19 @@ export default async function AdminLayout({
       name: "Choferes", 
       href: "/admin/choferes", 
       icon: <UserSquare2 className="w-5 h-5" />, 
-      permission: "ver_choferes" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_choferes"
     },
     { 
       name: "Envíos y Logística", 
       href: "/admin/envios", 
       icon: <Map className="w-5 h-5" />, 
-      permission: "ver_envios" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_envios"
     },
     { 
       name: "Mantenimiento", 
       href: "/admin/mantenimiento", 
       icon: <Wrench className="w-5 h-5" />, 
-      permission: "ver_mantenimiento" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_mantenimiento"
     },
 
     // --- GESTIÓN COMERCIAL ---
@@ -80,7 +81,7 @@ export default async function AdminLayout({
       name: "Reclamos", 
       href: "/admin/reclamos", 
       icon: <MessageSquareWarning className="w-5 h-5" />, 
-      permission: "ver_reclamos" // <--- CAMBIO: Antes decía 'ver_pedidos'
+      permission: "ver_reclamos"
     },
     
     // --- ADMINISTRACIÓN ---
@@ -95,6 +96,12 @@ export default async function AdminLayout({
       href: "/admin/users", 
       icon: <Users className="w-5 h-5" />, 
       permission: "gestionar_seguridad" 
+    },
+    { 
+      name: "Auditoría", 
+      href: "/admin/auditoria", 
+      icon: <ClipboardList className="w-5 h-5" />, 
+      permission: "ver_auditoria" // <--- NUEVO ITEM
     },
     { 
       name: "Base de Datos", 

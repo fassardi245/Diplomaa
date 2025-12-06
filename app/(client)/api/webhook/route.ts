@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { OrderFacade } from "@/lib/patterns/OrderFacade";
+import { logAction } from "@/lib/auditLogger"; // <--- 1. Importamos nuestra herramienta de auditoría
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       : null;
 
     try {
-      // 1. Usamos el Facade para CREAR la orden (Webhook más liviano)
+      // 1. Usamos el Facade para CREAR la orden
       const order = await OrderFacade.createOrder(session, invoice);
       
       const orderData = {
@@ -48,10 +49,27 @@ export async function POST(req: NextRequest) {
           email: order.email,
           invoiceUrl: invoice?.hosted_invoice_url || null
       };
+
+      // ---------------------------------------------------------
+      // 🛡️ AUDITORÍA: Registramos el nacimiento del Pedido
+      // ---------------------------------------------------------
+      await logAction({
+        action: "CREATE",
+        entityType: "Pedido",
+        entityId: order._id || `Order-${order.orderNumber}`, // Usamos _id de Sanity si el Facade lo devuelve, sino el número
+        userEmail: order.email,
+        ipAddress: headersList.get("x-forwarded-for") || "Stripe-Webhook",
+        changes: {
+          event: "Pago Confirmado (Stripe)",
+          status: "Pagado", // Estado inicial
+          total: session.amount_total ? session.amount_total / 100 : 0,
+          currency: session.currency,
+          stripeSessionId: session.id
+        }
+      });
+      // ---------------------------------------------------------
       
       // 2. Usamos el Facade para procesos Post-Venta (Emails y Stock)
-      // IMPORTANTE: Pasamos 'false' al final para NO activar la logística automática,
-      // respetando tu comentario de que eso ahora es manual.
       await OrderFacade.handlePostSaleProcesses(
           session.id, 
           orderData, 
@@ -61,6 +79,7 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
       console.error("Error en proceso de orden:", error);
+      // Opcional: Podrías auditar el error también si quisieras
       return NextResponse.json({ error: `Error: ${error.message}` }, { status: 500 });
     }
   }
