@@ -13,7 +13,8 @@ async function getCategories() {
 export default async function NewProductPage({
   searchParams,
 }: {
-  searchParams: { cat?: string };
+  // 1. CAMBIO AQUÍ: searchParams debe definirse como una Promesa en Next.js 15
+  searchParams: Promise<{ cat?: string }>;
 }) {
    const user = await currentUser();
   if (!user) return <div>Inicia sesión.</div>;
@@ -29,8 +30,9 @@ export default async function NewProductPage({
   }
   const categories = await getCategories();
   
-  // Si en la URL dice ?cat=123, lo guardamos para pre-seleccionar esa categoría
-  const initialCategoryId = searchParams.cat;
+  // 2. CAMBIO AQUÍ: Esperamos la promesa antes de leer la propiedad
+  const { cat } = await searchParams;
+  const initialCategoryId = cat;
 
   // Calculamos el link de volver: si vino de una categoría, vuelve ahí. Si no, al dashboard.
   const backLink = initialCategoryId 

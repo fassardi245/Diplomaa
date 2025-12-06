@@ -3,6 +3,7 @@
 import { backendClient } from "@/sanity/lib/backendClient";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAction } from "@/lib/auditLogger";
 
 export async function createProduct(formData: FormData) {
   const name = formData.get("name") as string;
@@ -69,6 +70,21 @@ export async function createProduct(formData: FormData) {
     });
 
     console.log("✅ Producto creado exitosamente");
+
+    // Registro en Audit Log
+    // Usamos 'as any' para evitar el error de tipos estricto de TypeScript
+    // ya que no conocemos la estructura exacta de LogData.
+      await logAction({
+        action: "CREATE",
+        resource: "products", // Ahora TypeScript ya reconoce 'resource'
+        details: {
+          name,
+          price,
+          stock,
+          categoryId,
+          slug: uniqueSlug
+        }
+      });
     
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${categoryId}`);

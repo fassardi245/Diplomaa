@@ -8,8 +8,6 @@ import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 // Función para traer datos
 async function getData(id: string) {
   // 1. Buscamos el producto específico
-  // Usamos '...' para traer todos los campos (name, price, discount, stock, etc.)
-  // Y sacamos la URL de la primera imagen para mostrarla en el preview
   const productQuery = `*[_type == "product" && _id == $id][0]{
     ..., 
     "imageUrl": images[0].asset->url
@@ -18,16 +16,21 @@ async function getData(id: string) {
   // 2. Buscamos todas las categorías para el desplegable
   const categoriesQuery = `*[_type == "category"] | order(title asc) { _id, title }`;
 
-  // Ejecutamos las dos consultas en paralelo para que sea más rápido
+  // Ejecutamos las dos consultas en paralelo
   const [product, categories] = await Promise.all([
-    client.fetch(productQuery, { id }, { cache: 'no-store' }), // 'no-store' para que siempre traiga datos frescos
+    client.fetch(productQuery, { id }, { cache: 'no-store' }),
     client.fetch(categoriesQuery)
   ]);
 
   return { product, categories };
 }
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
+export default async function EditProductPage({ 
+  params 
+}: { 
+  // 1. CAMBIO AQUÍ: params ahora es una Promise en Next.js 15
+  params: Promise<{ id: string }> 
+}) {
    const user = await currentUser();
   if (!user) return <div>Inicia sesión.</div>;
 
@@ -40,7 +43,12 @@ export default async function EditProductPage({ params }: { params: { id: string
   if (!usuarioSeguridad.puedo("gestionar_productos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
-  const { product, categories } = await getData(params.id);
+
+  // 2. CAMBIO AQUÍ: Esperamos la promesa para obtener el ID
+  const { id } = await params;
+
+  // Ahora usamos la variable 'id' ya resuelta
+  const { product, categories } = await getData(id);
 
   // Validación simple por si el ID no existe
   if (!product) {
@@ -54,7 +62,7 @@ export default async function EditProductPage({ params }: { params: { id: string
     );
   }
 
-  // Intentamos volver a la categoría de este producto al dar 'Atrás', o al general si no tiene
+  // Intentamos volver a la categoría de este producto al dar 'Atrás'
   const backLink = product.categories?.[0]?._ref 
     ? `/admin/products/${product.categories[0]._ref}` 
     : "/admin/products";
@@ -78,10 +86,7 @@ export default async function EditProductPage({ params }: { params: { id: string
         </div>
       </div>
 
-      {/* FORMULARIO REUTILIZABLE:
-          Al pasarle la prop 'product', el componente sabe que es modo Edición.
-          Al pasarle 'categories', llena el select.
-      */}
+      {/* FORMULARIO REUTILIZABLE */}
       <ProductForm
         categories={categories}
         product={product}

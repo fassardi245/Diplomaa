@@ -2,6 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; 
+import AuditLoginListener from "@/components/admin/AuditLoginListener"; 
+
 import { 
   LayoutDashboard, 
   Truck, 
@@ -12,7 +14,8 @@ import {
   Map,
   Tag,
   UserSquare2, 
-  MessageSquareWarning 
+  MessageSquareWarning,
+  ClipboardList
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -42,7 +45,6 @@ export default async function AdminLayout({
       icon: <LayoutDashboard className="w-5 h-5" />, 
       permission: "acceso_panel_admin" 
     },
-
     // --- LOGÍSTICA Y FLOTA ---
     { 
       name: "Flota de Vehículos", 
@@ -54,21 +56,20 @@ export default async function AdminLayout({
       name: "Choferes", 
       href: "/admin/choferes", 
       icon: <UserSquare2 className="w-5 h-5" />, 
-      permission: "ver_choferes" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_choferes"
     },
     { 
       name: "Envíos y Logística", 
       href: "/admin/envios", 
       icon: <Map className="w-5 h-5" />, 
-      permission: "ver_envios" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_envios"
     },
     { 
       name: "Mantenimiento", 
       href: "/admin/mantenimiento", 
       icon: <Wrench className="w-5 h-5" />, 
-      permission: "ver_mantenimiento" // <--- CAMBIO: Antes decía 'ver_flota'
+      permission: "ver_mantenimiento"
     },
-
     // --- GESTIÓN COMERCIAL ---
     { 
       name: "Pedidos", 
@@ -80,9 +81,8 @@ export default async function AdminLayout({
       name: "Reclamos", 
       href: "/admin/reclamos", 
       icon: <MessageSquareWarning className="w-5 h-5" />, 
-      permission: "ver_reclamos" // <--- CAMBIO: Antes decía 'ver_pedidos'
+      permission: "ver_reclamos"
     },
-    
     // --- ADMINISTRACIÓN ---
     { 
       name: "Productos", 
@@ -97,6 +97,12 @@ export default async function AdminLayout({
       permission: "gestionar_seguridad" 
     },
     { 
+      name: "Auditoría", 
+      href: "/admin/auditoria", 
+      icon: <ClipboardList className="w-5 h-5" />, 
+      permission: "ver_auditoria" 
+    },
+    { 
       name: "Base de Datos", 
       href: "/admin/studio", 
       icon: <Database className="w-5 h-5" />, 
@@ -109,6 +115,9 @@ export default async function AdminLayout({
     usuarioSeguridad.puedo(item.permission)
   );
 
+  // Obtenemos el email seguro para pasarlo al componente
+  const userEmail = user.emailAddresses[0]?.emailAddress || "unknown";
+
   return (
     <AdminLayoutClient 
         menuItems={authorizedMenuItems}
@@ -117,6 +126,8 @@ export default async function AdminLayout({
             roleName: usuarioSeguridad.nombreRol
         }}
     >
+        {/* ▼ Pasamos el email aquí */}
+        <AuditLoginListener email={userEmail} />
         {children}
     </AdminLayoutClient>
   );

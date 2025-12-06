@@ -11,8 +11,22 @@ import { maintenanceType } from "./maintenanceType";
 import { driverType } from "./driverType";
 import { shipmentType } from "./shipmentType";
 import { claimType } from "./claimType";
-
+import { auditLogType } from "./auditLogType"; 
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [blockContentType, categoryType, productType, orderType, vehicleType, grupoType, userType, accionType, maintenanceType, driverType, shipmentType, claimType],
+  types: [
+    blockContentType, 
+    categoryType, 
+    productType, 
+    orderType, 
+    vehicleType, 
+    grupoType, 
+    userType, 
+    accionType, 
+    maintenanceType, 
+    driverType, 
+    shipmentType, 
+    claimType,
+    auditLogType,
+  ], 
 };
