@@ -2,6 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; 
+import AuditLoginListener from "@/components/admin/AuditLoginListener"; 
+
 import { 
   LayoutDashboard, 
   Truck, 
@@ -13,7 +15,7 @@ import {
   Tag,
   UserSquare2, 
   MessageSquareWarning,
-  ClipboardList // <--- NUEVO ICONO
+  ClipboardList
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -43,7 +45,6 @@ export default async function AdminLayout({
       icon: <LayoutDashboard className="w-5 h-5" />, 
       permission: "acceso_panel_admin" 
     },
-
     // --- LOGÍSTICA Y FLOTA ---
     { 
       name: "Flota de Vehículos", 
@@ -69,7 +70,6 @@ export default async function AdminLayout({
       icon: <Wrench className="w-5 h-5" />, 
       permission: "ver_mantenimiento"
     },
-
     // --- GESTIÓN COMERCIAL ---
     { 
       name: "Pedidos", 
@@ -83,7 +83,6 @@ export default async function AdminLayout({
       icon: <MessageSquareWarning className="w-5 h-5" />, 
       permission: "ver_reclamos"
     },
-    
     // --- ADMINISTRACIÓN ---
     { 
       name: "Productos", 
@@ -101,7 +100,7 @@ export default async function AdminLayout({
       name: "Auditoría", 
       href: "/admin/auditoria", 
       icon: <ClipboardList className="w-5 h-5" />, 
-      permission: "ver_auditoria" // <--- NUEVO ITEM
+      permission: "ver_auditoria" 
     },
     { 
       name: "Base de Datos", 
@@ -116,6 +115,9 @@ export default async function AdminLayout({
     usuarioSeguridad.puedo(item.permission)
   );
 
+  // Obtenemos el email seguro para pasarlo al componente
+  const userEmail = user.emailAddresses[0]?.emailAddress || "unknown";
+
   return (
     <AdminLayoutClient 
         menuItems={authorizedMenuItems}
@@ -124,6 +126,8 @@ export default async function AdminLayout({
             roleName: usuarioSeguridad.nombreRol
         }}
     >
+        {/* ▼ Pasamos el email aquí */}
+        <AuditLoginListener email={userEmail} />
         {children}
     </AdminLayoutClient>
   );

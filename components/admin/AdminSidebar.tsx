@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation"; // 👈 Agregado useRouter
+import { UserButton, useClerk, useUser } from "@clerk/nextjs"; // 👈 Agregados hooks de Clerk
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react"; // 👈 Agregado LogOut
+
+// 👇 Importamos la acción de auditoría
+import { logAuthAction } from "@/actions/logAuthAction";
 
 // 👇 IMPORTAMOS EL ARCHIVO DESDE SU UBICACIÓN ACTUAL
 import logo from "../../app/favicon.ico"; 
@@ -25,6 +28,27 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ menuItems, user, isCollapsed, toggleSidebar }: AdminSidebarProps) {
   const pathname = usePathname();
+  
+  // 👇 Hooks para la lógica de Logout
+  const router = useRouter();
+  const { signOut } = useClerk();
+  const { user: clerkUser } = useUser();
+
+  // 👇 Función personalizada para auditar y salir
+  const handleLogout = async () => {
+    if (clerkUser) {
+        // 1. Limpiamos marca de sesión del navegador
+        sessionStorage.removeItem(`audit_login_recorded_${clerkUser.id}`);
+        
+        // 2. Enviamos log a Sanity (sin await estricto para no bloquear UI)
+        logAuthAction(
+            clerkUser.primaryEmailAddress?.emailAddress || "no-email", 
+            "LOGOUT"
+        );
+    }
+    // 3. Cerramos sesión
+    await signOut(() => router.push("/"));
+  };
 
   return (
     <aside 
@@ -109,14 +133,25 @@ export default function AdminSidebar({ menuItems, user, isCollapsed, toggleSideb
              />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col justify-center">
-              <span className="text-sm font-bold text-gray-900 leading-none mb-1">
-                {user.firstName || "Admin"}
-              </span>
-              <span className="text-[10px] text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded-md w-fit leading-tight">
-                {user.roleName}
-              </span>
-            </div>
+            <>
+                <div className="flex flex-col justify-center">
+                <span className="text-sm font-bold text-gray-900 leading-none mb-1">
+                    {user.firstName || "Admin"}
+                </span>
+                <span className="text-[10px] text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded-md w-fit leading-tight">
+                    {user.roleName}
+                </span>
+                </div>
+                
+                {/* 👇 BOTÓN DE LOGOUT INTEGRADO */}
+                <button 
+                    onClick={handleLogout}
+                    className="ml-auto p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Cerrar Sesión"
+                >
+                    <LogOut size={18} />
+                </button>
+            </>
           )}
         </div>
       </div>
