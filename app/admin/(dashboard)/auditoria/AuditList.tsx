@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+// ▼ 1. IMPORTAMOS LA FUNCIÓN DE FORMATO
+import { formatDateTime } from "@/lib/utils";
 
 export interface AuditLog {
   _id: string;
@@ -14,7 +16,7 @@ export interface AuditLog {
 
 export default function AuditList({ logs }: { logs: AuditLog[] }) {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [showRawJson, setShowRawJson] = useState(false); // <--- NUEVO ESTADO PARA EL TOGGLE
+  const [showRawJson, setShowRawJson] = useState(false); 
 
   // --- 1. FUNCIÓN PARA LIMPIAR JSON ---
   const safeParse = (data: any) => {
@@ -98,11 +100,9 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                     <tr key={log._id} className="hover:bg-gray-50 transition-colors">
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
+                          {/* ▼ 2. USAMOS LA FUNCIÓN DE FORMATO AQUÍ */}
                           <span className="font-medium text-gray-900">
-                            {new Date(log.timestamp).toLocaleDateString("es-AR")}
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {new Date(log.timestamp).toLocaleTimeString("es-AR")}
+                             {formatDateTime(log.timestamp)}
                           </span>
                         </div>
                       </td>
@@ -167,12 +167,13 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                 <p className="text-xs text-gray-500 mt-1 flex gap-2">
                     <span>ID: {selectedLog._id.slice(0,8)}...</span>
                     <span>•</span>
-                    <span>{new Date(selectedLog.timestamp).toLocaleString()}</span>
+                    {/* ▼ 3. USAMOS LA FUNCIÓN DE FORMATO AQUÍ TAMBIÉN */}
+                    <span>{formatDateTime(selectedLog.timestamp)}</span>
                 </p>
               </div>
               
               <div className="flex items-center gap-3">
-                {/* --- BOTÓN TOGGLE NUEVO --- */}
+                {/* --- BOTÓN TOGGLE --- */}
                 <button 
                   onClick={() => setShowRawJson(!showRawJson)}
                   className="px-3 py-1 text-xs font-bold border rounded bg-white hover:bg-gray-50 text-gray-600 transition-colors flex items-center gap-2"
