@@ -3,7 +3,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import localFont from "next/font/local";
 import { Metadata } from "next";
 import "./globals.css";
-// 1. Aquí está el import correcto
 import AuditLogoutListener from "@/components/admin/AuditLogoutListener";
 
 export const metadata: Metadata = {
@@ -33,7 +32,6 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${poppins.variable} ${raleway.variable} antialiased`}>
           
-          {/* ▼ 2. AGREGADO: Aquí es donde debe ir el espía para funcionar ▼ */}
           <AuditLogoutListener />
           
           {children}
