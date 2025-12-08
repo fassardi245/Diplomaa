@@ -13,7 +13,7 @@ import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
-import PriceFormatter from "@/components/PriceFormatter"; // <--- AGREGADO
+import PriceFormatter from "@/components/PriceFormatter"; 
 
 // --- INTERFACES ---
 interface Shipment {
@@ -78,14 +78,14 @@ export default async function ShipmentsPage() {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("ver_envios")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
   const { shipments, pendingOrders } = await getData();
 
-  // --- FILTRO LÓGICO ---
+  // FILTRO LOGICO
   const ordersToShip = pendingOrders.filter((order) => {
     const method = order.shippingMethodName?.toLowerCase() || "";
     return !method.includes("retiro") && !method.includes("local");
@@ -104,7 +104,7 @@ export default async function ShipmentsPage() {
         <p className="text-gray-500 mt-2">Gestiona los despachos y asignaciones automáticas.</p>
       </div>
 
-      {/* --- SECCIÓN 1: PEDIDOS PENDIENTES (FILTRADOS) --- */}
+      {/* PEDIDOS PENDIENTES FILTRADOS*/}
       {ordersToShip.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">
@@ -127,7 +127,6 @@ export default async function ShipmentsPage() {
                     
                     <div className="flex items-center gap-4">
                        <div className="text-right mr-4 hidden md:block">
-                          {/* CORRECCIÓN: Usamos PriceFormatter y dividimos por 100 */}
                           <PriceFormatter 
                             amount={order.totalPrice / 100} 
                             className="text-sm font-bold text-gray-900 block"
@@ -142,7 +141,7 @@ export default async function ShipmentsPage() {
         </div>
       )}
 
-      {/* --- SECCIÓN 2: ENVÍOS ---- */}
+      {/* SECCION ENVIOS */}
       <h2 className="text-lg font-bold text-gray-800 mb-4">Envíos Activos e Historial</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -209,10 +208,10 @@ export default async function ShipmentsPage() {
                </div>
             </div>
 
-            {/* --- RECURSOS (VEHÍCULO + CHOFER) --- */}
+            {/* RECURSOS  */}
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-auto">
                
-               {/* 1. Vehículo */}
+               {/* Vehiculo */}
                <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden relative shrink-0">
                      {ship.vehicleImage ? (
@@ -229,7 +228,7 @@ export default async function ShipmentsPage() {
                   </div>
                </div>
 
-               {/* Línea divisoria */}
+               {/* Linea divisoria */}
                <div className="h-px bg-gray-200 w-full mb-2"></div>
 
                {/* 2. Chofer */}

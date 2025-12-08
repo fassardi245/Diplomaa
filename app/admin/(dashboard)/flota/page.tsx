@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Ojo con la ruta, usa la que te funcione (@/lib/patterns... o @/sanity/lib...)
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; 
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import Image from "next/image";
@@ -63,7 +63,7 @@ export default async function FleetPage() {
           <p className="text-xs text-gray-500 mt-0.5">Vista general de {vehiculos.length} unidades.</p>
         </div>
         
-        {/* BOTÓN NUEVO: Ahora usa "ver_flota" */}
+        {/* Usa "ver_flota" */}
         {usuarioSeguridad.puedo("ver_flota") && (
           <Link href="/admin/flota/nuevo" className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition">
             <Plus className="w-3.5 h-3.5" />
@@ -88,7 +88,6 @@ export default async function FleetPage() {
             <tbody className="divide-y divide-gray-100">
               {vehiculos.map((v) => (
                 <tr key={v._id} className="hover:bg-gray-50/50 transition">
-                  {/* ... CELDAS DE DATOS (IGUAL QUE ANTES) ... */}
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
@@ -141,7 +140,7 @@ export default async function FleetPage() {
                     {v.fuelLevel < 20 && <div className="text-[9px] text-red-500 font-bold flex items-center gap-0.5 mt-0.5"><AlertCircle className="w-2.5 h-2.5"/> Crítico</div>}
                   </td>
 
-                  {/* BOTÓN EDITAR: Ahora usa "ver_flota" */}
+                  {/* BOTÓN EDITAR usa "ver_flota" */}
                   <td className="px-4 py-2.5 text-right">
                     {usuarioSeguridad.puedo("ver_flota") && (
                       <Link 

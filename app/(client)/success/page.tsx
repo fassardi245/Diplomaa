@@ -19,9 +19,6 @@ const SuccessPage = () => {
   const { user } = useUser();
   const userId = user?.id;
 
-  // CORRECCIÓN: 
-  // 1. Cambiado 'orderData' por 'orderDate' para ordenar por fecha real.
-  // 2. Agregado '[0...3]' para limitar la respuesta a solo los últimos 3 pedidos.
   const query = defineQuery(`
     *[_type == 'order' && clerkUserId == $userId] | order(orderDate desc)[0...3]{
       ...,

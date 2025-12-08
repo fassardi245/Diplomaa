@@ -108,7 +108,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-900">
-                             {formatDateTime(log.timestamp)}
+                              {formatDateTime(log.timestamp)}
                           </span>
                         </div>
                       </td>
@@ -131,7 +131,6 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                           </div>
                         </div>
                       </td>
-
                       <td className="p-4 text-right">
                         <button
                           onClick={() => openModal(log)}

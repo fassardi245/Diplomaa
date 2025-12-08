@@ -33,7 +33,7 @@ export default async function ClaimsPage() {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("ver_reclamos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }

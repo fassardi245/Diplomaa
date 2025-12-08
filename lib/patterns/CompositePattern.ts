@@ -1,20 +1,18 @@
-// =========================================================
 // PATRÓN DE DISEÑO COMPOSITE - IMPLEMENTACIÓN SEGURIDAD
-// =========================================================
 
 /**
  * 1. COMPONENT (Clase Abstracta)
- * Define la interfaz común para objetos simples (Acciones) y complejos (Grupos).
+ * Define la interfaz comun para objetos simples (Acciones) y complejos (Grupos).
  */
 export abstract class Component {
   constructor(public nombre: string) {}
 
-  // El método polimórfico clave: ¿Tengo este permiso?
+  // El método polimorfico clave: ¿Tengo este permiso?
   abstract tienePermiso(slugBuscado: string): boolean;
 }
 
 /**
- * 2. LEAF (Hoja - Acción)
+ * 2. LEAF (Hoja - Accion)
  * Representa un permiso atómico. No tiene hijos.
  * Ej: "ver_flota", "editar_vehiculo".
  */
@@ -32,7 +30,7 @@ export class Accion extends Component {
 /**
  * 3. COMPOSITE (Compuesto - Grupo)
  * Representa un Rol que contiene otros componentes (Acciones u otros Grupos).
- * Delega la búsqueda de permisos a sus hijos recursivamente.
+ * Delega la busqueda de permisos a sus hijos recursivamente.
  */
 export class Grupo extends Component {
   // Lista de hijos (pueden ser Acciones o Grupos)
@@ -42,7 +40,7 @@ export class Grupo extends Component {
     super(nombre);
   }
 
-  // Método para agregar hijos al árbol
+  // Metodo para agregar hijos al árbol
   agregarHijo(componente: Component) {
     this.hijos.push(componente);
   }

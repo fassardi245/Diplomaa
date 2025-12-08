@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { OrderFacade } from "@/lib/patterns/OrderFacade";
-import { logAction } from "@/lib/auditLogger"; // <--- 1. Importamos nuestra herramienta de auditoría
+import { logAction } from "@/lib/auditLogger"; 
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       : null;
 
     try {
-      // 1. Usamos el Facade para CREAR la orden
+      // Usamos el Facade para CREAR la orden
       const order = await OrderFacade.createOrder(session, invoice);
       
       const orderData = {
@@ -50,9 +50,7 @@ export async function POST(req: NextRequest) {
           invoiceUrl: invoice?.hosted_invoice_url || null
       };
 
-      // ---------------------------------------------------------
-      // 🛡️ AUDITORÍA: Registramos el nacimiento del Pedido
-      // ---------------------------------------------------------
+      //  AUDITORÍA: Registramos el nacimiento del Pedido
       await logAction({
         action: "CREATE",
         entityType: "Pedido",

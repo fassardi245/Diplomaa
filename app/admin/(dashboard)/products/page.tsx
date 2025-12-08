@@ -5,7 +5,7 @@ import { Tag, ArrowRight, Plus, PackageSearch } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// 1. Traemos las categorías con su imagen
+
 async function getCategories() {
   return await client.fetch(`*[_type == "category"] | order(title asc) {
     _id, 
@@ -23,9 +23,9 @@ export default async function ProductsDashboardPage() {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD 
   if (!usuarioSeguridad.puedo("gestionar_productos")) {
-     return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
+      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
   const categories = await getCategories();
@@ -35,7 +35,7 @@ export default async function ProductsDashboardPage() {
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-         <div>
+          <div>
             <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
                 <span className="bg-purple-100 p-2 rounded-xl text-purple-600">
                   <Tag className="w-8 h-8" />
@@ -43,18 +43,16 @@ export default async function ProductsDashboardPage() {
                 Catálogo de Productos
             </h1>
             <p className="text-gray-500 mt-2">Selecciona una categoría para gestionar su inventario.</p>
-         </div>
-         
-         {/* Botón Global para agregar (sin categoría predefinida) - Protegido visualmente */}
-         {usuarioSeguridad.puedo("gestionar_productos") && (
-             <Link 
-               href="/admin/products/nuevo" 
-               className="group flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-purple-600 hover:shadow-purple-200 transition-all active:scale-95"
-             >
-               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> 
-               Nuevo Producto
-             </Link>
-         )}
+          </div>
+          {usuarioSeguridad.puedo("gestionar_productos") && (
+              <Link 
+                href="/admin/products/nuevo" 
+                className="group flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-purple-600 hover:shadow-purple-200 transition-all active:scale-95"
+              >
+                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> 
+                Nuevo Producto
+              </Link>
+          )}
       </div>
 
       {/* GRID DE CATEGORÍAS */}
@@ -104,9 +102,9 @@ export default async function ProductsDashboardPage() {
         </div>
       ) : (
         <div className="py-20 text-center flex flex-col items-center justify-center bg-gray-50/50 rounded-3xl border border-dashed border-gray-300">
-           <PackageSearch className="w-12 h-12 text-gray-300 mb-3" />
-           <h3 className="text-lg font-bold text-gray-900">No hay categorías</h3>
-           <p className="text-gray-500 max-w-sm mx-auto">Crea categorías en Sanity Studio primero para poder organizar tus productos.</p>
+            <PackageSearch className="w-12 h-12 text-gray-300 mb-3" />
+            <h3 className="text-lg font-bold text-gray-900">No hay categorías</h3>
+            <p className="text-gray-500 max-w-sm mx-auto">Crea categorías en Sanity Studio primero para poder organizar tus productos.</p>
         </div>
       )}
     </div>
