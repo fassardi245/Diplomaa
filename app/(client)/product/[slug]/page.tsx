@@ -3,7 +3,7 @@ import Container from "@/components/Container";
 import ImageView from "@/components/new/ImageView";
 import PriceView from "@/components/PriceView";
 import ProductCharacteristics from "@/components/ProductCharacteristics";
-import AddToWishlistButton from "@/components/AddToWishlistButton"; // <--- IMPORTANTE
+import AddToWishlistButton from "@/components/AddToWishlistButton"; 
 import { getProductBySlug } from "@/sanity/helpers";
 import { notFound } from "next/navigation";
 import React from "react";
@@ -66,8 +66,7 @@ const ProductPage = async ({
                 {isOutOfStock ? (
                 <button
                     disabled
-                    className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed"
-                >
+                    className="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed">
                     Sin Stock
                 </button>
                 ) : (
@@ -77,7 +76,6 @@ const ProductPage = async ({
                 />
                 )}
             </div>
-
             {/* 2. Botón de Favoritos (Nuevo) */}
             <AddToWishlistButton product={product} />
           </div>
@@ -86,9 +84,6 @@ const ProductPage = async ({
           <div className="mt-4 pt-6 border-t border-gray-100">
              <ProductCharacteristics product={product} />
           </div>
-
-          {/* --- AQUÍ BORRAMOS TODO LO QUE NO QUERÍAS (Comparar, Envíos, etc.) --- */}
-
         </div>
       </Container>
     </div>

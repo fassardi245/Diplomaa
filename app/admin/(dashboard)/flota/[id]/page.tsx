@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// Función para obtener un vehículo específico
+// Funcion para obtener un vehículo específico
 async function getVehicleById(id: string) {
   const query = `*[_type == "vehicle" && _id == $id][0] {
     _id, model, plate, status, fuelLevel, mileage, lastMaintenance, currentRoute,

@@ -1,5 +1,5 @@
 import { client } from "@/sanity/lib/client";
-import AuditList, { AuditLog } from "./AuditList"; // Importamos el componente cliente
+import AuditList, { AuditLog } from "./AuditList"; 
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
@@ -29,7 +29,7 @@ export default async function AuditoriaPage() {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  //SEGURIDAD
   if (!usuarioSeguridad.puedo("ver_auditoria")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }

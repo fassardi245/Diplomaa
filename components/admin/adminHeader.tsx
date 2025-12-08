@@ -11,7 +11,7 @@ interface AdminHeaderProps {
     isCollapsed?: boolean; 
 }
 
-// 1. Diccionario de traducciones
+// Diccionario de traducciones
 const pathTranslations: Record<string, string> = {
   "/admin": "Panel",
   "/admin/orders": "Pedidos",
@@ -28,7 +28,6 @@ const getPageName = (path: string) => {
   // 1. Buscamos coincidencia exacta en el diccionario
   if (pathTranslations[path]) return pathTranslations[path];
 
-  // 2. Si es una sub-página (ej: /admin/orders/nuevo), sacamos la última parte
   const segments = path.split('/').filter(Boolean);
   const lastSegment = segments[segments.length - 1];
 
@@ -36,7 +35,6 @@ const getPageName = (path: string) => {
   // Si el segmento es largo (un ID), devolvemos "Detalle"
   if (lastSegment.length > 20) return "Detalle";
   
-  // Por defecto, capitalizamos la palabra (ej: "dashboard" -> "Dashboard")
   return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
 };
 
@@ -49,7 +47,7 @@ export default function AdminHeader({ user, isCollapsed }: AdminHeaderProps) {
     current: pathname
   });
 
-  // Efecto: Cada vez que cambia la ruta, actualizamos el historial
+  // Efecto para actualizar el historial de navegación
   useEffect(() => {
     if (pathname !== navHistory.current) {
       setNavHistory({
@@ -62,7 +60,7 @@ export default function AdminHeader({ user, isCollapsed }: AdminHeaderProps) {
   return (
     <header className={`h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-40 transition-all duration-300 ease-in-out`}>
       
-      {/* --- IZQUIERDA: HISTORIAL DE NAVEGACIÓN --- */}
+      {/* IZQUIERDA: HISTORIAL DE NAVEGACIÓN */}
       <div className="flex flex-col justify-center">
         
         <nav className="flex items-center gap-2 text-xs text-gray-500 mb-1">
@@ -88,7 +86,7 @@ export default function AdminHeader({ user, isCollapsed }: AdminHeaderProps) {
         </nav>
 
         <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-            Hola, {user?.firstName || "Teo"} 👋
+            Hola, {user?.firstName || "ADMIN"} 👋
         </h2>
       </div>
 

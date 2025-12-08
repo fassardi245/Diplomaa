@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-// import { getMyOrders } from "@/sanity/helpers"; <--- NO LO USAMOS PARA ASEGURAR EL PRECIO
 import { client } from "@/sanity/lib/client"; 
 import { auth } from "@clerk/nextjs/server";
 import { FileX } from "lucide-react";
@@ -18,9 +17,7 @@ const OrdersPage = async () => {
     return redirect("/");
   }
 
-  // 1. QUERY EXPLÍCITA (REEMPLAZA A getMyOrders)
-  // Esto asegura que el campo 'price' venga dentro de products[]
-  // para que el modal de detalles calcule bien los montos.
+  // 1. QUERY EXPLÍCITA
   const query = `*[_type == "order" && clerkUserId == $userId] | order(orderDate desc) {
       ...,
       products[]{
@@ -37,7 +34,7 @@ const OrdersPage = async () => {
 
   const orders = await client.fetch(query, { userId });
 
-  // 2. Lógica de Reclamos (Manteniendo tu lógica original)
+  // Lógica de Reclamos 
   let ordersWithClaims = orders;
 
   if (orders && orders.length > 0) {

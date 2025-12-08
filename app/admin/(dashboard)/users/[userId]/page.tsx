@@ -52,7 +52,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("gestionar_seguridad")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
@@ -94,7 +94,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* --- COLUMNA 1: GRUPOS (AZUL) --- */}
+          {/* --- COLUMNA 1: GRUPOS */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
                 <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
@@ -123,7 +123,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
                     group-has-[:checked]:border-blue-500 group-has-[:checked]:bg-blue-50 group-has-[:checked]:shadow-sm flex items-center justify-between">
                     
                     <div className="flex items-center gap-3">
-                        {/* Círculo con Tick (AZUL) */}
+                        {/* Círculo con Tick  */}
                         <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white 
                                         group-has-[:checked]:bg-blue-500 group-has-[:checked]:border-blue-500 
                                         flex items-center justify-center transition-all duration-200 shrink-0">
@@ -143,7 +143,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
             </div>
           </div>
 
-          {/* --- COLUMNA 2: ACCIONES (VIOLETA) --- */}
+          {/* COLUMNA 2: ACCIONES */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
                 <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
@@ -174,7 +174,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider bg-purple-100 px-1.5 py-0.5 rounded">Acción</span>
                         
-                        {/* Círculo con Tick (VIOLETA) */}
+                        {/* Círculo con Tick */}
                         <div className="w-5 h-5 rounded-full border border-gray-300 bg-white 
                                         group-has-[:checked]:bg-purple-500 group-has-[:checked]:border-purple-500 
                                         flex items-center justify-center transition-all duration-200">

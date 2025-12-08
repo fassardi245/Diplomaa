@@ -25,7 +25,7 @@ export default async function DriversPage() {
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
   
-  // 1. Permiso para entrar
+  //Permiso para entrar
   if (!usuarioSeguridad.puedo("ver_choferes")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const drivers: Driver[] = await getDrivers();
@@ -42,7 +42,7 @@ export default async function DriversPage() {
           Choferes
         </h1>
         
-        {/* CORRECCIÓN: Ahora usa "ver_choferes" para mostrar el botón */}
+        {/*Usa "ver_choferes" para mostrar el boton */}
         {usuarioSeguridad.puedo("ver_choferes") && (
           <Link href="/admin/choferes/nuevo" className="bg-black text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
             <Plus className="w-4 h-4" /> Nuevo Chofer

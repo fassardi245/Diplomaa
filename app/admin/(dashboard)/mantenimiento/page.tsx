@@ -32,7 +32,7 @@ export default async function MaintenancePage() {
   if (!user) return <div>Inicia sesión.</div>;
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // 🔒 SEGURIDAD 
   if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const mantenimientos: Maintenance[] = await getMaintenances();
@@ -50,7 +50,7 @@ export default async function MaintenancePage() {
           <p className="text-gray-500 mt-2">Historial de reparaciones y servicios de la flota.</p>
         </div>
         
-        {/* Solo mostramos el botón si tiene permiso (opcional, pero recomendado) */}
+        {/* Solo mostramos el botón si tiene permiso  */}
         {usuarioSeguridad.puedo("ver_mantenimiento") && (
           <Link href="/admin/mantenimiento/nuevo" className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">
             <Plus className="w-5 h-5" />

@@ -16,7 +16,7 @@ export default async function EditMaintenancePage({ params }: { params: { id: st
     if (!user) return <div>Inicia sesión.</div>;
   
     const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
-    // 🔒 SEGURIDAD (Estilo Flota)
+    // SEGURIDAD "ver_mantenimiento"
     if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   const { maintenance, vehicles } = await getData(params.id);
 
