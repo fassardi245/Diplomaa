@@ -2,6 +2,8 @@ import React from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import localFont from "next/font/local";
 import { Metadata } from "next";
+import { currentUser } from "@clerk/nextjs/server";
+import AuditLoginListener from "@/components/admin/AuditLoginListener";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,15 +23,22 @@ const raleway = localFont({
   weight: "100 900",
 });
 
-const RootLayout = ({
+// ▼ CAMBIAR A FUNCIÓN ASÍNCRONA
+const RootLayout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  // ▼ OBTENER EL USUARIO (DEBE SER ASÍNCRONO)
+  const user = await currentUser();
+  const userEmail = user?.emailAddresses[0]?.emailAddress || "";
+  
   return (
     <ClerkProvider>
       <html lang="en">
         <body className={`${poppins.variable} ${raleway.variable} antialiased`}>
+          {/* ▼ AGREGAR EL LISTENER AQUÍ, FUERA DE {children} */}
+          <AuditLoginListener email={userEmail} />
           {children}
         </body>
       </html>

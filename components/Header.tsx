@@ -89,7 +89,7 @@ const Header = async () => {
                 href="/sign-in"
                 className="text-sm font-semibold hover:text-darkColor hoverEffect"
               >
-                iniciar sesión
+                Iniciar Sesión
               </Link>
             )}
           </ClerkLoaded>

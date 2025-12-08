@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; 
-import AuditLoginListener from "@/components/admin/AuditLoginListener"; 
+
 
 import { 
   LayoutDashboard, 
@@ -126,8 +126,7 @@ export default async function AdminLayout({
             roleName: usuarioSeguridad.nombreRol
         }}
     >
-        {/* ▼ Pasamos el email aquí */}
-        <AuditLoginListener email={userEmail} />
+
         {children}
     </AdminLayoutClient>
   );
