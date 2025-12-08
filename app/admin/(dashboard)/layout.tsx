@@ -33,7 +33,6 @@ export default async function AdminLayout({
     user.emailAddresses[0]?.emailAddress
   );
 
-  // Verificación básica de entrada
   if (!usuarioSeguridad.puedo("acceso_panel_admin")) {
     return redirect("/"); 
   }
@@ -116,12 +115,10 @@ export default async function AdminLayout({
     usuarioSeguridad.puedo(item.permission)
   );
 
-  // Obtenemos el email seguro para pasarlo al componente
   const userEmail = user.emailAddresses[0]?.emailAddress || "unknown";
 
   return (
     <>
-      {/* ▼ AQUÍ SE INYECTA EL LISTENER DE AUDITORÍA ▼ */}
       <AuditLoginListener email={userEmail} />
 
       <AdminLayoutClient 

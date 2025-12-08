@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { logAuthAction } from "@/actions/logAuthAction"; // Importamos tu acción
+import { logAuthAction } from "@/actions/logAuthAction"; 
 
 export async function POST(req: Request) {
   try {
@@ -7,7 +7,6 @@ export async function POST(req: Request) {
     const { email } = body;
 
     if (email) {
-      // Usamos tu función existente tal cual la definiste
       await logAuthAction(email, "LOGOUT");
     }
 

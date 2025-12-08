@@ -28,20 +28,14 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
     return data || {};
   };
 
-  // --- MEJORA 1: DETECTAR TÍTULOS DE AUTH ---
   const getLogTitle = (log: AuditLog) => {
     const data = safeParse(log.changes);
-    
-    // Si es un evento de Auth (Login/Logout), suele tener la propiedad 'event' o 'detalles'
     if (data.event) return data.event;
     if (data.detalles) return data.detalles;
-
-    // Lógica estándar para Productos/Entidades
     if (data.after?.name) return data.after.name;
     if (data.before?.name) return data.before.name;
     if (data.name) return data.name;
     
-    // Fallback
     return log.entityType === "Auth" ? "Evento de Seguridad" : log.entityId.substring(0, 8) + "...";
   };
 
@@ -81,7 +75,6 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
   const after = parsedChanges.after || {};
   const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
   
-  // Detectar si es un log simple (sin before/after)
   const isSimpleLog = !parsedChanges.before && !parsedChanges.after;
 
   return (
@@ -103,7 +96,6 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                 logs.map((log) => {
                   const title = getLogTitle(log);
                   
-                  // --- MEJORA 2: COLORES PARA LOGIN/LOGOUT ---
                   let badgeClass = "bg-gray-50 text-gray-700 border-gray-200";
                   if (log.action === "CREATE") badgeClass = "bg-green-50 text-green-700 border-green-200";
                   else if (log.action === "UPDATE") badgeClass = "bg-blue-50 text-blue-700 border-blue-200";
@@ -158,7 +150,6 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
         </div>
       </div>
 
-      {/* --- MODAL --- */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
@@ -212,7 +203,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                     </pre>
                   </div>
                 ) : (
-                  // --- MEJORA 3: VISTA PARA LOGS SIMPLES (AUTH) ---
+                  
                   <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
                     {!isSimpleLog ? (
                       allKeys.map((key) => {
