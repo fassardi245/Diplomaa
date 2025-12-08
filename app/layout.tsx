@@ -2,9 +2,9 @@ import React from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import localFont from "next/font/local";
 import { Metadata } from "next";
-import { currentUser } from "@clerk/nextjs/server";
-import AuditLoginListener from "@/components/admin/AuditLoginListener";
 import "./globals.css";
+// 1. Aquí está el import correcto
+import AuditLogoutListener from "@/components/admin/AuditLogoutListener";
 
 export const metadata: Metadata = {
   title: "SMARTCLOTH",
@@ -23,27 +23,22 @@ const raleway = localFont({
   weight: "100 900",
 });
 
-// ▼ CAMBIAR A FUNCIÓN ASÍNCRONA
-const RootLayout = async ({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) => {
-  // ▼ OBTENER EL USUARIO (DEBE SER ASÍNCRONO)
-  const user = await currentUser();
-  const userEmail = user?.emailAddresses[0]?.emailAddress || "";
-  
+}>) {
   return (
     <ClerkProvider>
       <html lang="en">
         <body className={`${poppins.variable} ${raleway.variable} antialiased`}>
-          {/* ▼ AGREGAR EL LISTENER AQUÍ, FUERA DE {children} */}
-          <AuditLoginListener email={userEmail} />
+          
+          {/* ▼ 2. AGREGADO: Aquí es donde debe ir el espía para funcionar ▼ */}
+          <AuditLogoutListener />
+          
           {children}
         </body>
       </html>
     </ClerkProvider>
   );
-};
-
-export default RootLayout;
+}

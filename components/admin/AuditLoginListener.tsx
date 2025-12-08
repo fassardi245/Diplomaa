@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useUser } from "@clerk/nextjs";
 import { logAuthAction } from "@/actions/logAuthAction";
 
 interface Props {
@@ -9,53 +8,35 @@ interface Props {
 }
 
 export default function AuditLoginListener({ email }: Props) {
-  const { isSignedIn } = useUser();
+  // Usamos un ref para que React no dispare el efecto dos veces en modo desarrollo
   const processedRef = useRef(false);
 
-  // CLAVE ÚNICA PARA ESTA SESIÓN DE NAVEGADOR
-  const STORAGE_KEY = `audit_login_registered_${email}`;
-
   useEffect(() => {
-    // 1. LÓGICA DE LOGIN
-    // Si el usuario está logueado, tenemos email, y NO hemos procesado esto en este render...
-    if (isSignedIn && email && !processedRef.current) {
-      
-      // Verificamos si ya lo registramos en esta pestaña del navegador
-      const yaRegistrado = sessionStorage.getItem(STORAGE_KEY);
+    // Si no hay email o ya procesamos este componente en esta carga, paramos.
+    if (!email || processedRef.current) return;
 
-      if (!yaRegistrado) {
-        logAuthAction(email, "LOGIN")
-          .then(() => {
-            // Marcamos en el navegador que ya se logueó
-            sessionStorage.setItem(STORAGE_KEY, "true");
-            console.log("Auditoría: Login registrado correctamente.");
-          })
-          .catch((err: any) => console.error("Error auditando login:", err));
-      } else {
-        // Ya estaba registrado, es solo un refresh (F5), lo ignoramos.
-        console.log("Auditoría: Login omitido (ya registrado en esta sesión).");
-      }
+    // CLAVE ÚNICA PARA ESTA SESIÓN DE NAVEGADOR
+    // Usamos el email en la clave para que si cambias de usuario, detecte el nuevo.
+    const STORAGE_KEY = `audit_login_registered_${email}`;
 
-      processedRef.current = true;
+    // Verificamos si ya lo registramos en esta pestaña del navegador
+    const yaRegistrado = sessionStorage.getItem(STORAGE_KEY);
+
+    if (!yaRegistrado) {
+      // ▼ EJECUTAMOS LA ACCIÓN
+      logAuthAction(email, "LOGIN")
+        .then(() => {
+          console.log("✅ [AUDIT] Login registrado en BD");
+          // Marcamos en el navegador que ya se auditó esta sesión
+          sessionStorage.setItem(STORAGE_KEY, "true");
+        })
+        .catch((err: any) => console.error("❌ Error auditando login:", err));
+    } else {
+      console.log("ℹ️ [AUDIT] Login ya registrado previamente en esta sesión (F5 omitido).");
     }
 
-    // 2. LÓGICA DE LOGOUT
-    // Si isSignedIn cambia a false, significa que el usuario cerró sesión explícitamente
-    if (isSignedIn === false) {
-       // Solo registramos logout si teníamos una sesión activa previa
-       const estabaLogueado = sessionStorage.getItem(STORAGE_KEY);
-       
-       if (estabaLogueado) {
-         logAuthAction(email || "usuario_saliente", "LOGOUT")
-            .then(() => console.log("Auditoría: Logout registrado."))
-            .catch(err => console.error(err));
-         
-         // Limpiamos la marca para que el próximo login sí cuente
-         sessionStorage.removeItem(STORAGE_KEY);
-       }
-    }
-
-  }, [isSignedIn, email, STORAGE_KEY]);
+    processedRef.current = true;
+  }, [email]);
 
   return null;
 }

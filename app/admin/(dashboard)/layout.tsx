@@ -1,8 +1,9 @@
+import React from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; 
-
+import AuditLoginListener from "@/components/admin/AuditLoginListener";
 
 import { 
   LayoutDashboard, 
@@ -119,15 +120,19 @@ export default async function AdminLayout({
   const userEmail = user.emailAddresses[0]?.emailAddress || "unknown";
 
   return (
-    <AdminLayoutClient 
-        menuItems={authorizedMenuItems}
-        user={{
-            firstName: user.firstName,
-            roleName: usuarioSeguridad.nombreRol
-        }}
-    >
+    <>
+      {/* ▼ AQUÍ SE INYECTA EL LISTENER DE AUDITORÍA ▼ */}
+      <AuditLoginListener email={userEmail} />
 
-        {children}
-    </AdminLayoutClient>
+      <AdminLayoutClient 
+          menuItems={authorizedMenuItems}
+          user={{
+              firstName: user.firstName,
+              roleName: usuarioSeguridad.nombreRol
+          }}
+      >
+          {children}
+      </AdminLayoutClient>
+    </>
   );
 }
