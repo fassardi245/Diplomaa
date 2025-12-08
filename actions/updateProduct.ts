@@ -16,7 +16,6 @@ export async function updateProduct(formData: FormData) {
   const stock = Number(formData.get("stock")) || 0;
   const description = formData.get("description") as string;
   const intro = formData.get("intro") as string;
-  const status = formData.get("status") as string;
   const variant = formData.get("variant") as string;
   const imageFile = formData.get("image") as File;
 
@@ -31,7 +30,7 @@ export async function updateProduct(formData: FormData) {
     // 1. Snapshot del valor original (Antes)
     const previousProduct = await backendClient.fetch(
       `*[_type == "product" && _id == $id][0]{
-        name, price, stock, status, description, discount, variant, intro
+        name, price, stock, description, discount, variant, intro
       }`, 
       { id }
     );
@@ -56,7 +55,7 @@ export async function updateProduct(formData: FormData) {
     }
 
     const newData = {
-      name, price, discount, stock, description, intro, status, variant,
+      name, price, discount, stock, description, intro, variant,
       categories: [{ _type: 'reference', _ref: categoryId, _key: crypto.randomUUID() }],
     };
 

@@ -16,8 +16,7 @@ export async function createProduct(formData: FormData) {
   const description = (formData.get("description") as string) || undefined;
   const intro = (formData.get("intro") as string) || undefined;
   
-  const statusRaw = formData.get("status") as string;
-  const status = statusRaw && statusRaw !== "" ? statusRaw : undefined;
+  
   
   const variantRaw = formData.get("variant") as string;
   const variant = variantRaw && variantRaw !== "" ? variantRaw : undefined;
@@ -59,7 +58,6 @@ export async function createProduct(formData: FormData) {
       stock,
       description,
       intro,
-      status,
       variant,
       categories: [{ 
         _type: 'reference', 
