@@ -23,13 +23,11 @@ const raleway = localFont({
   weight: "100 900",
 });
 
-// ▼ CAMBIAR A FUNCIÓN ASÍNCRONA
 const RootLayout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  // ▼ OBTENER EL USUARIO (DEBE SER ASÍNCRONO)
   const user = await currentUser();
   const userEmail = user?.emailAddresses[0]?.emailAddress || "";
   
@@ -37,7 +35,6 @@ const RootLayout = async ({
     <ClerkProvider>
       <html lang="en">
         <body className={`${poppins.variable} ${raleway.variable} antialiased`}>
-          {/* ▼ AGREGAR EL LISTENER AQUÍ, FUERA DE {children} */}
           <AuditLoginListener email={userEmail} />
           {children}
         </body>

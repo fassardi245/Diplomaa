@@ -12,8 +12,7 @@ export default function Home() {
       <HomeBanner />
       <ProductGrid />
 
-      {/* 2. Lo colocas aquí al final. 
-          Solo se renderizará si el usuario tiene permiso "acceso_panel_admin" */}
+      {/* Solo se renderizará si el usuario tiene permiso "acceso_panel_admin" */}
       <AdminAccessButton />
       
     </Container>

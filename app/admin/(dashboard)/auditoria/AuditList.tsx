@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// ▼ 1. IMPORTAMOS LA FUNCIÓN DE FORMATO
 import { formatDateTime } from "@/lib/utils";
 
 export interface AuditLog {
@@ -18,7 +17,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [showRawJson, setShowRawJson] = useState(false); 
 
-  // --- 1. FUNCIÓN PARA LIMPIAR JSON ---
+  //FUNCION PARA LIMPIAR JSON 
   const safeParse = (data: any) => {
     if (typeof data === "string") {
       try {
@@ -30,7 +29,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
     return data || {};
   };
 
-  // --- 2. FUNCIÓN PARA SACAR EL NOMBRE ---
+  //FUNCION PARA SACAR EL NOMBRE
   const getLogTitle = (log: AuditLog) => {
     const data = safeParse(log.changes);
     if (data.after?.name) return data.after.name;
@@ -39,7 +38,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
     return log.entityId.substring(0, 8) + "...";
   };
 
-  // --- 3. COMPONENTE FILA ---
+  //COMPONENTE FILA
   const ChangeRow = ({ label, oldVal, newVal }: { label: string, oldVal: any, newVal: any }) => {
     const strOld = JSON.stringify(oldVal);
     const strNew = JSON.stringify(newVal);
@@ -102,7 +101,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                         <div className="flex flex-col">
                           {/* ▼ 2. USAMOS LA FUNCIÓN DE FORMATO AQUÍ */}
                           <span className="font-medium text-gray-900">
-                             {formatDateTime(log.timestamp)}
+                              {formatDateTime(log.timestamp)}
                           </span>
                         </div>
                       </td>
@@ -133,7 +132,6 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                           </div>
                         </div>
                       </td>
-
                       <td className="p-4 text-right">
                         <button
                           onClick={() => openModal(log)}
@@ -238,7 +236,7 @@ export default function AuditList({ logs }: { logs: AuditLog[] }) {
                         Este registro no tiene formato de comparación visual.
                         <br/>
                         <button onClick={() => setShowRawJson(true)} className="text-indigo-600 underline mt-2 hover:text-indigo-800">
-                           Ver JSON crudo
+                            Ver JSON crudo
                         </button>
                       </div>
                     )}

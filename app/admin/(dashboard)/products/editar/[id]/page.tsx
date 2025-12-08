@@ -5,18 +5,17 @@ import { ArrowLeft } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// Función para traer datos
+
 async function getData(id: string) {
-  // 1. Buscamos el producto específico
+  //Buscamos el producto específico
   const productQuery = `*[_type == "product" && _id == $id][0]{
     ..., 
     "imageUrl": images[0].asset->url
   }`;
 
-  // 2. Buscamos todas las categorías para el desplegable
+  //buscamos todas las categorías para el desplegable
   const categoriesQuery = `*[_type == "category"] | order(title asc) { _id, title }`;
 
-  // Ejecutamos las dos consultas en paralelo
   const [product, categories] = await Promise.all([
     client.fetch(productQuery, { id }, { cache: 'no-store' }),
     client.fetch(categoriesQuery)
@@ -28,7 +27,6 @@ async function getData(id: string) {
 export default async function EditProductPage({ 
   params 
 }: { 
-  // 1. CAMBIO AQUÍ: params ahora es una Promise en Next.js 15
   params: Promise<{ id: string }> 
 }) {
    const user = await currentUser();
@@ -39,18 +37,18 @@ export default async function EditProductPage({
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  //  SEGURIDAD 
   if (!usuarioSeguridad.puedo("gestionar_productos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
-  // 2. CAMBIO AQUÍ: Esperamos la promesa para obtener el ID
+  // Esperamos la promesa para obtener el ID
   const { id } = await params;
 
   // Ahora usamos la variable 'id' ya resuelta
   const { product, categories } = await getData(id);
 
-  // Validación simple por si el ID no existe
+  // Validación por si el ID no existe
   if (!product) {
     return (
         <div className="flex flex-col items-center justify-center h-96 text-gray-500">
@@ -62,7 +60,6 @@ export default async function EditProductPage({
     );
   }
 
-  // Intentamos volver a la categoría de este producto al dar 'Atrás'
   const backLink = product.categories?.[0]?._ref 
     ? `/admin/products/${product.categories[0]._ref}` 
     : "/admin/products";
@@ -86,7 +83,7 @@ export default async function EditProductPage({
         </div>
       </div>
 
-      {/* FORMULARIO REUTILIZABLE */}
+      {/* FORMULARIO REUTILIZABL*/}
       <ProductForm
         categories={categories}
         product={product}

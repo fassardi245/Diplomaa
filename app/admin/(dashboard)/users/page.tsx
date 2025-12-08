@@ -13,8 +13,7 @@ import {
   CheckCircle2,
   Users
 } from "lucide-react";
-
-// --- INTERFACES CORREGIDAS ---
+ 
 interface SystemUser {
   _id: string;
   email: string;
@@ -23,7 +22,7 @@ interface SystemUser {
   roles: { name: string; type: "grupo" | "accion" }[] | null; 
 }
 
-// --- DATA FETCHING ---
+
 async function getUsuarios() {
   const query = `*[_type == "usuario"] | order(_createdAt desc) {
     _id,
@@ -48,15 +47,14 @@ export default async function UsuariosPage() {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("gestionar_seguridad")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
-  // 2. DATOS
+  // DATOS
   const usuarios = await getUsuarios();
 
-  // 3. SERVER ACTION WRAPPER
   async function handleSync() {
     "use server";
     await syncUsers();
@@ -125,14 +123,12 @@ export default async function UsuariosPage() {
                       </div>
                     </div>
                   </td>
-
                   {/* ROLES */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
                       {u.roles && u.roles.length > 0 ? (
                         u.roles.map((rol, index) => {
                           if (!rol.name) return null;
-
                           // Lógica de colores según tipo de rol
                           if (rol.type === 'accion') {
                             return (

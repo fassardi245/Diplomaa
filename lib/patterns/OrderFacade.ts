@@ -3,14 +3,13 @@ import { Resend } from "resend";
 import ReceiptEmail from "@/components/emails/ReceiptEmail";
 import LowStockAlertEmail from "@/components/emails/LowStockAlertEmail";
 import Stripe from "stripe";
-import stripe from "@/lib/stripe"; // Importamos la instancia de stripe
-import { Metadata } from "@/actions/createCheckoutSession"; // Asegúrate que esta ruta sea correcta
+import stripe from "@/lib/stripe"; 
+import { Metadata } from "@/actions/createCheckoutSession"; 
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export class OrderFacade {
   
-  // --- NUEVO: MOVIDO DESDE EL WEBHOOK PARA ALIGERARLO ---
   static async createOrder(session: Stripe.Checkout.Session, invoice: Stripe.Invoice | null) {
     const { id, amount_total, currency, metadata, payment_intent, total_details, shipping_cost, shipping_details, customer_details } = session as any;
     const { orderNumber, customerName, customerEmail, clerkUserId } = metadata as unknown as Metadata;
@@ -25,7 +24,7 @@ export class OrderFacade {
       country: shippingInfo.address.country,
     } : null;
 
-    // Lógica de Envío (Nombre y Costo Real)
+    // Logica de Envio 
     const realShippingCost = shipping_cost?.amount_total || 0;
     let shippingMethodName = "Envío"; 
     
@@ -95,15 +94,11 @@ export class OrderFacade {
     return order;
   }
 
-  /**
-   * 🚀 MÉTODO MÁGICO
-   * runLogistics: boolean -> Controla si asignamos vehículo o no.
-   */
   static async handlePostSaleProcesses(
     orderId: string, 
     orderData: { orderNumber: string; customerName: string; email: string | null; invoiceUrl: string | null }, 
     lineItems: Stripe.LineItem[],
-    runLogistics: boolean = false // <--- POR DEFECTO FALSE PARA NO ROMPER TU LÓGICA
+    runLogistics: boolean = false 
   ) {
     console.time("Velocidad_Procesamiento");
 
@@ -112,7 +107,6 @@ export class OrderFacade {
       this.sendCustomerReceipt(orderData),
     ];
 
-    // Solo agregamos la logística si explícitamente se pide (true)
     if (runLogistics) {
       tasks.push(this.assignLogistics(orderId));
     }
@@ -123,7 +117,7 @@ export class OrderFacade {
     console.log("✅ [Facade] Tareas post-venta finalizadas (Logística: " + (runLogistics ? "SI" : "NO") + ")");
   }
 
-  // --- TAREA 1: Stock y Alertas ---
+  //  Stock y Alertas 
   private static async updateStockAndAlert(lineItems: Stripe.LineItem[]) {
     const updates = lineItems.map(async (item) => {
       const product = item.price?.product as Stripe.Product;
@@ -160,7 +154,7 @@ export class OrderFacade {
     await Promise.all(updates);
   }
 
-  // --- TAREA 2: Email al Cliente ---
+  // Email al Cliente
   private static async sendCustomerReceipt(data: any) {
     if (!data.email) return;
     try {
@@ -189,7 +183,6 @@ export class OrderFacade {
           await Promise.all([
               backendClient.patch(orderId).set({ 
                   assignedVehicle: { _type: 'reference', _ref: vehicle._id },
-                  // shippingCost: 1500 // OJO: Esto sobreescribiría el costo real de Stripe. Revisa si lo quieres aquí.
               }).commit(),
               backendClient.patch(vehicle._id).set({ status: 'in_transit' }).commit()
           ]);

@@ -60,7 +60,7 @@ async function getData() {
   return orders;
 }
 
-// 2. DEFINIMOS PROPS (CAMBIO AQUÍ: Es una Promesa)
+// 2. DEFINIMOS PROPS 
 interface Props {
   searchParams: Promise<{
     [key: string]: string | string[] | undefined;
@@ -76,18 +76,17 @@ export default async function OrdersPage({ searchParams }: Props) {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("ver_pedidos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
   const orders = await getData();
 
-  // 3. LÓGICA DE FILTRADO (CAMBIO AQUÍ: Await antes de usar)
+  // LOGICA DE FILTRADO
   const resolvedSearchParams = await searchParams;
   const query = (resolvedSearchParams?.query as string) || "";
   
-  // Filtramos las órdenes si hay una búsqueda activa
   const filteredOrders = query
     ? orders.filter((order) => {
         const searchTerm = query.toLowerCase();
@@ -142,7 +141,6 @@ export default async function OrdersPage({ searchParams }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* USAMOS filteredOrders EN LUGAR DE orders */}
             {filteredOrders.length > 0 ? (
                 filteredOrders.map((order) => {
                 const isPickup = 
@@ -221,7 +219,7 @@ export default async function OrdersPage({ searchParams }: Props) {
                     {/* Columna Total */}
                     <TableCell>
                         <div className="font-bold text-gray-900">
-                            {/* CORRECCIÓN: Dividimos por 100 aquí */}
+                            {/* Dividimos por 100 */}
                             <PriceFormatter amount={order.totalPrice / 100} className="" />
                         </div>
                         <p className="text-[10px] text-gray-400">{order.productsCount} productos</p>

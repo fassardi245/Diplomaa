@@ -35,7 +35,6 @@ export async function deleteOrder(orderId: string) {
     revalidatePath("/admin/envios");
 
   } catch (error: any) {
-    // Esto te mostrará el error REAL en tu terminal de VS Code
     console.error("❌ Error detallado de Sanity:", error.message);
     throw new Error("No se pudo eliminar el pedido (Revisa la terminal)");
   }

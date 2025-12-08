@@ -97,7 +97,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       user.emailAddresses[0]?.emailAddress
     );
   
-    // 🔒 SEGURIDAD (Estilo Flota)
+    // SEGURIDAD
     if (!usuarioSeguridad.puedo("ver_pedidos")) {
        return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
     }
@@ -129,7 +129,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     });
   };
 
-  // Lógica Retiro
+  // Logica Retiro
   const isPickup = 
       order.shippingMethodName?.toLowerCase().includes("retiro") || 
       order.shippingMethodName?.toLowerCase().includes("local") ||
@@ -211,10 +211,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </div>
 
                     <div className="text-right">
-                      {/* CORRECCIÓN: Precio Total Línea / 100 */}
                       <p className="font-bold text-gray-900">{formatCurrency((item.price * item.quantity) / 100)}</p>
                       <p className="text-[10px] text-gray-400">
-                        {/* CORRECCIÓN: Precio Unitario / 100 */}
                         {formatCurrency(item.price / 100)} c/u
                       </p>
                     </div>
@@ -229,7 +227,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                {/* Subtotal */}
                <div className="flex justify-between text-sm text-gray-600">
                  <span>Subtotal</span>
-                 {/* CORRECCIÓN: Subtotal / 100 */}
+                 {/* Subtotal / 100 */}
                  <span className="font-medium">{formatCurrency(subtotalRaw / 100)}</span>
                </div>
 
@@ -237,7 +235,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                {order.amountDiscount > 0 && (
                  <div className="flex justify-between text-sm text-green-600">
                    <span>Descuento aplicado</span>
-                   {/* CORRECCIÓN: Descuento / 100 */}
+                   {/* Descuento / 100 */}
                    <span>- {formatCurrency(order.amountDiscount / 100)}</span>
                  </div>
                )}
@@ -248,7 +246,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   {order.shippingCost === 0 ? (
                       <span className="text-green-600 font-bold">Gratis</span>
                   ) : (
-                      /* CORRECCIÓN: Envío / 100 */
+                      /*Envio / 100 */
                       <span className="font-medium">{formatCurrency(order.shippingCost / 100)}</span>
                   )}
                </div>

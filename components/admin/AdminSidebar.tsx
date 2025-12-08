@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation"; // 👈 Agregado useRouter
-import { UserButton, useClerk, useUser } from "@clerk/nextjs"; // 👈 Agregados hooks de Clerk
-import { ChevronLeft, ChevronRight, LogOut } from "lucide-react"; // 👈 Agregado LogOut
+import { usePathname, useRouter } from "next/navigation";
+import { UserButton, useClerk, useUser } from "@clerk/nextjs"; 
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react"; 
 
-// 👇 Importamos la acción de auditoría
+
 import { logAuthAction } from "@/actions/logAuthAction";
 
-// 👇 IMPORTAMOS EL ARCHIVO DESDE SU UBICACIÓN ACTUAL
 import logo from "../../app/favicon.ico"; 
 
 interface MenuItem {
@@ -66,13 +65,12 @@ export default function AdminSidebar({ menuItems, user, isCollapsed, toggleSideb
         <Link href="/admin" className="flex items-center gap-3 group">
             
             <div className="relative w-10 h-10 shrink-0 group-hover:scale-105 transition-transform duration-300">
-               {/* 👇 USAMOS LA VARIABLE IMPORTADA */}
-               <Image 
-                 src={logo} 
-                 alt="SmartCloth Logo" 
-                 fill 
-                 className="object-contain" 
-               />
+                  <Image 
+                  src={logo} 
+                  alt="SmartCloth Logo" 
+                  fill 
+                  className="object-contain" 
+                  />
             </div>
 
             {!isCollapsed && (

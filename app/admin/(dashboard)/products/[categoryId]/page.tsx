@@ -6,11 +6,11 @@ import DeleteProductButton from "@/components/admin/DeleteProductButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// Función para traer datos de Sanity
+// Funcion para traer datos de Sanity
 async function getData(categoryId: string) {
   const category = await client.fetch(`*[_type == "category" && _id == $id][0]{title}`, { id: categoryId });
   
-  // Traemos los productos de esa categoría
+  // Traemos los productos de esa categoria
   const products = await client.fetch(`*[_type == "product" && references($id)] | order(_createdAt desc) { 
     _id, 
     name, 
@@ -22,8 +22,6 @@ async function getData(categoryId: string) {
   return { category, products };
 }
 
-// --- AQUÍ ESTÁ EL ARREGLO ---
-// 1. Cambiamos el tipo de params a Promise
 export default async function ProductListPage({ 
   params 
 }: { 
@@ -37,7 +35,7 @@ export default async function ProductListPage({
     user.emailAddresses[0]?.emailAddress
   );
 
-  // 🔒 SEGURIDAD (Estilo Flota)
+  // SEGURIDAD
   if (!usuarioSeguridad.puedo("gestionar_productos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
