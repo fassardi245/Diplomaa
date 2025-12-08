@@ -2,7 +2,6 @@ import { client } from "@/sanity/lib/client";
 import { AlertTriangle } from "lucide-react";
 import ResolveClaimButtons from "../../../../components/admin/ResolveClaimButtons"; 
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
 export const dynamic = "force-dynamic";

@@ -1,8 +1,13 @@
 import { createClient } from "next-sanity";
-
 import { apiVersion, dataset, projectId } from "../env";
 
-export const client = createClient({
+// 1. Definimos un tipo para el objeto global para TypeScript
+const globalForSanity = globalThis as unknown as {
+  sanityClient: ReturnType<typeof createClient> | undefined;
+};
+
+// 2. Comprobamos si ya existe la instancia en global, si no, la creamos
+export const client = globalForSanity.sanityClient ?? createClient({
   projectId,
   dataset,
   apiVersion,
@@ -14,3 +19,6 @@ export const client = createClient({
         : `${process.env.NEXT_PUBLIC_BASE_URL}/studio`,
   },
 });
+
+// 3. Si no estamos en producción, guardamos la instancia en global
+if (process.env.NODE_ENV !== "production") globalForSanity.sanityClient = client;
