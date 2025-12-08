@@ -101,6 +101,9 @@ const [stats, revenueData, salesByCategoryData] = await Promise.all([
         {usuarioSeguridad.puedo("gestionar_seguridad") && (
             <DashboardLink href="/admin/users" title="Usuarios" desc="Roles y permisos." icon="🪪" />
         )}
+        {usuarioSeguridad.puedo("ver_auditoria") && (
+            <DashboardLink href="/admin/auditoria" title="Auditoria" desc="Auditoría y Trazabilidad" icon="🔎" />
+        )}
 
       </div>
     </div>
