@@ -72,7 +72,6 @@ export async function POST(req: NextRequest) {
           session.id, 
           orderData, 
           session.line_items?.data || [],
-          false // <--- false = No asignar vehículo automáticamente
       );
 
     } catch (error: any) {
