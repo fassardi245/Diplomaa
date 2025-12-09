@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Plus, User } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; // Ojo con la ruta
+import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory"; 
 
 interface Driver {
   _id: string;

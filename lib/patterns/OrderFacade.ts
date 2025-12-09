@@ -107,10 +107,6 @@ export class OrderFacade {
       this.sendCustomerReceipt(orderData),
     ];
 
-    if (runLogistics) {
-      tasks.push(this.assignLogistics(orderId));
-    }
-
     await Promise.allSettled(tasks);
 
     console.timeEnd("Velocidad_Procesamiento");
@@ -171,26 +167,6 @@ export class OrderFacade {
       console.log(`📧 [Email] Recibo enviado a cliente.`);
     } catch (error) {
       console.error("❌ Error enviando recibo:", error);
-    }
-  }
-
-  // --- TAREA 3: Logística Automática ---
-  private static async assignLogistics(orderId: string) {
-    try {
-      const vehicle = await backendClient.fetch(`*[_type == "vehicle" && status == "available"][0]`);
-      if (vehicle) {
-          console.log(`🚚 [Logística] Asignando vehículo: ${vehicle.plate}`);
-          await Promise.all([
-              backendClient.patch(orderId).set({ 
-                  assignedVehicle: { _type: 'reference', _ref: vehicle._id },
-              }).commit(),
-              backendClient.patch(vehicle._id).set({ status: 'in_transit' }).commit()
-          ]);
-      } else {
-          console.log("🚚 [Logística] No hay vehículos disponibles.");
-      }
-    } catch (error) {
-      console.error("❌ Error Logística:", error);
     }
   }
 }
