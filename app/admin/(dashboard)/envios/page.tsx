@@ -5,17 +5,18 @@ import {
   Package, 
   CalendarClock, 
   AlertCircle,
-  Ship,
-  User 
+  User,
+  Store
 } from "lucide-react";
 import StartShipmentButton from "@/components/admin/StartShipmentButton";
 import CompleteShipmentButton from "@/components/admin/CompleteShipmentButton";
+// IMPORTA EL NUEVO BOTÓN AQUI
+import ConfirmPickupButton from "@/components/admin/ConfirmPickupButton"; 
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import PriceFormatter from "@/components/PriceFormatter"; 
 
-// --- INTERFACES ---
 interface Shipment {
   _id: string;
   status: string;
@@ -57,6 +58,7 @@ async function getData() {
     "driverName": driver->name
   }`;
 
+  // Traemos todos los pagados
   const pendingQuery = `*[_type == "order" && status == "pagado"] {
     _id, orderNumber, customerName, totalPrice, status, shippingMethodName
   }`;
@@ -85,11 +87,9 @@ export default async function ShipmentsPage() {
 
   const { shipments, pendingOrders } = await getData();
 
-  // FILTRO LOGICO
-  const ordersToShip = pendingOrders.filter((order) => {
-    const method = order.shippingMethodName?.toLowerCase() || "";
-    return !method.includes("retiro") && !method.includes("local");
-  });
+  // --- MODIFICACIÓN IMPORTANTE: YA NO FILTRAMOS LOS RETIROS ---
+  // Usamos pendingOrders directamente, pero podemos ordenarlos si quieres.
+  const ordersToProcess = pendingOrders; 
 
   return (
     <div className="max-w-7xl mx-auto p-8">
@@ -101,47 +101,59 @@ export default async function ShipmentsPage() {
            </span>
            Centro de Logística
         </h1>
-        <p className="text-gray-500 mt-2">Gestiona los despachos y asignaciones automáticas.</p>
+        <p className="text-gray-500 mt-2">Gestiona los despachos y entregas en local.</p>
       </div>
 
-      {/* PEDIDOS PENDIENTES FILTRADOS*/}
-      {ordersToShip.length > 0 && (
+      {/* PEDIDOS PENDIENTES (Envios + Retiros) */}
+      {ordersToProcess.length > 0 && (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4">
            <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-5 h-5 text-orange-500" />
-              <h2 className="text-lg font-bold text-gray-800">Pendientes de Asignación ({ordersToShip.length})</h2>
+              <h2 className="text-lg font-bold text-gray-800">Pendientes de Procesar ({ordersToProcess.length})</h2>
            </div>
            
            <div className="bg-white border border-orange-200 rounded-xl shadow-sm overflow-hidden divide-y divide-orange-100">
-              {ordersToShip.map((order) => (
-                 <div key={order._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-orange-50/30">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
-                          <Package className="w-5 h-5" />
-                       </div>
-                       <div>
-                          <p className="font-bold text-gray-900">Pedido #{order.orderNumber?.slice(-6) || "???"}</p>
-                          <p className="text-xs text-gray-500">{order.customerName} • {order.shippingMethodName || "Envío"}</p>
-                       </div>
+              {ordersToProcess.map((order) => {
+                 // Lógica para detectar si es retiro
+                 const method = order.shippingMethodName?.toLowerCase() || "";
+                 const isPickup = method.includes("retiro") || method.includes("local");
+
+                 return (
+                    <div key={order._id} className={`p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 ${isPickup ? 'bg-green-50/30' : 'bg-orange-50/30'}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPickup ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                              {isPickup ? <Store className="w-5 h-5" /> : <Package className="w-5 h-5" />}
+                          </div>
+                          <div>
+                              <p className="font-bold text-gray-900">Pedido #{order.orderNumber?.slice(-6) || "???"}</p>
+                              <p className="text-xs text-gray-500">{order.customerName} • <span className="font-medium">{order.shippingMethodName || "Envío Estándar"}</span></p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <div className="text-right mr-4 hidden md:block">
+                              <PriceFormatter 
+                                amount={order.totalPrice / 100} 
+                                className="text-sm font-bold text-gray-900 block"
+                              />
+                              <p className="text-[10px] text-green-600 font-bold bg-green-100 px-2 rounded-full inline-block">PAGADO</p>
+                          </div>
+                          
+                          {/* RENDERIZADO CONDICIONAL DE BOTONES */}
+                          {isPickup ? (
+                              <ConfirmPickupButton orderId={order._id} />
+                          ) : (
+                              <StartShipmentButton orderId={order._id} />
+                          )}
+                        </div>
                     </div>
-                    
-                    <div className="flex items-center gap-4">
-                       <div className="text-right mr-4 hidden md:block">
-                          <PriceFormatter 
-                            amount={order.totalPrice / 100} 
-                            className="text-sm font-bold text-gray-900 block"
-                          />
-                          <p className="text-[10px] text-green-600 font-bold bg-green-100 px-2 rounded-full inline-block">PAGADO</p>
-                       </div>
-                       <StartShipmentButton orderId={order._id} />
-                    </div>
-                 </div>
-              ))}
+                 );
+              })}
            </div>
         </div>
       )}
 
-      {/* SECCION ENVIOS */}
+      {/* SECCION ENVIOS ACTIVOS */}
       <h2 className="text-lg font-bold text-gray-800 mb-4">Envíos Activos e Historial</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -210,7 +222,6 @@ export default async function ShipmentsPage() {
 
             {/* RECURSOS  */}
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-auto">
-               
                {/* Vehiculo */}
                <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden relative shrink-0">
@@ -227,11 +238,9 @@ export default async function ShipmentsPage() {
                      </p>
                   </div>
                </div>
-
                {/* Linea divisoria */}
                <div className="h-px bg-gray-200 w-full mb-2"></div>
-
-               {/* 2. Chofer */}
+               {/* Chofer */}
                <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
                      <User className="w-3 h-3 text-gray-500"/>
@@ -240,7 +249,6 @@ export default async function ShipmentsPage() {
                      Chofer: <span className="font-bold text-gray-900">{ship.driverName || "No asignado"}</span>
                   </p>
                </div>
-
             </div>
 
             {/* PIE DE TARJETA */}
@@ -262,7 +270,7 @@ export default async function ShipmentsPage() {
           </div>
         ))}
 
-        {shipments.length === 0 && ordersToShip.length === 0 && (
+        {shipments.length === 0 && ordersToProcess.length === 0 && (
            <div className="col-span-full py-20 text-center text-gray-400">
               No hay actividad logística reciente.
            </div>

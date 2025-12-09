@@ -8,21 +8,16 @@ export default function StartShipmentButton({ orderId }: { orderId: string }) {
   const [loading, setLoading] = useState(false);
 
   const handleStart = async () => {
-    // Confirmación simple
     if (!confirm("¿Asignar vehículo y chofer automáticamente a este pedido?")) return;
     
     setLoading(true);
     try {
       await assignLogistics(orderId);
-      // La acción redirige, así que esperamos sin hacer nada más
     } catch (error: any) {
-      // --- CORRECCIÓN AQUÍ ---
-      // Si el error es la redirección de Next.js, lo dejamos pasar
       if (error.message === 'NEXT_REDIRECT') {
         throw error;
       }
       
-      // Si es un error real (ej: no hay vehículos), mostramos la alerta
       alert(error.message || "Error al asignar logística. Verifica si hay vehículos disponibles.");
       setLoading(false);
     }

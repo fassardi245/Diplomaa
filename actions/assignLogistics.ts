@@ -13,7 +13,6 @@ export async function assignLogistics(orderId: string) {
     throw new Error("Este pedido ya tiene logística asignada");
   }
 
-  // 2. BUSCAR RECURSOS DISPONIBLES (RF2 - Automático Avanzado)
   
   // A. Buscar Vehículo
   const availableVehicle = await backendClient.fetch(
@@ -36,13 +35,23 @@ export async function assignLogistics(orderId: string) {
   try {
     const departureDate = new Date().toISOString();
 
+    let formattedAddress = "Retiro en Local / Dirección no especificada";
+
+    if (order.shippingAddress) {
+      const { line1, city, state, postal_code, country } = order.shippingAddress;
+      const parts = [line1, city, state, postal_code, country].filter(Boolean);
+      if (parts.length > 0) {
+        formattedAddress = parts.join(", ");
+      }
+    }
+
     // 3. CREAR EL ENVÍO (Con referencia a Chofer)
     await backendClient.create({
       _type: "shipment",
       order: { _type: "reference", _ref: orderId },
       vehicle: { _type: "reference", _ref: availableVehicle._id },
-      driver: { _type: "reference", _ref: availableDriver._id }, // Asignamos chofer
-      destinationAddress: "Dirección del Cliente (Simulada)", 
+      driver: { _type: "reference", _ref: availableDriver._id }, 
+      destinationAddress: formattedAddress, 
       status: "in_transit",
       departureDate: departureDate,
     });
