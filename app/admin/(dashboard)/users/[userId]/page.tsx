@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 import { client } from "@/sanity/lib/client";
+import CreateGroupModal from "@/components/admin/CreateGroupModal";
 import { updateUserRoles } from "@/actions/updateUserRoles";
 import Link from "next/link";
 
@@ -64,7 +65,7 @@ export default async function EditUserPage({ params }: { params: { userId: strin
   if (!usuarioEdit) return <div className="p-10">Usuario no encontrado</div>;
 
   const rolesActualesIds = new Set(usuarioEdit.rolesAsignados?.map(r => r._ref) || []);
-
+  const listaAcciones = allRoles.filter(r => r._type === 'accion');
   return (
     <div className="max-w-5xl mx-auto pb-20 p-8">
       
@@ -96,17 +97,20 @@ export default async function EditUserPage({ params }: { params: { userId: strin
           
           {/* --- COLUMNA 1: GRUPOS */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-fit">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
-                    <Users className="w-5 h-5" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-gray-800">Grupos</h3>
-                    <p className="text-xs text-gray-500">Asigna conjuntos de permisos predefinidos.</p>
-                </div>
-            </div>
-            
-            <div className="space-y-3">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
+                      <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                      <h3 className="text-lg font-bold text-gray-800">Grupos</h3>
+                      <p className="text-xs text-gray-500">Asigna conjuntos de permisos.</p>
+                  </div>
+              </div>
+              <CreateGroupModal allActions={listaAcciones} />        
+          </div>
+          
+          <div className="space-y-3">
               {allRoles.filter(r => r._type === 'grupo').map((rol) => (
                 <label key={rol._id} className="relative block cursor-pointer group">
                   <input 
