@@ -23,7 +23,7 @@ export async function createGroup(formData: FormData) {
       })),
     });
 
-    // 3. Refrescar
+    
     revalidatePath("/admin/users", "layout"); 
     
   } catch (error) {
