@@ -1,4 +1,4 @@
-# 🚚 SmartCloth Logistics
+#  SmartCloth Logistics
 
 SmartCloth Logistics es una plataforma web integral desarrollada como proyecto final académico para la obtención del título intermedio de **Analista en Sistemas Informáticos**.
 
