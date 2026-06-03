@@ -8,13 +8,13 @@ La plataforma fue diseñada para gestionar de manera integral el ciclo de ventas
 
 ---
 
-## 🎯 Objetivo del Proyecto
+##  Objetivo del Proyecto
 
 Desarrollar una solución capaz de gestionar el proceso completo de comercialización y distribución de productos, desde la compra realizada por el cliente hasta la planificación logística y entrega del pedido, proporcionando además herramientas de control, monitoreo y análisis para administradores.
 
 ---
 
-## 📋 Análisis y Diseño del Sistema
+##  Análisis y Diseño del Sistema
 
 Durante la primera etapa del proyecto se realizó un proceso completo de Ingeniería de Software, incluyendo:
 
@@ -28,7 +28,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 🛍️ Módulo E-Commerce
+##  Módulo E-Commerce
 
 * Catálogo dinámico de productos.
 * Gestión de categorías y stock.
@@ -39,7 +39,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 🚛 Módulo de Gestión Logística
+##  Módulo de Gestión Logística
 
 * Gestión de choferes y recursos logísticos.
 * Asignación y seguimiento de entregas.
@@ -49,7 +49,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 📦 Gestión de Inventario
+##  Gestión de Inventario
 
 * Control de stock de productos.
 * Actualización automática de existencias.
@@ -58,7 +58,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 📊 Reportes y Análisis de Datos
+##  Reportes y Análisis de Datos
 
 * Dashboard administrativo con indicadores de negocio.
 * Visualización de métricas de ventas.
@@ -69,7 +69,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 🔍 Auditoría
+##  Auditoría
 
 * Registro de acciones realizadas dentro del sistema.
 * Seguimiento de modificaciones sobre datos críticos.
@@ -78,7 +78,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 🔐 Seguridad y Autenticación
+##  Seguridad y Autenticación
 
 * Gestión de usuarios mediante Clerk Authentication.
 * Control de acceso basado en roles.
@@ -87,7 +87,7 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+##  Tecnologías Utilizadas
 
 ### Frontend
 
@@ -122,13 +122,13 @@ Durante la primera etapa del proyecto se realizó un proceso completo de Ingenie
 
 ---
 
-## 👥 Trabajo Colaborativo
+##  Trabajo Colaborativo
 
 El proyecto fue desarrollado por un equipo de tres estudiantes de Ingeniería en Sistemas Informáticos aplicando metodologías de trabajo colaborativas, planificación por etapas y control de versiones mediante Git y GitHub.
 
 ---
 
-## 💡 Conceptos Aplicados
+##  Conceptos Aplicados
 
 * Ingeniería de Software.
 * Análisis y relevamiento de requerimientos.
@@ -140,9 +140,3 @@ El proyecto fue desarrollado por un equipo de tres estudiantes de Ingeniería en
 * Desarrollo de dashboards y sistemas de análisis de datos.
 * Gestión logística y procesos de negocio.
 * Trabajo colaborativo y control de versiones.
-
----
-
-## 📈 Resultado
-
-SmartCloth Logistics integra en una única plataforma los procesos de comercio electrónico, logística, inventario, auditoría y análisis de datos, proporcionando una solución escalable para la gestión operativa y estratégica de empresas dedicadas a la comercialización y distribución de indumentaria.
