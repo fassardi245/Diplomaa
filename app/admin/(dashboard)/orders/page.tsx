@@ -17,7 +17,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// --- INTERFACE ---
+
 interface Order {
   _id: string;
   orderNumber: string;
@@ -60,7 +60,7 @@ async function getData() {
   return orders;
 }
 
-// 2. DEFINIMOS PROPS 
+
 interface Props {
   searchParams: Promise<{
     [key: string]: string | string[] | undefined;
@@ -76,14 +76,14 @@ export default async function OrdersPage({ searchParams }: Props) {
     user.emailAddresses[0]?.emailAddress
   );
 
-  // SEGURIDAD
+
   if (!usuarioSeguridad.puedo("ver_pedidos")) {
      return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
   }
 
   const orders = await getData();
 
-  // LOGICA DE FILTRADO
+
   const resolvedSearchParams = await searchParams;
   const query = (resolvedSearchParams?.query as string) || "";
   
