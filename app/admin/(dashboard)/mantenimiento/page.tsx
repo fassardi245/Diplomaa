@@ -4,7 +4,6 @@ import { Plus, Wrench, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// Interfaces
 interface Maintenance {
   _id: string;
   type: string;
@@ -19,7 +18,6 @@ interface Maintenance {
 }
 
 async function getMaintenances() {
-  // Traemos el mantenimiento y los datos del vehículo asociado (JOIN)
   const query = `*[_type == "maintenance"] | order(date desc) {
     _id, type, description, cost, date, status,
     vehicle->{ model, plate }
@@ -32,7 +30,6 @@ export default async function MaintenancePage() {
   if (!user) return <div>Inicia sesión.</div>;
 
   const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
-  // 🔒 SEGURIDAD 
   if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
 
   const mantenimientos: Maintenance[] = await getMaintenances();

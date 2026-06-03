@@ -5,32 +5,23 @@ import { ArrowLeft } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { obtenerUsuarioSeguridad } from "@/lib/patterns/securityFactory";
 
-// --- LÓGICA DE FILTRADO ---
 async function getAvailableVehicles() {
-  // 1. Traemos TODOS los vehículos
   const allVehiclesQuery = `*[_type == "vehicle"]{ _id, model, plate }`;
 
-  // 2. Traemos IDs de vehículos en RUTA (Envíos activos)
-  // Asumimos que el estado "en camino" se guarda como 'in_transit' en tus envíos
   const busyInShipmentQuery = `*[_type == "shipment" && status == "in_transit"].vehicle._ref`;
 
-  // 3. Traemos IDs de vehículos en TALLER (Mantenimientos activos)
-  // Asumimos que el estado activo es 'in_progress'. 
-  // Si usas otro (ej: 'pending'), agrégalo: status in ["in_progress", "pending"]
+
   const busyInMaintenanceQuery = `*[_type == "maintenance" && status == "in_progress"].vehicle._ref`;
 
-  // Ejecutamos las 3 consultas en paralelo
   const [vehicles, busyShipmentIds, busyMaintenanceIds] = await Promise.all([
     client.fetch(allVehiclesQuery, {}, { cache: "no-store" }),
     client.fetch<string[]>(busyInShipmentQuery, {}, { cache: "no-store" }),
     client.fetch<string[]>(busyInMaintenanceQuery, {}, { cache: "no-store" })
   ]);
 
-  // Creamos una lista única de IDs ocupados (Set es más rápido para buscar)
-  // Combinamos los que están en ruta + los que están en taller
+
   const busyIds = new Set([...busyShipmentIds, ...busyMaintenanceIds]);
 
-  // FILTRO FINAL: Devolvemos solo los vehículos cuyo ID NO esté en la lista de ocupados
   return vehicles.filter((v: any) => !busyIds.has(v._id));
 }
 
@@ -39,9 +30,7 @@ export default async function NewMaintenancePage() {
     if (!user) return <div>Inicia sesión.</div>;
   
     const usuarioSeguridad = await obtenerUsuarioSeguridad(user.id, user.emailAddresses[0].emailAddress);
-    // 🔒 SEGURIDAD (Estilo Flota)
     if (!usuarioSeguridad.puedo("ver_mantenimiento")) return <div className="p-6 text-red-600 font-medium">⛔ Acceso Denegado</div>;
-  // Usamos la nueva función filtrada
   const availableVehicles = await getAvailableVehicles();
 
   return (
